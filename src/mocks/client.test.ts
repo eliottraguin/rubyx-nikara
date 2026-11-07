@@ -17,9 +17,9 @@ describe("parcours M1 en mode mock", () => {
     const r = api.startMission("m1");
     await wait(200);
     const attempt = (await r).state.attempt!;
-    expect(attempt.roles.find((x) => x.role === "writer")?.used).toBe(0);
+    expect(attempt.roles.find((x) => x.role === "scout")?.used).toBe(0);
 
-    const s = api.sendMessage(attempt.id, { role: "writer", text: "Écris une annonce", document_ids: [], max_cost_confirmed: 0 });
+    const s = api.sendMessage(attempt.id, { role: "scout", text: "Écris une annonce", document_ids: [], max_cost_confirmed: 0 });
     await wait(200);
     const act = (await s).action!;
     expect(["RESERVED", "RUNNING"]).toContain(act.status);
@@ -30,7 +30,7 @@ describe("parcours M1 en mode mock", () => {
       return (await g)!;
     })();
     expect(st.attempt!.artifacts).toHaveLength(1);
-    expect(st.attempt!.roles.find((x) => x.role === "writer")?.used).toBe(1);
+    expect(st.attempt!.roles.find((x) => x.role === "scout")?.used).toBe(1);
 
     // brief changé : livrer l'ancienne version du brief est refusé
     const ev = api.demoEvent("target_change");
@@ -52,12 +52,12 @@ describe("parcours M1 en mode mock", () => {
     expect(ev1.score).toBe(65);
     expect(ev1.payment.credited).toBe(13);
     expect(st.balance.available).toBe(43);
-    expect(st.agents.find((a) => a.role === "prospector")?.unlocked).toBe(true);
+    expect(st.agents.find((a) => a.role === "triage")?.unlocked).toBe(true);
 
-    const buy = api.purchaseAgent("prospector");
+    const buy = api.purchaseAgent("triage");
     await wait(200);
     expect((await buy).state.balance.available).toBe(23);
-    const again = api.purchaseAgent("lead");
+    const again = api.purchaseAgent("ads");
     again.catch(() => {});
     await wait(200);
     await expect(again).rejects.toMatchObject({ code: "ROLE_LOCKED" });

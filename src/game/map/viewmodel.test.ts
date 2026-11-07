@@ -16,8 +16,8 @@ function state(missions: MissionView[], over: Partial<GameState> = {}): GameStat
     stage: { index: 1, total: 6, label: "Étape 1" },
     next_action: "",
     agents: [
-      { role: "writer", owned: true, price: 0, unlock_condition: "", unlocked: true, teaches: "" },
-      { role: "prospector", owned: false, price: 20, unlock_condition: "", unlocked: false, teaches: "" },
+      { role: "scout", owned: true, price: 0, unlock_condition: "", unlocked: true, teaches: "" },
+      { role: "triage", owned: false, price: 20, unlock_condition: "", unlocked: false, teaches: "" },
     ],
     missions,
     attempt: null,
@@ -162,7 +162,7 @@ describe("barre d'état", () => {
   it("instructions restantes : somme sur les bots possédés de l'expédition active, null sinon", () => {
     expect(instructionsRemaining(null)).toBeNull();
     expect(instructionsRemaining(state([]))).toBeNull();
-    const attempt = { status: "ACTIVE", roles: [{ role: "writer", used: 2, limit: 5 }, { role: "prospector", used: 0, limit: 5 }] } as unknown as GameState["attempt"];
+    const attempt = { status: "ACTIVE", roles: [{ role: "scout", used: 2, limit: 5 }, { role: "triage", used: 0, limit: 5 }] } as unknown as GameState["attempt"];
     expect(instructionsRemaining(state([], { attempt }))).toBe(3); // « prospector » n'est pas possédé
     const done = { status: "COMPLETED", roles: [] } as unknown as GameState["attempt"];
     expect(instructionsRemaining(state([], { attempt: done }))).toBeNull();

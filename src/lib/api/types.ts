@@ -6,7 +6,7 @@
  */
 
 export type Mode = "beginner" | "expert";
-export type RoleId = "writer" | "prospector" | "researcher" | "analyst" | "qa" | "lead";
+export type RoleId = "scout" | "triage" | "replier" | "ads";
 
 export type MissionStatus =
   | "LOCKED"

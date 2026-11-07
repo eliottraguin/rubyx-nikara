@@ -13,12 +13,10 @@ export function money(n: number): string {
 }
 
 export const ROLE_LABEL: Record<RoleId, string> = {
-  writer: "Rédacteur",
-  prospector: "Prospecteur",
-  researcher: "Chargé de veille",
-  analyst: "Analyste",
-  qa: "Responsable qualité",
-  lead: "Chef d'équipe",
+  scout: "Éclaireur",
+  triage: "Trieur de boîte",
+  replier: "Rédacteur de réponse",
+  ads: "Directeur de campagne",
 };
 
 export const MISSION_STATUS_LABEL: Record<MissionStatus, string> = {

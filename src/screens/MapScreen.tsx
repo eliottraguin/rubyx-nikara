@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { buildingHref, type FloorId } from "@/game/building/floors";
 import { BotList, BuildingStatus, PlanetList } from "@/components/map/AccessibleLayer";
 import { AgentsPanel } from "@/components/map/AgentsPanel";
 import { BasePanel } from "@/components/map/BasePanel";
@@ -80,6 +82,7 @@ function setUrlPlanet(id: string | null) {
 
 function MapView({ state }: { state: GameState | null }) {
   const { api, mutate, busy } = useGame();
+  const router = useRouter();
   const vm = useMemo(() => buildMapViewModel(state), [state]);
   const reduced = useReducedMotion();
   const [bus] = useState(() => {
@@ -184,6 +187,15 @@ function MapView({ state }: { state: GameState | null }) {
     [bus],
   );
 
+  /** Entrer dans l'immeuble : la vue « Immeuble » (étages) est une route à part, au clavier comme à la souris. */
+  const enterBuilding = useCallback(
+    (floor?: FloorId) => {
+      setMenuOpen(false);
+      router.push(buildingHref(floor));
+    },
+    [router],
+  );
+
   const closeFocus = useCallback(() => {
     if (!focusRef.current) return;
     focusRef.current = null;
@@ -203,13 +215,14 @@ function MapView({ state }: { state: GameState | null }) {
   useEffect(() => {
     const offs = [
       bus.on("planet:select", (id) => {
-        if (id) openFocus(id);
+        if (id === "base") enterBuilding();
+        else if (id) openFocus(id);
       }),
       bus.on("scene:ready", () => setReady(true)),
       bus.on("building:construction", setConstructing),
     ];
     return () => offs.forEach((off) => off());
-  }, [bus, openFocus]);
+  }, [bus, openFocus, enterBuilding]);
 
   // Lien direct (?planete=annuaire) : ouvre la vue une fois la carte prête.
   useEffect(() => {
@@ -412,7 +425,7 @@ function MapView({ state }: { state: GameState | null }) {
         busy={busy}
         onDispatch={dispatchAgent}
         onBuy={buyAgent}
-        onOpenBase={() => openFocus("base")}
+        onOpenBase={() => enterBuilding("accueil")}
       />
     ) : null;
 
@@ -506,7 +519,7 @@ function MapView({ state }: { state: GameState | null }) {
           ) : (
             <div className="map-side">
               <PlanetPanel planet={null} vm={vm} />
-              <BuildingStatus vm={vm} onEnter={() => openFocus("base")} />
+              <BuildingStatus vm={vm} onEnter={() => enterBuilding()} />
               <PlanetList vm={vm} selectedId={null} onSelect={openFocus} />
               <BotList vm={vm} ownedRoles={ownedRoles} trips={tc.trips} now={tc.now} reduced={reduced} />
               <AgentsSummary vm={vm} />
@@ -538,7 +551,7 @@ function MapView({ state }: { state: GameState | null }) {
         ) : null}
 
         <div className="map-hud" aria-label="Barre d'état">
-          <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label={`Coffre : ${vm.treasury === null ? "inconnu" : money(vm.treasury)}. Ouvrir votre immeuble.`}>
+          <button type="button" className="hud-chip hud-btn" onClick={() => enterBuilding("accueil")} aria-label={`Coffre : ${vm.treasury === null ? "inconnu" : money(vm.treasury)}. Ouvrir votre immeuble.`}>
             <span className="hud-label">Coffre</span> <strong>{vm.treasury === null ? "—" : money(vm.treasury)}</strong>
           </button>
           {left !== null ? (
@@ -546,7 +559,7 @@ function MapView({ state }: { state: GameState | null }) {
               <span className="hud-label">Instructions</span> <strong>{left}</strong>
             </span>
           ) : null}
-          <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label="Garage : ouvrir votre immeuble.">
+          <button type="button" className="hud-chip hud-btn" onClick={() => enterBuilding("accueil")} aria-label="Garage : ouvrir votre immeuble.">
             <span className="hud-label">Garage</span> <strong>{vm.source === "serveur" ? `${vm.base.agentsOwned}/${vm.base.agentsTotal}` : "—"}</strong>
           </button>
           <span className="hud-chip" title={vm.simulated ? "Les réponses des bots et des lieux sont simulées" : "Données réelles"}>
@@ -568,7 +581,7 @@ function MapView({ state }: { state: GameState | null }) {
             <nav id="city-menu" className="map-menu-list" aria-label="Menu de la ville">
               <ul>
                 <li>
-                  <button type="button" onClick={() => openFocus("base")}>
+                  <button type="button" onClick={() => enterBuilding()}>
                     Entrer dans votre immeuble
                   </button>
                 </li>
@@ -630,7 +643,7 @@ function MapView({ state }: { state: GameState | null }) {
 
         {focusId !== "base" ? (
           <div className="map-building">
-            <BuildingStatus vm={vm} onEnter={() => openFocus("base")} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
+            <BuildingStatus vm={vm} onEnter={() => enterBuilding()} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
           </div>
         ) : null}
 
@@ -666,7 +679,7 @@ function MapView({ state }: { state: GameState | null }) {
                 </>
               ) : (
                 <>
-                  <BuildingStatus vm={vm} onEnter={() => openFocus("base")} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
+                  <BuildingStatus vm={vm} onEnter={() => enterBuilding()} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
                   <BasePanel state={state} busy={busy} onBuy={buyAgent} />
                 </>
               )}

@@ -3,7 +3,7 @@ import { botLine, botList, traceEventsAt } from "./bots";
 import { FAILED_HOLD, TIMING, failTrip, tripFrame, type Trip } from "./trips";
 
 const T0 = 1_000_000;
-const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t1", planetId: "linkedin", role: "writer", startedAt: T0, doneAt: null, legMs: 2000, ...over });
+const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t1", planetId: "linkedin", role: "scout", startedAt: T0, doneAt: null, legMs: 2000, ...over });
 
 describe("états de bot = états de la trace serveur", () => {
   it("departed -> arrived/dialogue -> returned, dans l'ordre", () => {
@@ -49,25 +49,25 @@ describe("états de bot = états de la trace serveur", () => {
 describe("équivalent texte d'un bot", () => {
   const place = { name: "Midtown", vehicle: "bike" as const };
   it("suit le tableau de docs/VILLE-ET-BATIMENT.md §5", () => {
-    expect(botLine("writer", null, place)).toEqual({ state: "garage", text: "Rédacteur : au garage" });
-    expect(botLine("writer", "outbound", place)).toEqual({ state: "en_route", text: "Rédacteur : part à vélo vers Midtown" });
-    expect(botLine("writer", "dialogue", place)).toEqual({ state: "sur_place", text: "Rédacteur : discute avec Midtown" });
-    expect(botLine("writer", "return", place).state).toBe("retour");
-    expect(botLine("writer", "failed", place)).toEqual({ state: "en_panne", text: "Rédacteur : en panne, aucun débit" });
+    expect(botLine("scout", null, place)).toEqual({ state: "garage", text: "Éclaireur : au garage" });
+    expect(botLine("scout", "outbound", place)).toEqual({ state: "en_route", text: "Éclaireur : part à vélo vers Midtown" });
+    expect(botLine("scout", "dialogue", place)).toEqual({ state: "sur_place", text: "Éclaireur : discute avec Midtown" });
+    expect(botLine("scout", "return", place).state).toBe("retour");
+    expect(botLine("scout", "failed", place)).toEqual({ state: "en_panne", text: "Éclaireur : en panne, aucun débit" });
   });
 
   it("le véhicule vient du lieu : à pied, en skate, en hélicoptère", () => {
-    expect(botLine("writer", "outbound", { name: "A", vehicle: "foot" }).text).toContain("à pied");
-    expect(botLine("writer", "outbound", { name: "A", vehicle: "skate" }).text).toContain("en skate");
-    expect(botLine("writer", "outbound", { name: "A", vehicle: "helicopter" }).text).toContain("en hélicoptère");
+    expect(botLine("scout", "outbound", { name: "A", vehicle: "foot" }).text).toContain("à pied");
+    expect(botLine("scout", "outbound", { name: "A", vehicle: "skate" }).text).toContain("en skate");
+    expect(botLine("scout", "outbound", { name: "A", vehicle: "helicopter" }).text).toContain("en hélicoptère");
   });
 });
 
 describe("liste texte des bots (couche DOM)", () => {
   const places = [{ id: "linkedin", name: "Midtown", vehicle: "bike" as const }];
   it("un agent sans trajet est au garage, un agent en route est annoncé avec son lieu et son véhicule", () => {
-    const items = botList(["writer", "lead"], [trip()], places, T0 + 500);
-    expect(items.map((i) => i.text)).toEqual(["Rédacteur : part à vélo vers Midtown", "Chef d'équipe : au garage"]);
+    const items = botList(["scout", "ads"], [trip()], places, T0 + 500);
+    expect(items.map((i) => i.text)).toEqual(["Éclaireur : part à vélo vers Midtown", "Directeur de campagne : au garage"]);
     expect(items[0]).toMatchObject({ state: "en_route", placeId: "linkedin" });
     expect(items[1]).toMatchObject({ state: "garage", placeId: null });
   });
@@ -75,11 +75,18 @@ describe("liste texte des bots (couche DOM)", () => {
   it("un trajet terminé (rentré) remet le bot au garage", () => {
     const done = trip({ doneAt: T0 });
     const later = T0 + 2000 + TIMING.dialogueMin + 2000 + 10;
-    expect(botList(["writer"], [done], places, later)[0]).toMatchObject({ state: "garage" });
+    expect(botList(["scout"], [done], places, later)[0]).toMatchObject({ state: "garage" });
   });
 
   it("une panne est annoncée sans débit", () => {
     const failed = failTrip([trip()], "t1", T0 + 100);
-    expect(botList(["writer"], failed, places, T0 + 200)[0]!.text).toBe("Rédacteur : en panne, aucun débit");
+    expect(botList(["scout"], failed, places, T0 + 200)[0]!.text).toBe("Éclaireur : en panne, aucun débit");
+  });
+});
+
+describe("ids de rôles du hangar", () => {
+  it("les 4 rôles ont un libellé", async () => {
+    const { ROLE_LABEL } = await import("@/lib/format");
+    expect(Object.keys(ROLE_LABEL).sort()).toEqual(["ads", "replier", "scout", "triage"]);
   });
 });

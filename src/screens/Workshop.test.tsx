@@ -27,9 +27,9 @@ describe("Atelier (mock)", () => {
 
   it("à 5/5 désactive la saisie, explique la cause, et laisse éditer/livrer", async () => {
     for (let i = 0; i < 5; i++) {
-      await api.sendMessage(attemptId, { role: "writer", text: `Consigne ${i}`, document_ids: [], max_cost_confirmed: 0 });
+      await api.sendMessage(attemptId, { role: "scout", text: `Consigne ${i}`, document_ids: [], max_cost_confirmed: 0 });
     }
-    await expect(api.sendMessage(attemptId, { role: "writer", text: "6e", document_ids: [], max_cost_confirmed: 0 })).rejects.toMatchObject({
+    await expect(api.sendMessage(attemptId, { role: "scout", text: "6e", document_ids: [], max_cost_confirmed: 0 })).rejects.toMatchObject({
       code: "MESSAGE_LIMIT",
     });
     render(

@@ -27,12 +27,10 @@ export interface AgentFixture {
 }
 
 export const AGENTS: AgentFixture[] = [
-  { role: "writer", price: 0, unlockedBy: null, unlock_condition: "Disponible dès le départ", teaches: "Apprendre à donner une consigne claire et complète." },
-  { role: "prospector", price: 20, unlockedBy: "m1", unlock_condition: "Réussir la commande M1", teaches: "Choisir des prospects et justifier une approche." },
-  { role: "researcher", price: 35, unlockedBy: "m2", unlock_condition: "Réussir la commande M2", teaches: "Comparer des sources et citer leurs dates." },
-  { role: "qa", price: 30, unlockedBy: "m2", unlock_condition: "Réussir la commande M2", teaches: "Faire contrôler un livrable avant de le livrer." },
-  { role: "analyst", price: 45, unlockedBy: "m3", unlock_condition: "Réussir la commande M3", teaches: "Vérifier des chiffres, calculés côté serveur." },
-  { role: "lead", price: 80, unlockedBy: "m5", unlock_condition: "Réussir la commande M5", teaches: "Déléguer à plusieurs agents dans une limite de coût." },
+  { role: "scout", price: 0, unlockedBy: null, unlock_condition: "Disponible dès le départ", teaches: "Écrire une consigne claire pour trouver des prospects vérifiables." },
+  { role: "triage", price: 20, unlockedBy: "m1", unlock_condition: "Réussir la commande M1", teaches: "Trier les messages reçus des prospects du carnet." },
+  { role: "replier", price: 35, unlockedBy: "m2", unlock_condition: "Réussir la commande M2", teaches: "Rédiger des brouillons de réponse, que vous relisez avant tout envoi." },
+  { role: "ads", price: 45, unlockedBy: "m3", unlock_condition: "Réussir la commande M3", teaches: "Préparer des contenus de pub prêts à publier, sans rien publier." },
 ];
 
 export interface MissionFixture {
@@ -232,10 +230,10 @@ export const TARGET_CHANGE = {
 
 export const LEAD_PLAN: LeadPlan & { extra_cost_max: number; roles_cost_max: Partial<Record<RoleId, number>> } = {
   steps: [
-    { role: "researcher", task: "Comparer les deux documents et relever les dates", source_ids: ["doc_note", "doc_fiche"] },
-    { role: "writer", task: "Préparer la publication à partir de la comparaison", depends_on: 0 },
+    { role: "replier", task: "Comparer les deux documents et relever les dates", source_ids: ["doc_note", "doc_fiche"] },
+    { role: "scout", task: "Préparer la publication à partir de la comparaison", depends_on: 0 },
   ],
   summary: "Vérifier les sources puis rédiger la publication.",
   extra_cost_max: 4,
-  roles_cost_max: { researcher: 2, writer: 2 },
+  roles_cost_max: { replier: 2, scout: 2 },
 };

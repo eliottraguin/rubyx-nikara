@@ -45,13 +45,13 @@ describe.skipIf(!BASE)("parcours réel via l'adaptateur HTTP", () => {
       expect(a.status).toBe("ACTIVE");
       expect(a.brief.text.length).toBeGreaterThan(20);
       expect(a.documents.length).toBeGreaterThan(0);
-      expect(a.roles.find((x) => x.role === "writer")!.limit).toBe(5);
+      expect(a.roles.find((x) => x.role === "scout")!.limit).toBe(5);
 
       // pièce partagée + message au rédacteur
-      r = await api.sendMessage(a.id, { role: "writer", text: "Rédige le livrable demandé.", document_ids: [a.documents[0]!.id], max_cost_confirmed: a.unit_price });
+      r = await api.sendMessage(a.id, { role: "scout", text: "Rédige le livrable demandé.", document_ids: [a.documents[0]!.id], max_cost_confirmed: a.unit_price });
       expect(r.action?.status).toBe("SUCCEEDED");
       const after = r.state.attempt!;
-      expect(after.roles.find((x) => x.role === "writer")!.used).toBe(1);
+      expect(after.roles.find((x) => x.role === "scout")!.used).toBe(1);
       expect(after.messages.filter((m) => m.author === "agent")).toHaveLength(1);
       expect(after.artifacts.every((x) => x.content.length > 0)).toBe(true); // la pièce partagée n'apparaît pas comme livrable
       expect(r.state.balance.available).toBe(balance - after.unit_price);
@@ -84,9 +84,9 @@ describe.skipIf(!BASE)("parcours réel via l'adaptateur HTTP", () => {
 
     // erreur stable lue depuis { error: { code } }
     // achat côté serveur : le chef est débloqué par M5 et le solde le permet ; un second achat est refusé (code stable)
-    r = await api.purchaseAgent("lead");
-    expect(r.state.agents.find((x) => x.role === "lead")!.owned).toBe(true);
-    await expect(api.purchaseAgent("lead")).rejects.toMatchObject({ code: expect.stringMatching(/^[A-Z_]+$/), status: expect.any(Number) });
+    r = await api.purchaseAgent("ads");
+    expect(r.state.agents.find((x) => x.role === "ads")!.owned).toBe(true);
+    await expect(api.purchaseAgent("ads")).rejects.toMatchObject({ code: expect.stringMatching(/^[A-Z_]+$/), status: expect.any(Number) });
     await expect(api.listNotebook()).rejects.toMatchObject({ code: "NOT_IMPLEMENTED" });
     await expect(api.requestHint("x", 1)).rejects.toMatchObject({ code: "NOT_IMPLEMENTED" });
   }, 120_000);

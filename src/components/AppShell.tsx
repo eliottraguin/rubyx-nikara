@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { ShortcutsMenu } from "@/components/building/ShortcutsMenu";
 import { isMockMode } from "@/lib/api";
 import { money } from "@/lib/format";
 import { useGame } from "@/lib/game-context";
@@ -66,6 +67,9 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Link href="/carte" className="nav-main" aria-current={onMap ? "page" : undefined}>
                     Carte
                   </Link>
+                </li>
+                <li>
+                  <ShortcutsMenu path={path} />
                 </li>
                 <li>
                   {/* `key` : le menu se referme après chaque navigation. */}

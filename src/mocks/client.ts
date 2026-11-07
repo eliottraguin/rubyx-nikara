@@ -259,7 +259,7 @@ function attemptView(at: IAttempt): AttemptView {
     owned: srv.owned.includes(ag.role),
     used: at.used[ag.role] ?? 0,
     limit: MESSAGE_LIMIT,
-    next_cost_max: (m?.unit_price ?? 0) * (ag.role === "lead" ? 3 : 1),
+    next_cost_max: (m?.unit_price ?? 0),
     free_credit: at.free_credit[ag.role],
   }));
   const sub = at.submissions[at.submissions.length - 1];
@@ -415,7 +415,7 @@ export function createMockClient(): ApiClient {
       srv = fresh();
       srv.session = { id: "sess_mock", mode: input.mode, company };
       srv.booked = INITIAL_BALANCE;
-      srv.owned = ["writer"];
+      srv.owned = ["scout"];
       return result();
     },
     async getState() {
@@ -457,7 +457,7 @@ export function createMockClient(): ApiClient {
       if (input.text.trim().length === 0 || input.text.length > 4000) throw err("VALIDATION", "Instruction vide ou trop longue.", 422);
       const m = missionFx(at.mission_id);
       const free = at.free_credit[input.role] ?? 0;
-      const cost = free ? 0 : (m?.unit_price ?? 0) * (input.role === "lead" ? 3 : 1);
+      const cost = free ? 0 : (m?.unit_price ?? 0);
       if (cost > srv.booked - reserved()) throw err("INSUFFICIENT_FUNDS");
       const idx = at.used[input.role] ?? 0;
       at.used[input.role] = idx + 1;
@@ -606,14 +606,14 @@ export function createMockClient(): ApiClient {
         if (at.brief.version > 1) throw err("INVALID_STATE", "Cet événement a déjà été appliqué.");
         at.brief_version = 2;
         at.brief = { version: 2, text: TARGET_CHANGE.brief, diff: TARGET_CHANGE.diff, change_reason: TARGET_CHANGE.reason };
-        at.free_credit.writer = 1;
+        at.free_credit.scout = 1;
         return result();
       }
       const a: IAction = {
         id: id("act"),
         type: "plan",
         attempt_id: at.id,
-        role: "lead",
+        role: "scout",
         created: Date.now(),
         text: "",
         doc_ids: [],

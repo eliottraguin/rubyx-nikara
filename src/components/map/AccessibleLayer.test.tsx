@@ -63,9 +63,9 @@ describe("couche DOM accessible de la ville", () => {
 
   it("les bots : au garage ou en route, état en toutes lettres", () => {
     const t0 = 1_000_000;
-    const trip: Trip = { id: "t", planetId: "linkedin", role: "writer", startedAt: t0, doneAt: null, legMs: 2000 };
-    render(<BotList vm={vm} ownedRoles={["writer", "lead"]} trips={[trip]} now={t0 + 500} reduced={false} />);
+    const trip: Trip = { id: "t", planetId: "linkedin", role: "scout", startedAt: t0, doneAt: null, legMs: 2000 };
+    render(<BotList vm={vm} ownedRoles={["scout", "ads"]} trips={[trip]} now={t0 + 500} reduced={false} />);
     const items = screen.getAllByRole("listitem").map((li) => li.textContent);
-    expect(items).toEqual(["Rédacteur : part à vélo vers Midtown", "Chef d'équipe : au garage"]);
+    expect(items).toEqual(["Éclaireur : part à vélo vers Midtown", "Directeur de campagne : au garage"]);
   });
 });

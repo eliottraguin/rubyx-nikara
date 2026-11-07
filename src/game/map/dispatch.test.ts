@@ -6,9 +6,9 @@ import { TIMING, type Trip } from "./trips";
 import { buildMapViewModel } from "./viewmodel";
 
 const agents: AgentView[] = [
-  { role: "writer", owned: true, price: 0, unlock_condition: "Disponible dès le départ", unlocked: true, teaches: "t" },
-  { role: "prospector", owned: false, price: 20, unlock_condition: "Réussir M1", unlocked: true, teaches: "t" },
-  { role: "researcher", owned: false, price: 35, unlock_condition: "Réussir M2", unlocked: false, teaches: "t" },
+  { role: "scout", owned: true, price: 0, unlock_condition: "Disponible dès le départ", unlocked: true, teaches: "t" },
+  { role: "triage", owned: false, price: 20, unlock_condition: "Réussir M1", unlocked: true, teaches: "t" },
+  { role: "replier", owned: false, price: 35, unlock_condition: "Réussir M2", unlocked: false, teaches: "t" },
 ];
 
 function stateWith(status: MissionStatus, over: Partial<GameState> = {}): GameState {
@@ -29,8 +29,8 @@ function attempt(over: Partial<AttemptView> = {}): AttemptView {
     id: "att_1", mission_id: "m1", mission_title: "M1", attempt_no: 1, status: "ACTIVE", brief: { version: 1, text: "" }, documents: [], criteria: [],
     max_reward: 20, unit_price: 2, spend_cap: null, clarifications: { used: 0, max: 3, items: [] },
     roles: [
-      { role: "writer", owned: true, used: 2, limit: 5, next_cost_max: 2 },
-      { role: "prospector", owned: false, used: 0, limit: 5, next_cost_max: 2 },
+      { role: "scout", owned: true, used: 2, limit: 5, next_cost_max: 2 },
+      { role: "triage", owned: false, used: 0, limit: 5, next_cost_max: 2 },
     ],
     messages: [], artifacts: [], submission: null, hints_used: 0, ...over,
   };
@@ -40,7 +40,7 @@ describe("agents d'une planète", () => {
   it("avant toute expédition : quota d'affichage de repli et coût unitaire du serveur", () => {
     const s = stateWith("AVAILABLE");
     const slots = buildAgentSlots({ state: s, planet: planetOf(s), attempt: null, trips: [], now: 0, reduced: false });
-    const writer = slots.find((x) => x.role === "writer")!;
+    const writer = slots.find((x) => x.role === "scout")!;
     expect(writer).toMatchObject({ kind: "home", used: 0, limit: DEFAULT_MESSAGE_LIMIT, remaining: DEFAULT_MESSAGE_LIMIT, costMax: 2, stateLabel: "Au garage" });
   });
 
@@ -48,14 +48,14 @@ describe("agents d'une planète", () => {
     const s = stateWith("ACTIVE");
     const a = attempt();
     const slots = buildAgentSlots({ state: s, planet: planetOf(s), attempt: a, trips: [], now: 0, reduced: false });
-    expect(slots[0]).toMatchObject({ role: "writer", kind: "sent", used: 2, remaining: 3, stateLabel: "Rentré au garage" });
+    expect(slots[0]).toMatchObject({ role: "scout", kind: "sent", used: 2, remaining: 3, stateLabel: "Rentré au garage" });
     expect(slots.map((x) => x.kind)).toEqual(["sent", "buyable", "locked"]);
   });
 
   it("l'état en route / sur place / retour suit le voyage visuel", () => {
     const s = stateWith("ACTIVE");
-    const trip: Trip = { id: "t", planetId: "annuaire", role: "writer", startedAt: 1000, doneAt: null };
-    const at = (now: number) => buildAgentSlots({ state: s, planet: planetOf(s), attempt: attempt(), trips: [trip], now, reduced: false }).find((x) => x.role === "writer")!;
+    const trip: Trip = { id: "t", planetId: "annuaire", role: "scout", startedAt: 1000, doneAt: null };
+    const at = (now: number) => buildAgentSlots({ state: s, planet: planetOf(s), attempt: attempt(), trips: [trip], now, reduced: false }).find((x) => x.role === "scout")!;
     expect(at(1000).stateLabel).toBe("En route");
     expect(at(1000 + TIMING.outbound + 1).stateLabel).toBe("Sur place");
     expect(at(1000 + TIMING.outbound + 1).phase).toBe("dialogue");
@@ -63,8 +63,8 @@ describe("agents d'une planète", () => {
 
   it("un message gratuit (crédit exceptionnel) coûte 0", () => {
     const s = stateWith("ACTIVE");
-    const a = attempt({ roles: [{ role: "writer", owned: true, used: 1, limit: 5, next_cost_max: 2, free_credit: 1 }] });
-    const w = buildAgentSlots({ state: s, planet: planetOf(s), attempt: a, trips: [], now: 0, reduced: false }).find((x) => x.role === "writer")!;
+    const a = attempt({ roles: [{ role: "scout", owned: true, used: 1, limit: 5, next_cost_max: 2, free_credit: 1 }] });
+    const w = buildAgentSlots({ state: s, planet: planetOf(s), attempt: a, trips: [], now: 0, reduced: false }).find((x) => x.role === "scout")!;
     expect(w).toMatchObject({ free: true, costMax: 0 });
   });
 
@@ -98,11 +98,11 @@ describe("envois impossibles : toujours expliqués", () => {
   };
 
   it("autorise un envoi valide", () => {
-    expect(run(stateWith("AVAILABLE"), "writer", "Trouve 5 restaurants à Lyon").allowed).toBe(true);
+    expect(run(stateWith("AVAILABLE"), "scout", "Trouve 5 restaurants à Lyon").allowed).toBe(true);
   });
 
   it("lieu verrouillé : cause et condition de déblocage", () => {
-    const r = run(stateWith("LOCKED"), "writer", "x");
+    const r = run(stateWith("LOCKED"), "scout", "x");
     expect(r.allowed).toBe(false);
     expect(r.reasons[0]).toMatch(/verrouillé/i);
   });
@@ -110,24 +110,24 @@ describe("envois impossibles : toujours expliqués", () => {
   it("agent non choisi, non acheté, verrouillé", () => {
     const s = stateWith("AVAILABLE");
     expect(run(s, null, "x").reasons).toEqual(["Choisissez d'abord un agent."]);
-    expect(run(s, "prospector", "x").reasons.join(" ")).toMatch(/pas encore acheté : 20\u00a0\$/);
-    expect(run(s, "researcher", "x").reasons.join(" ")).toMatch(/verrouillé : Réussir M2/);
+    expect(run(s, "triage", "x").reasons.join(" ")).toMatch(/pas encore acheté : 20\u00a0\$/);
+    expect(run(s, "replier", "x").reasons.join(" ")).toMatch(/verrouillé : Réussir M2/);
   });
 
   it("quota atteint et fonds insuffisants", () => {
     const s = stateWith("ACTIVE", { balance: { booked: 1, reserved: 0, available: 1 } });
-    const full = attempt({ roles: [{ role: "writer", owned: true, used: 5, limit: 5, next_cost_max: 2 }] });
-    const r = run(s, "writer", "x", full);
+    const full = attempt({ roles: [{ role: "scout", owned: true, used: 5, limit: 5, next_cost_max: 2 }] });
+    const r = run(s, "scout", "x", full);
     expect(r.reasons.join(" ")).toMatch(/5 instructions de cet agent sont utilisées/);
     expect(r.reasons.join(" ")).toMatch(/Fonds insuffisants : coût maximal 2\u00a0\$, solde disponible 1\u00a0\$/);
   });
 
   it("texte vide ou trop long, agent déjà en route, évaluation en cours", () => {
     const s = stateWith("ACTIVE");
-    expect(run(s, "writer", "  ", attempt()).reasons).toContain("Écrivez la mission de l'agent.");
-    expect(run(s, "writer", "a".repeat(11), attempt(), { maxChars: 10 }).reasons.join(" ")).toMatch(/10 caractères maximum/);
-    expect(run(s, "writer", "x", attempt(), { busyRole: true }).reasons.join(" ")).toMatch(/déjà en route/);
+    expect(run(s, "scout", "  ", attempt()).reasons).toContain("Écrivez la mission de l'agent.");
+    expect(run(s, "scout", "a".repeat(11), attempt(), { maxChars: 10 }).reasons.join(" ")).toMatch(/10 caractères maximum/);
+    expect(run(s, "scout", "x", attempt(), { busyRole: true }).reasons.join(" ")).toMatch(/déjà en route/);
     const ev = attempt({ status: "EVALUATING", submission: { id: "s", status: "EVALUATING", artifact_version_id: "a", brief_version: 1 } });
-    expect(run(stateWith("EVALUATING"), "writer", "x", ev).reasons.join(" ")).toMatch(/en cours d'évaluation/);
+    expect(run(stateWith("EVALUATING"), "scout", "x", ev).reasons.join(" ")).toMatch(/en cours d'évaluation/);
   });
 });

@@ -47,7 +47,7 @@ describe("erreurs", () => {
 
   it("conserve le code stable et le message français du serveur", async () => {
     const { client } = harness((c) => reads(c) ?? json({ error: { code: "MESSAGE_LIMIT", message: "Le nombre maximal de messages est atteint." } }, 409));
-    await expect(client.sendMessage("att_1", { role: "writer", text: "x", document_ids: [], max_cost_confirmed: 0 })).rejects.toMatchObject({
+    await expect(client.sendMessage("att_1", { role: "scout", text: "x", document_ids: [], max_cost_confirmed: 0 })).rejects.toMatchObject({
       code: "MESSAGE_LIMIT",
       status: 409,
       message: "Le nombre maximal de messages est atteint.",
@@ -72,11 +72,11 @@ describe("requêtes envoyées", () => {
       if (c.url.endsWith("/messages")) return json(actionMessage, 202);
       return reads(c) ?? json({}, 404);
     });
-    const r = await client.sendMessage("att_1", { role: "writer", text: "Rédige", document_ids: ["m1_doc_fiche"], max_cost_confirmed: 3 });
+    const r = await client.sendMessage("att_1", { role: "scout", text: "Rédige", document_ids: ["m1_doc_fiche"], max_cost_confirmed: 3 });
     const writes = calls.filter((c) => c.method === "POST");
     expect(writes.map((c) => c.url)).toEqual(["/api/attempts/att_1/shares", "/api/attempts/att_1/messages"]);
-    expect(writes[0]!.body).toEqual({ role: "writer", document_id: "m1_doc_fiche" });
-    expect(writes[1]!.body).toEqual({ role: "writer", text: "Rédige", linked_artifact_ids: ["art_doc1"] });
+    expect(writes[0]!.body).toEqual({ role: "scout", document_id: "m1_doc_fiche" });
+    expect(writes[1]!.body).toEqual({ role: "scout", text: "Rédige", linked_artifact_ids: ["art_doc1"] });
     expect(Object.keys(writes[1]!.body as object)).not.toContain("max_cost_confirmed"); // jamais de coût choisi par le navigateur
     expect(r.action?.status).toBe("SUCCEEDED");
   });
@@ -95,7 +95,7 @@ describe("requêtes envoyées", () => {
 });
 
 describe("clé d'idempotence stable par intention", () => {
-  const send = (c: ReturnType<typeof harness>["client"]) => c.sendMessage("att_1", { role: "writer", text: "Même texte", document_ids: [], max_cost_confirmed: 0 });
+  const send = (c: ReturnType<typeof harness>["client"]) => c.sendMessage("att_1", { role: "scout", text: "Même texte", document_ids: [], max_cost_confirmed: 0 });
   const key = (calls: Call[], i: number) => calls.filter((c) => c.url.endsWith("/messages"))[i]!.headers["Idempotency-Key"];
 
   it("réutilise la clé quand la réponse s'est perdue (réseau coupé), puis en change une fois la réponse reçue", async () => {
@@ -127,7 +127,7 @@ describe("clé d'idempotence stable par intention", () => {
   it("des intentions différentes ont des clés différentes", async () => {
     const { client, calls } = harness((c) => (c.url.endsWith("/messages") ? json(actionMessage, 202) : (reads(c) ?? json({}, 404))));
     await send(client);
-    await client.sendMessage("att_1", { role: "writer", text: "Autre texte", document_ids: [], max_cost_confirmed: 0 });
+    await client.sendMessage("att_1", { role: "scout", text: "Autre texte", document_ids: [], max_cost_confirmed: 0 });
     expect(key(calls, 0)).not.toBe(key(calls, 1));
   });
 });
@@ -142,7 +142,7 @@ describe("adaptation de l'état réel", () => {
     expect(state.stage).toEqual({ index: 2, total: 6, label: "Étape 2 sur 6" });
     expect(state.next_action).toBe("Acceptez la prochaine commande.");
     expect(state.balance).toEqual(WS.balance);
-    expect(state.agents.find((a) => a.role === "prospector")).toMatchObject({ unlocked: true, unlock_condition: "Réussir la commande M1" });
+    expect(state.agents.find((a) => a.role === "triage")).toMatchObject({ unlocked: true, unlock_condition: "Réussir la commande M1" });
     expect(state.missions.find((m) => m.id === "m1")).toMatchObject({ status: "COMPLETED", best_payment: 20 });
     expect(state.hints_enabled).toBe(false);
   });
@@ -161,7 +161,7 @@ describe("adaptation de l'état réel", () => {
     expect(a.brief.text).toContain("Le Petit Comptoir");
     expect(a.brief.text).toContain("9,90 €");
     expect(a.documents[0]).toMatchObject({ id: "m1_doc_fiche", content: expect.stringContaining("Fiche client") });
-    expect(a.roles.find((r) => r.role === "writer")).toMatchObject({ used: 1, limit: WS.quotas.messages_per_agent_per_attempt, owned: true });
+    expect(a.roles.find((r) => r.role === "scout")).toMatchObject({ used: 1, limit: WS.quotas.messages_per_agent_per_attempt, owned: true });
     expect(a.artifacts).toHaveLength(1);
     expect(a.artifacts[0]).toMatchObject({ number: 1, author: "player" });
     expect(a.criteria.length).toBeGreaterThan(0);
@@ -192,7 +192,7 @@ describe("adaptation de l'état réel", () => {
 
   it("action : statut, débit, étapes", () => {
     const v = mapAction(actionMessage as never);
-    expect(v).toMatchObject({ type: "message", status: "SUCCEEDED", role: "writer", debited: 0 });
+    expect(v).toMatchObject({ type: "message", status: "SUCCEEDED", role: "scout", debited: 0 });
   });
 
   it("action de plan à confirmer : plan, coût maximal, coûts par rôle", () => {
@@ -202,9 +202,9 @@ describe("adaptation de l'état réel", () => {
       type: "lead_plan",
       status: "AWAITING_CONFIRMATION",
       steps: [
-        { index: 0, kind: "plan", role: "lead", status: "DONE", cost: 0, task: null, source_ids: [], depends_on: null },
-        { index: 1, kind: "delegation", role: "writer", status: "PENDING", cost: 2, task: "Rédiger", source_ids: ["d1"], depends_on: null },
-        { index: 2, kind: "delegation", role: "qa", status: "PENDING", cost: 2, task: "Contrôler", source_ids: [], depends_on: 1 },
+        { index: 0, kind: "plan", role: "ads", status: "DONE", cost: 0, task: null, source_ids: [], depends_on: null },
+        { index: 1, kind: "delegation", role: "scout", status: "PENDING", cost: 2, task: "Rédiger", source_ids: ["d1"], depends_on: null },
+        { index: 2, kind: "delegation", role: "replier", status: "PENDING", cost: 2, task: "Contrôler", source_ids: [], depends_on: 1 },
       ],
       error: null,
       debited: 0,
@@ -213,10 +213,10 @@ describe("adaptation de l'état réel", () => {
       answer: null,
       reservations: [],
     });
-    expect(v.role).toBe("lead");
-    expect(v.plan).toMatchObject({ summary: "Deux étapes", extra_cost_max: 4, roles_cost_max: { writer: 2, qa: 2 } });
+    expect(v.role).toBe("scout");
+    expect(v.plan).toMatchObject({ summary: "Deux étapes", extra_cost_max: 4, roles_cost_max: { scout: 2, replier: 2 } });
     expect(v.plan!.steps).toHaveLength(2);
-    expect(v.plan!.steps[1]).toMatchObject({ role: "qa", depends_on: 1 });
+    expect(v.plan!.steps[1]).toMatchObject({ role: "replier", depends_on: 1 });
   });
 
   it("brief v2 : diff champ par champ avec motif", () => {

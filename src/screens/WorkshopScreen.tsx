@@ -122,7 +122,7 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
   const narrow = useNarrow();
 
   const [tab, setTab] = useState<Tab>("agent");
-  const [role, setRole] = useState<RoleId | null>(beginner ? null : "writer");
+  const [role, setRole] = useState<RoleId | null>(beginner ? null : "scout");
   const [text, setText] = useState(() => {
     const v = readFlag("reuse-prompt");
     if (v) {

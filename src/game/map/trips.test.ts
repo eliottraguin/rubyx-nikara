@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { TIMING, TIMING_REDUCED, isTripFinished, pruneTrips, syncTrips, tripFrame, type Trip } from "./trips";
 
 const T0 = 1_000_000;
-const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t1", planetId: "annuaire", role: "writer", startedAt: T0, doneAt: null, ...over });
+const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t1", planetId: "annuaire", role: "scout", startedAt: T0, doneAt: null, ...over });
 
 describe("phases d'un voyage (purement visuel)", () => {
   it("part de la base, vole, se pose, dialogue tant que le serveur n'a pas fini, puis revient", () => {
@@ -54,7 +54,7 @@ describe("durée de trajet selon le véhicule du lieu", () => {
   });
 
   it("une action ouverte inconnue crée un voyage déjà sur place avec la durée du lieu", () => {
-    const open = [{ id: "act_1", attempt_id: "att_1", role: "writer" as const, status: "RUNNING" as const }];
+    const open = [{ id: "act_1", attempt_id: "att_1", role: "scout" as const, status: "RUNNING" as const }];
     const out = syncTrips([], open, () => "annuaire", T0, false, () => 3500);
     expect(out[0]).toMatchObject({ legMs: 3500, startedAt: T0 - 3500 });
     expect(tripFrame(out[0]!, T0).phase).toBe("dialogue");
@@ -63,12 +63,12 @@ describe("durée de trajet selon le véhicule du lieu", () => {
 
 describe("synchronisation avec les actions ouvertes du serveur", () => {
   const planetOf = (id: string) => (id === "att_1" ? "annuaire" : null);
-  const open = [{ id: "act_1", attempt_id: "att_1", role: "writer" as const, status: "RUNNING" as const }];
+  const open = [{ id: "act_1", attempt_id: "att_1", role: "scout" as const, status: "RUNNING" as const }];
 
   it("crée un voyage déjà sur place pour une action ouverte inconnue (rechargement de page)", () => {
     const out = syncTrips([], open, planetOf, T0);
     expect(out).toHaveLength(1);
-    expect(out[0]).toMatchObject({ planetId: "annuaire", role: "writer", actionId: "act_1", doneAt: null });
+    expect(out[0]).toMatchObject({ planetId: "annuaire", role: "scout", actionId: "act_1", doneAt: null });
     expect(tripFrame(out[0]!, T0).phase).toBe("dialogue");
   });
 
@@ -83,8 +83,8 @@ describe("synchronisation avec les actions ouvertes du serveur", () => {
   });
 
   it("ignore une action sans planète connue et une action à confirmer", () => {
-    expect(syncTrips([], [{ id: "x", attempt_id: "att_9", role: "writer", status: "RUNNING" }], planetOf, T0)).toEqual([]);
-    expect(syncTrips([], [{ id: "y", attempt_id: "att_1", role: "lead", status: "AWAITING_CONFIRMATION" }], planetOf, T0)).toEqual([]);
+    expect(syncTrips([], [{ id: "x", attempt_id: "att_9", role: "scout", status: "RUNNING" }], planetOf, T0)).toEqual([]);
+    expect(syncTrips([], [{ id: "y", attempt_id: "att_1", role: "ads", status: "AWAITING_CONFIRMATION" }], planetOf, T0)).toEqual([]);
   });
 
   it("n'attend pas l'action d'un voyage qui n'en a pas encore (envoi en cours)", () => {

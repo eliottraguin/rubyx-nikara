@@ -195,12 +195,10 @@ export function mapErrorCode(code: string | undefined): ErrorCode | null {
 // --- Libellés d'affichage -------------------------------------------------------------------------------------------
 
 const ROLE_TEACHES: Record<RoleId, string> = {
-  writer: "Apprendre à donner une consigne claire et complète.",
-  prospector: "Choisir des prospects et justifier une approche.",
-  researcher: "Comparer des sources et citer leurs dates.",
-  qa: "Faire contrôler un livrable avant de le livrer.",
-  analyst: "Vérifier des chiffres, calculés côté serveur.",
-  lead: "Déléguer à plusieurs agents dans une limite de coût.",
+  scout: "Écrire une consigne claire pour trouver des prospects vérifiables.",
+  triage: "Trier les messages reçus des prospects du carnet.",
+  replier: "Rédiger des brouillons de réponse, que vous relisez avant tout envoi.",
+  ads: "Préparer des contenus de pub prêts à publier, sans rien publier.",
 };
 
 const missionName = (id: string) => id.toUpperCase();
@@ -351,7 +349,7 @@ export function mapAttempt(d: WireDetail, w: WireState, clarifications: Clarific
 
 export function mapAction(w: WireAction): ActionView {
   const isPlan = w.type === "lead_plan";
-  const stepRole = (w.steps.find((s) => s.role)?.role ?? "lead") as RoleId;
+  const stepRole = (w.steps.find((s) => s.role)?.role ?? "scout") as RoleId;
   const running = w.steps.find((s) => s.status === "RUNNING" || s.status === "PENDING");
   const active = w.status === "PENDING" || w.status === "RESERVED" || w.status === "RUNNING";
   const code = mapErrorCode(w.error?.code ?? undefined) ?? (w.error ? "UNKNOWN" : null);
@@ -360,7 +358,7 @@ export function mapAction(w: WireAction): ActionView {
     id: w.id,
     type: isPlan ? "plan" : "message",
     attempt_id: w.attempt_id ?? "",
-    role: isPlan ? "lead" : stepRole,
+    role: isPlan ? "scout" : stepRole,
     status: w.status,
     reserved: w.reservations.filter((r) => r.status === "RESERVED").reduce((n, r) => n + r.amount, 0),
     debited: w.debited,

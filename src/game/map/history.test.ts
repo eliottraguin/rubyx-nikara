@@ -18,7 +18,7 @@ function attempt(no: number, over: Partial<AttemptView> = {}): AttemptView {
     unit_price: 0,
     spend_cap: null,
     clarifications: { used: 0, max: 3, items: [] },
-    roles: [{ role: "writer", owned: true, used: 1, limit: 5, next_cost_max: 0 }],
+    roles: [{ role: "scout", owned: true, used: 1, limit: 5, next_cost_max: 0 }],
     messages: [],
     artifacts: [],
     submission: null,
@@ -31,23 +31,23 @@ function attempt(no: number, over: Partial<AttemptView> = {}): AttemptView {
 describe("historique d'une planète", () => {
   it("associe chaque instruction à la réponse suivante du même agent", () => {
     const pairs = pairInstructions([
-      msg("1", "writer", "player", "Trouve 5 restaurants"),
-      msg("2", "prospector", "player", "Liste des gérants"),
-      msg("3", "writer", "agent", "Voici 5 restaurants"),
-      msg("4", "writer", "player", "Ajoute le téléphone", "PENDING"),
+      msg("1", "scout", "player", "Trouve 5 restaurants"),
+      msg("2", "triage", "player", "Liste des gérants"),
+      msg("3", "scout", "agent", "Voici 5 restaurants"),
+      msg("4", "scout", "player", "Ajoute le téléphone", "PENDING"),
     ]);
     expect(pairs.map((p) => [p.id, p.reply, p.replyStatus])).toEqual([
       ["1", "Voici 5 restaurants", "SENT"],
       ["2", null, "SENT"],
       ["4", null, "PENDING"],
     ]);
-    expect(pairs[0]!.roleLabel).toBe("Rédacteur");
+    expect(pairs[0]!.roleLabel).toBe("Éclaireur");
   });
 
   it("résume score, paiement crédité et retour du client depuis l'évaluation serveur", () => {
     const e = entryFromAttempt(
       attempt(1, {
-        messages: [msg("1", "writer", "player", "Cherche"), msg("2", "writer", "agent", "Résultat")],
+        messages: [msg("1", "scout", "player", "Cherche"), msg("2", "scout", "agent", "Résultat")],
         submission: {
           id: "sub_1",
           status: "EVALUATED",
@@ -62,7 +62,7 @@ describe("historique d'une planète", () => {
       }),
     );
     expect(e).toMatchObject({ statusLabel: "Terminée", score: 85, passed: true, payment: 17, feedback: "Bon travail.", delivered: true, evaluating: false });
-    expect(e.agents).toEqual([{ role: "writer", label: "Rédacteur", used: 1, limit: 5 }]);
+    expect(e.agents).toEqual([{ role: "scout", label: "Éclaireur", used: 1, limit: 5 }]);
     expect(e.dateLabel).not.toBe("date inconnue");
   });
 
@@ -81,8 +81,8 @@ describe("historique d'une planète", () => {
       evaluation: { submission_id: "s", rubric_version: "r", out_of_scope: false, criteria: [], client_feedback: "", next_action: "", score, passed: score >= 50, capped_by_essential: false, criteria_labels: {}, payment: { max_reward: 20, target: credited, already_acquired: 0, credited, already_awarded: true }, spent: 0 },
     });
     const list = buildPlanetHistory([
-      attempt(1, { status: "FAILED", submission: ev(40, 0), messages: [msg("1", "writer", "player", "a")] }),
-      attempt(2, { submission: ev(90, 18), messages: [msg("2", "writer", "player", "b"), msg("3", "writer", "player", "c")] }),
+      attempt(1, { status: "FAILED", submission: ev(40, 0), messages: [msg("1", "scout", "player", "a")] }),
+      attempt(2, { submission: ev(90, 18), messages: [msg("2", "scout", "player", "b"), msg("3", "scout", "player", "c")] }),
     ]);
     expect(list.map((e) => e.attemptNo)).toEqual([2, 1]);
     expect(summarizeHistory(list)).toEqual({ expeditions: 2, instructions: 3, bestScore: 90, totalPaid: 18 });
@@ -91,7 +91,7 @@ describe("historique d'une planète", () => {
 
   it("remplace la tentative courante par la version fraîche de l'état, sans la dupliquer", () => {
     const old = attempt(1, { status: "ACTIVE" });
-    const fresh = attempt(1, { status: "ACTIVE", messages: [msg("1", "writer", "player", "x")] });
+    const fresh = attempt(1, { status: "ACTIVE", messages: [msg("1", "scout", "player", "x")] });
     expect(mergeCurrentAttempt([old], fresh, "m1")[0]!.messages).toHaveLength(1);
     expect(mergeCurrentAttempt([], fresh, "m1")).toHaveLength(1);
     expect(mergeCurrentAttempt([old], fresh, "m2")).toEqual([old]);
