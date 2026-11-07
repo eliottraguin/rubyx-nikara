@@ -298,3 +298,72 @@ class TargetActionUse(Base):
     key: Mapped[str] = mapped_column(String, nullable=False)
     used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     reserved: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class ExpeditionRecord(Base):
+    """Enregistrement **renvoyé par une source pendant une expédition** (déjà minimisé par liste blanche). C'est la seule
+    référence de vérification d'un `source_ref` (règle 12) : écrit par le serveur (moteur d'expédition), jamais par le navigateur."""
+
+    __tablename__ = "expedition_records"
+    __table_args__ = (UniqueConstraint("attempt_id", "source", "source_ref"), Index("ix_expedition_records_session_id", "session_id"))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("rec"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    attempt_id: Mapped[str] = _fk("mission_attempts.id")
+    source: Mapped[str] = mapped_column(String, nullable=False)
+    source_ref: Mapped[str] = mapped_column(String, nullable=False)
+    record: Mapped[dict] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class Prospect(Base):
+    """Prospect du carnet (docs/PRODUIT-PROSPECTION.md §12). Provenance **immuable** (trigger SQLite, migration 0006) :
+    seuls `statut`, `notes` et les colonnes de suivi changent. Données personnelles : jamais dans les journaux."""
+
+    __tablename__ = "prospects"
+    __table_args__ = (
+        UniqueConstraint("session_id", "source", "source_ref"),
+        Index("ix_prospects_session_id", "session_id"),
+        Index("ix_prospects_session_id_entreprise_cle", "session_id", "entreprise_cle"),
+    )
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("pro"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    entreprise: Mapped[str] = mapped_column(String, nullable=False)
+    entreprise_cle: Mapped[str] = mapped_column(String, nullable=False)  # nom normalisé : tri et « possible doublon »
+    contact_nom: Mapped[str | None] = mapped_column(String)
+    contact_fonction: Mapped[str | None] = mapped_column(String)
+    canal_type: Mapped[str | None] = mapped_column(String)
+    canal_valeur: Mapped[str | None] = mapped_column(String)
+    source: Mapped[str] = mapped_column(String, nullable=False)
+    source_ref: Mapped[str] = mapped_column(String, nullable=False)
+    raisons_fit: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    signal: Mapped[str | None] = mapped_column(String)
+    pertinence: Mapped[int] = mapped_column(Integer, nullable=False)  # calculé par le serveur
+    fiabilite: Mapped[str] = mapped_column(String, nullable=False)  # verifie | partiel | simule
+    simule: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    instantane: Mapped[dict] = mapped_column(JSON, nullable=False)  # copie minimisée de l'enregistrement de la source
+    collecte_le: Mapped[str | None] = mapped_column(String)  # date de collecte (ISO) de l'enregistrement
+    expedition_id: Mapped[str] = mapped_column(String, nullable=False)
+    rapport_version_id: Mapped[str] = mapped_column(String, nullable=False)
+    profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    statut: Mapped[str] = mapped_column(String, nullable=False, default="nouveau")
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    historique: Mapped[list] = mapped_column(JSON, nullable=False, default=list)  # [{statut, le}]
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    modifie_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    contacte_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    derniere_activite_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+
+
+class ProspectIdempotency(Base):
+    """Rejeu des mutations du carnet : empreintes (jamais la clé en clair) et identifiants seulement, **aucun contenu**."""
+
+    __tablename__ = "prospect_idempotency"
+    __table_args__ = (UniqueConstraint("session_id", "key_hash"),)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("pid"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    key_hash: Mapped[str] = mapped_column(String, nullable=False)
+    request_hash: Mapped[str] = mapped_column(String, nullable=False)
+    status_code: Mapped[int] = mapped_column(Integer, nullable=False)
+    result: Mapped[dict | None] = mapped_column(JSON)  # identifiants et positions seulement
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)

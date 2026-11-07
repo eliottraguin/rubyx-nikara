@@ -951,6 +951,31 @@
         "title": "BuildingOut",
         "type": "object"
       },
+      "CanalOut": {
+        "properties": {
+          "type": {
+            "enum": [
+              "email_generique",
+              "formulaire",
+              "adresse",
+              "telephone_standard",
+              "reseau_pro"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "valeur": {
+            "title": "Valeur",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "valeur"
+        ],
+        "title": "CanalOut",
+        "type": "object"
+      },
       "ClarificationIn": {
         "additionalProperties": false,
         "properties": {
@@ -1844,6 +1869,551 @@
         "title": "Progress",
         "type": "object"
       },
+      "ProspectAddIn": {
+        "additionalProperties": false,
+        "properties": {
+          "expedition_id": {
+            "description": "Expédition (tentative) d'origine",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Expedition Id",
+            "type": "string"
+          },
+          "positions": {
+            "description": "Positions (à partir de 0) des leads du rapport",
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Positions",
+            "type": "array"
+          },
+          "rapport_version_id": {
+            "description": "Version de rapport (livrable d'un agent) de cette expédition",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Rapport Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expedition_id",
+          "rapport_version_id",
+          "positions"
+        ],
+        "title": "ProspectAddIn",
+        "type": "object"
+      },
+      "ProspectAddOut": {
+        "properties": {
+          "added": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectOut"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "already_present": {
+            "description": "Identifiants des prospects déjà au carnet (dédoublonnage `(source, source_ref)`)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Already Present",
+            "type": "array"
+          },
+          "refused": {
+            "items": {
+              "$ref": "#/components/schemas/RefusedLead"
+            },
+            "title": "Refused",
+            "type": "array"
+          }
+        },
+        "required": [
+          "added",
+          "already_present",
+          "refused"
+        ],
+        "title": "ProspectAddOut",
+        "type": "object"
+      },
+      "ProspectDetailOut": {
+        "properties": {
+          "brouillons": {
+            "description": "Brouillons de premier message (jalon K ; vide pour l'instant)",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Brouillons",
+            "type": "array"
+          },
+          "canal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CanalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "collecte_le": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date de collecte de l'enregistrement de la source (ISO 8601)",
+            "title": "Collecte Le"
+          },
+          "contact_fonction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Fonction"
+          },
+          "contact_nom": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Nom"
+          },
+          "contacte_le": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contacte Le"
+          },
+          "cree_le": {
+            "format": "date-time",
+            "title": "Cree Le",
+            "type": "string"
+          },
+          "derniere_activite_le": {
+            "format": "date-time",
+            "title": "Derniere Activite Le",
+            "type": "string"
+          },
+          "entreprise": {
+            "title": "Entreprise",
+            "type": "string"
+          },
+          "expedition_id": {
+            "title": "Expedition Id",
+            "type": "string"
+          },
+          "fiabilite": {
+            "enum": [
+              "verifie",
+              "partiel",
+              "simule"
+            ],
+            "title": "Fiabilite",
+            "type": "string"
+          },
+          "fiches": {
+            "description": "Fiches clients (jalon J ; vide pour l'instant)",
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Fiches",
+            "type": "array"
+          },
+          "historique_statut": {
+            "items": {
+              "$ref": "#/components/schemas/StatutEvent"
+            },
+            "title": "Historique Statut",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "instantane_source": {
+            "additionalProperties": true,
+            "description": "Copie minimisée (liste blanche de la source) de l'enregistrement renvoyé",
+            "title": "Instantane Source",
+            "type": "object"
+          },
+          "modifie_le": {
+            "format": "date-time",
+            "title": "Modifie Le",
+            "type": "string"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "pertinence": {
+            "description": "Calculée par le serveur",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Pertinence",
+            "type": "integer"
+          },
+          "possible_doublon": {
+            "description": "Même entreprise déjà au carnet via une autre source",
+            "title": "Possible Doublon",
+            "type": "boolean"
+          },
+          "profile_version": {
+            "title": "Profile Version",
+            "type": "integer"
+          },
+          "raisons_fit": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Raisons Fit",
+            "type": "array"
+          },
+          "rapport_version_id": {
+            "title": "Rapport Version Id",
+            "type": "string"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "statut": {
+            "title": "Statut",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "entreprise",
+          "source",
+          "source_ref",
+          "raisons_fit",
+          "pertinence",
+          "fiabilite",
+          "simule",
+          "statut",
+          "notes",
+          "expedition_id",
+          "rapport_version_id",
+          "profile_version",
+          "possible_doublon",
+          "cree_le",
+          "modifie_le",
+          "derniere_activite_le",
+          "version",
+          "instantane_source",
+          "historique_statut"
+        ],
+        "title": "ProspectDetailOut",
+        "type": "object"
+      },
+      "ProspectListOut": {
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Prospects par statut, sur tout le carnet (indépendant des filtres)",
+            "title": "Counts",
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "description": "Nombre de prospects au carnet (indépendant des filtres)",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "counts",
+          "total"
+        ],
+        "title": "ProspectListOut",
+        "type": "object"
+      },
+      "ProspectOut": {
+        "properties": {
+          "canal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CanalOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "collecte_le": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date de collecte de l'enregistrement de la source (ISO 8601)",
+            "title": "Collecte Le"
+          },
+          "contact_fonction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Fonction"
+          },
+          "contact_nom": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Nom"
+          },
+          "contacte_le": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contacte Le"
+          },
+          "cree_le": {
+            "format": "date-time",
+            "title": "Cree Le",
+            "type": "string"
+          },
+          "derniere_activite_le": {
+            "format": "date-time",
+            "title": "Derniere Activite Le",
+            "type": "string"
+          },
+          "entreprise": {
+            "title": "Entreprise",
+            "type": "string"
+          },
+          "expedition_id": {
+            "title": "Expedition Id",
+            "type": "string"
+          },
+          "fiabilite": {
+            "enum": [
+              "verifie",
+              "partiel",
+              "simule"
+            ],
+            "title": "Fiabilite",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "modifie_le": {
+            "format": "date-time",
+            "title": "Modifie Le",
+            "type": "string"
+          },
+          "notes": {
+            "title": "Notes",
+            "type": "string"
+          },
+          "pertinence": {
+            "description": "Calculée par le serveur",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Pertinence",
+            "type": "integer"
+          },
+          "possible_doublon": {
+            "description": "Même entreprise déjà au carnet via une autre source",
+            "title": "Possible Doublon",
+            "type": "boolean"
+          },
+          "profile_version": {
+            "title": "Profile Version",
+            "type": "integer"
+          },
+          "raisons_fit": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Raisons Fit",
+            "type": "array"
+          },
+          "rapport_version_id": {
+            "title": "Rapport Version Id",
+            "type": "string"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signal"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          },
+          "statut": {
+            "title": "Statut",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "entreprise",
+          "source",
+          "source_ref",
+          "raisons_fit",
+          "pertinence",
+          "fiabilite",
+          "simule",
+          "statut",
+          "notes",
+          "expedition_id",
+          "rapport_version_id",
+          "profile_version",
+          "possible_doublon",
+          "cree_le",
+          "modifie_le",
+          "derniere_activite_le",
+          "version"
+        ],
+        "title": "ProspectOut",
+        "type": "object"
+      },
+      "ProspectPatchIn": {
+        "additionalProperties": false,
+        "properties": {
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Texte brut, borné par `limits.notes_max_chars`",
+            "title": "Notes"
+          },
+          "statut": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Un des statuts de `rules_v2.prospect_statuses`",
+            "title": "Statut"
+          },
+          "version": {
+            "description": "Version du prospect lue par le joueur (concurrence optimiste)",
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "ProspectPatchIn",
+        "type": "object"
+      },
       "PurchaseIn": {
         "additionalProperties": false,
         "properties": {
@@ -1921,6 +2491,25 @@
           "clarifications_per_attempt"
         ],
         "title": "QuotaInfo",
+        "type": "object"
+      },
+      "RefusedLead": {
+        "properties": {
+          "code": {
+            "const": "LEAD_UNVERIFIED",
+            "title": "Code",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "position",
+          "code"
+        ],
+        "title": "RefusedLead",
         "type": "object"
       },
       "ReservationOut": {
@@ -2124,6 +2713,25 @@
           "role"
         ],
         "title": "ShareCreate",
+        "type": "object"
+      },
+      "StatutEvent": {
+        "properties": {
+          "le": {
+            "format": "date-time",
+            "title": "Le",
+            "type": "string"
+          },
+          "statut": {
+            "title": "Statut",
+            "type": "string"
+          }
+        },
+        "required": [
+          "statut",
+          "le"
+        ],
+        "title": "StatutEvent",
         "type": "object"
       },
       "SubmissionOut": {
@@ -3767,6 +4375,831 @@
         "summary": "Put Profile",
         "tags": [
           "fiche entreprise et cible"
+        ]
+      }
+    },
+    "/api/prospects": {
+      "delete": {
+        "description": "Supprime **tout le carnet** de la partie (définitif, idempotent, 204 même si vide).",
+        "operationId": "purge_prospects_api_prospects_delete",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Purge Prospects",
+        "tags": [
+          "carnet de prospection"
+        ]
+      },
+      "get": {
+        "description": "Liste côté serveur : tri, filtres, recherche, curseur ; `counts` = prospects par statut sur tout le carnet.",
+        "operationId": "list_prospects_api_prospects_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 512,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "description": "Critère de tri ; départage stable par `id`",
+            "in": "query",
+            "name": "tri",
+            "required": false,
+            "schema": {
+              "default": "date_ajout",
+              "description": "Critère de tri ; départage stable par `id`",
+              "enum": [
+                "pertinence",
+                "date_ajout",
+                "entreprise",
+                "statut",
+                "fiabilite",
+                "source"
+              ],
+              "title": "Tri",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Défaut : `desc` pour pertinence et date_ajout, `asc` sinon",
+            "in": "query",
+            "name": "ordre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Défaut : `desc` pour pertinence et date_ajout, `asc` sinon",
+              "title": "Ordre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "statut",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Statut"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fiabilite",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 16,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fiabilite"
+            }
+          },
+          {
+            "description": "Présence d'une fiche client (jalon J)",
+            "in": "query",
+            "name": "avec_fiche",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Présence d'une fiche client (jalon J)",
+              "title": "Avec Fiche"
+            }
+          },
+          {
+            "description": "Présence d'un brouillon de message (jalon K)",
+            "in": "query",
+            "name": "avec_brouillon",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Présence d'un brouillon de message (jalon K)",
+              "title": "Avec Brouillon"
+            }
+          },
+          {
+            "description": "Contacté depuis plus de `followup_days` jours",
+            "in": "query",
+            "name": "a_relancer",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Contacté depuis plus de `followup_days` jours",
+              "title": "A Relancer"
+            }
+          },
+          {
+            "description": "Recherche : entreprise, contact, fonction, notes",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Recherche : entreprise, contact, fonction, notes",
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "List Prospects",
+        "tags": [
+          "carnet de prospection"
+        ]
+      },
+      "post": {
+        "description": "Ajoute au carnet des leads d'un rapport : références seulement (expédition, version de rapport, positions).\nLe serveur recopie depuis l'enregistrement renvoyé par la source et revérifie `source_ref` ; un lead non vérifiable est\nlisté dans `refused` (`LEAD_UNVERIFIED`). Doublon `(source, source_ref)` : `already_present`, sans erreur. 201 si au moins\nun prospect est créé, 200 sinon et au rejeu. Carnet plein (`limits.prospects_max`) : `INVALID_STATE`, rien n'est écrit.",
+        "operationId": "add_prospects_api_prospects_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProspectAddIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectAddOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Add Prospects",
+        "tags": [
+          "carnet de prospection"
+        ]
+      }
+    },
+    "/api/prospects/export.csv": {
+      "get": {
+        "description": "Export CSV produit par le serveur (mêmes filtres et tri que la liste) : UTF-8 avec BOM, `;`, CRLF, en-têtes français,\nformules neutralisées (préfixe `'`), `Cache-Control: no-store`. Gratuit ; journal : nombre de lignes et durée seulement.",
+        "operationId": "export_prospects_csv_api_prospects_export_csv_get",
+        "parameters": [
+          {
+            "description": "Critère de tri ; départage stable par `id`",
+            "in": "query",
+            "name": "tri",
+            "required": false,
+            "schema": {
+              "default": "date_ajout",
+              "description": "Critère de tri ; départage stable par `id`",
+              "enum": [
+                "pertinence",
+                "date_ajout",
+                "entreprise",
+                "statut",
+                "fiabilite",
+                "source"
+              ],
+              "title": "Tri",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Défaut : `desc` pour pertinence et date_ajout, `asc` sinon",
+            "in": "query",
+            "name": "ordre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Défaut : `desc` pour pertinence et date_ajout, `asc` sinon",
+              "title": "Ordre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "statut",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 32,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Statut"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "in": "query",
+            "name": "fiabilite",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 16,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fiabilite"
+            }
+          },
+          {
+            "description": "Présence d'une fiche client (jalon J)",
+            "in": "query",
+            "name": "avec_fiche",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Présence d'une fiche client (jalon J)",
+              "title": "Avec Fiche"
+            }
+          },
+          {
+            "description": "Présence d'un brouillon de message (jalon K)",
+            "in": "query",
+            "name": "avec_brouillon",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Présence d'un brouillon de message (jalon K)",
+              "title": "Avec Brouillon"
+            }
+          },
+          {
+            "description": "Contacté depuis plus de `followup_days` jours",
+            "in": "query",
+            "name": "a_relancer",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Contacté depuis plus de `followup_days` jours",
+              "title": "A Relancer"
+            }
+          },
+          {
+            "description": "Recherche : entreprise, contact, fonction, notes",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Recherche : entreprise, contact, fonction, notes",
+              "title": "Q"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/csv": {}
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Export Prospects Csv",
+        "tags": [
+          "carnet de prospection"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}": {
+      "delete": {
+        "description": "Suppression définitive. Rejeu avec la même clé : 204. Prospect absent (clé neuve) ou d'une autre session : 404.",
+        "operationId": "delete_prospect_api_prospects__prospect_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Delete Prospect",
+        "tags": [
+          "carnet de prospection"
+        ]
+      },
+      "get": {
+        "description": "Détail : prospect, provenance, instantané minimisé, historique de statut (fiches et brouillons : jalons J et K).",
+        "operationId": "get_prospect_api_prospects__prospect_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Prospect",
+        "tags": [
+          "carnet de prospection"
+        ]
+      },
+      "patch": {
+        "description": "Le joueur ne modifie que `statut` et `notes` (`version` obligatoire ; `VERSION_CONFLICT` si périmée). Transitions\nlibres et horodatées ; `contacte_le` posé au premier passage à `contacte` ; « contacté » est déclaratif (rien n'est envoyé).",
+        "operationId": "patch_prospect_api_prospects__prospect_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProspectPatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Patch Prospect",
+        "tags": [
+          "carnet de prospection"
         ]
       }
     },

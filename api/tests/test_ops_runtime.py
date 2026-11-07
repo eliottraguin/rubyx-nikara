@@ -27,11 +27,14 @@ from app.models import (
     ArtifactVersion,
     Base,
     Evaluation,
+    ExpeditionRecord,
     GameSession,
     LLMCall,
     Message,
     MissionAttempt,
     NotebookEntry,
+    Prospect,
+    ProspectIdempotency,
     Reservation,
     Submission,
     utcnow,
@@ -75,6 +78,14 @@ def populate(db, sid: str, tag: str = "a") -> None:
     db.add(ArtifactShare(attempt_id=att.id, artifact_version_id=parent.id, role="writer", action_id=act.id))
     db.add(AppliedEvent(attempt_id=att.id, event_id="e1", brief_version=1))
     db.add(TargetActionUse(session_id=sid, kind="prospect", target_id="pro_1", key="prospect_profile", used=1, reserved=0))
+    db.add(ExpeditionRecord(session_id=sid, attempt_id=att.id, source="annuaire", source_ref="ann_1", record={"entreprise": "X"}))
+    db.add(
+        Prospect(
+            session_id=sid, entreprise="X", entreprise_cle="x", source="annuaire", source_ref="ann_1", raisons_fit=[], pertinence=10,
+            fiabilite="simule", simule=True, instantane={}, expedition_id=att.id, rapport_version_id=parent.id, profile_version=1,
+        )
+    )
+    db.add(ProspectIdempotency(session_id=sid, key_hash=f"h-{tag}", request_hash="r", status_code=200))
     db.commit()
 
 

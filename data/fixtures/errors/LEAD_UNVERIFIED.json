@@ -1,0 +1,9 @@
+{
+  "http_status": 422,
+  "body": {
+    "error": {
+      "code": "LEAD_UNVERIFIED",
+      "message": "Ce lead ne peut pas être vérifié auprès de la source : il n'est pas ajouté au carnet."
+    }
+  }
+}
