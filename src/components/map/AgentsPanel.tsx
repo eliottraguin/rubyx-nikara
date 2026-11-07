@@ -78,7 +78,7 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
           Bots vers {planet.title}
         </h2>
         {sent.length === 0 ? (
-          <p className="muted">Aucun bot n&apos;a encore été envoyé ici. Choisissez-en un ci-dessous et rédigez sa mission.</p>
+          <p className="muted">Aucun bot n&apos;a encore été envoyé ici. Choisissez-en un ci-dessous et rédigez sa consigne.</p>
         ) : (
           <ul className="agent-list">
             {sent.map((a) => (
@@ -168,27 +168,27 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
             </fieldset>
 
             <div className="field">
-              <label htmlFor="mission-text">2. Rédigez sa mission</label>
-              <p className="help" id="mission-help">
+              <label htmlFor="consigne-text">2. Rédigez sa consigne</label>
+              <p className="help" id="consigne-help">
                 {planet.promptHint}
               </p>
               <textarea
-                id="mission-text"
+                id="consigne-text"
                 rows={5}
                 value={text}
                 onChange={(e) => {
                   setText(e.target.value);
                   setConfirming(false);
                 }}
-                aria-describedby="mission-help mission-count"
+                aria-describedby="consigne-help consigne-count"
                 aria-invalid={text.length > maxChars}
                 placeholder="Ex. : Trouve 5 restaurants à Lyon avec leur site et leur téléphone."
                 disabled={busy}
               />
-              <p id="mission-count" className={`help count ${text.length > maxChars ? "count-bad" : ""}`}>
+              <p id="consigne-count" className={`help count ${text.length > maxChars ? "count-bad" : ""}`}>
                 {text.length} / {maxChars} caractères
               </p>
-              <div className="examples" role="group" aria-label="Exemples de mission">
+              <div className="examples" role="group" aria-label="Exemples de consigne">
                 <span className="help">Besoin d&apos;inspiration ?</span>
                 {planet.examples.map((ex, i) => (
                   <button key={ex} type="button" className="btn btn-small" onClick={() => setText(ex)} disabled={busy}>

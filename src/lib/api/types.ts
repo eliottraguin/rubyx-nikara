@@ -68,11 +68,19 @@ export interface StageInfo {
   label: string;
 }
 
+export type AgentSection = "prospection" | "clients" | "pub";
+
 export interface AgentView {
   role: RoleId;
+  /** Libellé français donné par le serveur (hangar) ; sinon `ROLE_LABEL`. */
+  label?: string;
+  /** Section du produit où le rôle travaille (hangar). */
+  section?: AgentSection;
+  /** Mode Réel : la condition de score est levée (hangar). */
+  score_condition_waived?: boolean;
   owned: boolean;
   price: number;
-  /** Condition de déblocage, en texte (ex. « Réussir la commande M1 »). */
+  /** Condition de déblocage, en texte (ex. « Faire une expédition à l'Hôtel de ville avec un score d'au moins 50 sur 100. »). */
   unlock_condition: string;
   /** Débloqué = achetable. */
   unlocked: boolean;

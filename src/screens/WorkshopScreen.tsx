@@ -13,7 +13,7 @@ import { DEFAULT_PROMPT_MAX_CHARS, checkSend } from "@/lib/send-rules";
 
 type Tab = "mission" | "agent" | "deliverable";
 const TABS: { id: Tab; label: string }[] = [
-  { id: "mission", label: "Mission" },
+  { id: "mission", label: "Brief" },
   { id: "agent", label: "Agent" },
   { id: "deliverable", label: "Livrable" },
 ];
@@ -42,7 +42,7 @@ function readFlag(key: string): string | null {
 function StatusBar({ state, a, role }: { state: GameState; a: AttemptView; role: RoleId | null }) {
   const q = a.roles.find((r) => r.role === role);
   return (
-    <div className="statusbar" role="group" aria-label="État de la commande">
+    <div className="statusbar" role="group" aria-label="État de l'expédition">
       <p>
         Solde disponible <strong>{money(state.balance.available)}</strong>
       </p>
@@ -78,7 +78,7 @@ function Tutorial({ a, role, inspected, onInspect }: { a: AttemptView; role: Rol
       </Notice>
     );
   const texts: Record<number, string> = {
-    1: "Lisez le client : relisez la commande avant d'agir.",
+    1: "Lisez le client : relisez le brief du client avant d'agir.",
     2: "Choisissez l'agent : cliquez sur le rédacteur dans la colonne « Agent ».",
     3: "Formulez votre consigne : dites quoi écrire, pour qui, et avec quelles informations (cochez les documents utiles).",
     4: "Inspectez le résultat : comparez le livrable aux critères du client. Manque-t-il une information ?",
@@ -87,7 +87,7 @@ function Tutorial({ a, role, inspected, onInspect }: { a: AttemptView; role: Rol
     <div className="note note-info" role="status" aria-live="polite">
       <strong>Étape {step} sur 4. </strong>
       {texts[step]}{" "}
-      {step === 1 ? <Link href={`/commande/${a.id}`}>Relire la commande</Link> : null}
+      {step === 1 ? <Link href={`/commande/${a.id}`}>Relire le brief</Link> : null}
       {step === 4 ? (
         <button type="button" className="btn btn-small" onClick={onInspect}>
           J&apos;ai inspecté le livrable
@@ -147,7 +147,7 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
     return (
       <div className="card">
         <h1>Atelier introuvable</h1>
-        <p>Cette commande n&apos;est pas active dans votre partie.</p>
+        <p>Cette expédition n&apos;est pas active dans votre partie.</p>
         <Link className="btn btn-primary" href="/bureau">
           Retour au bureau
         </Link>
@@ -243,7 +243,7 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
       {beginner ? <Tutorial a={a} role={role} inspected={inspected} onInspect={() => setInspected(true)} /> : null}
       {a.brief.version > 1 && a.brief.diff ? (
         <Notice tone="warn" title="Le brief a changé.">
-          Consultez l&apos;onglet/colonne « Mission » pour voir les différences avant de continuer.
+          Consultez l&apos;onglet/colonne « Brief » pour voir les différences avant de continuer.
         </Notice>
       ) : null}
       {actions.map((x) => (
@@ -273,8 +273,8 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
 
       <div className="workshop">
         {/* Gauche : brief et pièces */}
-        <section id="panel-mission" className="panel" {...panelProps("mission", "Mission : brief et pièces")}>
-          <h2 className="h3">Mission</h2>
+        <section id="panel-mission" className="panel" {...panelProps("mission", "Brief et pièces")}>
+          <h2 className="h3">Brief</h2>
           <BriefBlock brief={a.brief} />
           <h3 className="h4">Critères du client</h3>
           <CriteriaList criteria={a.criteria} />
@@ -416,7 +416,7 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
           ) : null}
           {a.documents.length > 0 && shareableNone ? (
             <Notice tone="info" title="Aucun document partagé.">
-              L&apos;agent ne connaîtra que votre consigne. Cochez des documents dans « Mission » si besoin.
+              L&apos;agent ne connaîtra que votre consigne. Cochez des documents dans « Brief » si besoin.
             </Notice>
           ) : null}
 
@@ -547,7 +547,7 @@ function Workshop({ state, attemptId }: { state: GameState; attemptId: string })
           )}
           {!selected || a.status !== "ACTIVE" ? (
             <p id="deliver-why" className="help">
-              {a.status !== "ACTIVE" ? "Cette commande n'est plus en cours : aucune nouvelle livraison." : "Livraison impossible : aucun livrable n'existe encore."}
+              {a.status !== "ACTIVE" ? "Cette expédition n'est plus en cours : aucune nouvelle livraison." : "Livraison impossible : aucun livrable n'existe encore."}
             </p>
           ) : null}
           <p className="help">Modifier à la main est gratuit et ne consomme aucun message.</p>

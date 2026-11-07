@@ -5,6 +5,7 @@
  * scores des évaluations sont ECRITS ICI comme réponses rejouées du « serveur ».
  */
 import type {
+  AgentSection,
   CriterionView,
   DocumentView,
   EvaluatorCriterion,
@@ -22,15 +23,19 @@ export interface AgentFixture {
   role: RoleId;
   price: number;
   unlockedBy: string | null;
-  unlock_condition: string;
+  label: string;
+  section: AgentSection;
+  /** Lieu (id de planète) et score minimum, comme le hangar du serveur. */
+  unlock_planet: string | null;
+  unlock_min_score: number | null;
   teaches: string;
 }
 
 export const AGENTS: AgentFixture[] = [
-  { role: "scout", price: 0, unlockedBy: null, unlock_condition: "Disponible dès le départ", teaches: "Écrire une consigne claire pour trouver des prospects vérifiables." },
-  { role: "triage", price: 20, unlockedBy: "m1", unlock_condition: "Réussir la commande M1", teaches: "Trier les messages reçus des prospects du carnet." },
-  { role: "replier", price: 35, unlockedBy: "m2", unlock_condition: "Réussir la commande M2", teaches: "Rédiger des brouillons de réponse, que vous relisez avant tout envoi." },
-  { role: "ads", price: 45, unlockedBy: "m3", unlock_condition: "Réussir la commande M3", teaches: "Préparer des contenus de pub prêts à publier, sans rien publier." },
+  { role: "scout", price: 0, unlockedBy: null, label: "Éclaireur", section: "prospection", unlock_planet: null, unlock_min_score: null, teaches: "Écrire une consigne claire pour trouver des prospects vérifiables." },
+  { role: "triage", price: 35, unlockedBy: "m1", label: "Trieur de boîte", section: "clients", unlock_planet: "registre", unlock_min_score: 50, teaches: "Trier les messages reçus des prospects du carnet." },
+  { role: "replier", price: 45, unlockedBy: "m2", label: "Rédacteur (fiche client, premier message, réponses)", section: "clients", unlock_planet: "carte-locale", unlock_min_score: 50, teaches: "Rédiger des brouillons de réponse, que vous relisez avant tout envoi." },
+  { role: "ads", price: 50, unlockedBy: "m3", label: "Directeur de campagne", section: "pub", unlock_planet: "linkedin", unlock_min_score: 50, teaches: "Préparer des contenus de pub prêts à publier, sans rien publier." },
 ];
 
 export interface MissionFixture {

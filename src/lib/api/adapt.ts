@@ -50,6 +50,18 @@ export interface WireAttemptSummary {
   created_at: string;
 }
 
+export interface WireHangarAgent {
+  role: RoleId;
+  label: string;
+  section: "prospection" | "clients" | "pub";
+  price: number;
+  owned: boolean;
+  unlock_planet: string | null;
+  unlock_min_score: number | null;
+  score_condition_waived: boolean;
+  unlocked: boolean;
+}
+
 export interface WireState {
   session: {
     id: string;
@@ -60,6 +72,8 @@ export interface WireState {
   };
   balance: { booked: number; reserved: number; available: number };
   agents: { role: RoleId; label: string; price: number; owned: boolean; unlock_mission: string | null; unlocked: boolean }[];
+  /** Hangar du cap prospection : 4 rôles, prix et déblocage décidés par le serveur (absent des anciens serveurs). */
+  hangar?: WireHangarAgent[];
   missions: {
     id: string;
     label: string;
@@ -203,6 +217,24 @@ const ROLE_TEACHES: Record<RoleId, string> = {
 
 const missionName = (id: string) => id.toUpperCase();
 
+const PLACE_OF_PLANET: Record<string, string> = {
+  annuaire: "Bibliothèque publique (Annuaire)",
+  registre: "Hôtel de ville (Registre)",
+  "carte-locale": "SoHo (Carte locale)",
+  linkedin: "Midtown (LinkedIn)",
+  glassdoor: "Wall Street (Glassdoor)",
+  constellation: "Times Square (Constellation)",
+};
+
+/** Condition de déblocage d'un rôle du hangar, en texte clair (le serveur décide ; ceci n'est que l'affichage). */
+export function hangarUnlockText(h: Pick<WireHangarAgent, "unlock_planet" | "unlock_min_score" | "score_condition_waived">): string {
+  if (!h.unlock_planet) return "Disponible dès le départ";
+  const place = PLACE_OF_PLANET[h.unlock_planet] ?? h.unlock_planet;
+  if (h.score_condition_waived) return `Mode Réel : aucun score minimum demandé (score habituel levé)`;
+  const min = h.unlock_min_score ?? 0;
+  return `Faire une expédition à ${place} avec un score d'au moins ${min} sur 100`;
+}
+
 export function briefToText(content: NonNullable<WireDetail["brief"]["content"]> | null): string {
   if (!content) return "Le contenu de cette commande n'est pas disponible.";
   const out: string[] = [];
@@ -295,7 +327,7 @@ export function mapAttempt(d: WireDetail, w: WireState, clarifications: Clarific
   const criteria: CriterionView[] = rubricCriteria?.length
     ? rubricCriteria.map((c) => ({ id: c.id, label: c.label ?? c.id, description: c.description ?? "", weight: c.weight ?? 0, essential: !!c.essential }))
     : briefCriteria(d.brief.content);
-  const roles: RoleQuota[] = w.agents.map((ag) => ({
+  const roles: RoleQuota[] = (w.hangar ?? w.agents).map((ag) => ({
     role: ag.role,
     owned: ag.owned,
     used: a.message_counts[ag.role] ?? 0,
@@ -434,14 +466,27 @@ export function mapState(w: WireState, ctx: StateContext): GameState {
   const total = w.progress?.total_missions ?? 6;
   const index = Math.min(done + 1, total);
   const missions = w.missions.map((m) => mapMission(m, ctx.payments));
-  const agents: AgentView[] = w.agents.map((a) => ({
-    role: a.role,
-    owned: a.owned,
-    price: a.price,
-    unlock_condition: a.unlock_mission ? `Réussir la commande ${missionName(a.unlock_mission)}` : "Disponible dès le départ",
-    unlocked: a.unlocked,
-    teaches: ROLE_TEACHES[a.role],
-  }));
+  // Le front lit une seule liste d'agents : le hangar (4 rôles) quand le serveur l'envoie, sinon les rôles historiques.
+  const agents: AgentView[] = w.hangar
+    ? w.hangar.map((h) => ({
+        role: h.role,
+        label: h.label,
+        section: h.section,
+        owned: h.owned,
+        price: h.price,
+        unlock_condition: hangarUnlockText(h),
+        score_condition_waived: h.score_condition_waived,
+        unlocked: h.unlocked,
+        teaches: ROLE_TEACHES[h.role],
+      }))
+    : w.agents.map((a) => ({
+        role: a.role,
+        owned: a.owned,
+        price: a.price,
+        unlock_condition: a.unlock_mission ? `Réussir la commande ${missionName(a.unlock_mission)}` : "Disponible dès le départ",
+        unlocked: a.unlocked,
+        teaches: ROLE_TEACHES[a.role],
+      }));
   const finished = w.progress?.next_action.type === "campaign_complete" || !!w.progress?.victory;
   const bilan: Bilan = {
     campaign_finished: finished,

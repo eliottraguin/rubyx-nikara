@@ -3,8 +3,19 @@
 import { useState } from "react";
 import { ErrorNote, Notice, Pill } from "@/components/ui";
 import { agentBlocker } from "@/game/map/dispatch";
-import type { ApiError, GameState, RoleId } from "@/lib/api/types";
+import type { AgentSection, AgentView, ApiError, GameState, RoleId } from "@/lib/api/types";
 import { ROLE_LABEL, money } from "@/lib/format";
+
+export const SECTION_LABEL: Record<AgentSection, string> = { prospection: "Prospection", clients: "Clients", pub: "Pub" };
+const SECTION_ORDER: AgentSection[] = ["prospection", "clients", "pub"];
+
+/** État d'un agent du garage : possédé, à acheter, fonds insuffisants ou verrouillé (la raison est donnée par `agentBlocker`). */
+function AgentStatus({ a, available }: { a: AgentView; available: number }) {
+  if (a.owned) return <Pill tone="ok">Possédé</Pill>;
+  if (!a.unlocked) return <Pill>Verrouillé</Pill>;
+  if (a.price > available) return <Pill tone="warn">Fonds insuffisants</Pill>;
+  return <Pill tone="info">À acheter</Pill>;
+}
 
 /** Votre immeuble : coffre (trésorerie) et garage (bots, achat). Les prix, soldes et déblocages viennent du serveur. */
 export function BasePanel({ state, busy, onBuy }: { state: GameState; busy: boolean; onBuy: (role: RoleId) => Promise<ApiError | null> }) {
@@ -57,47 +68,57 @@ export function BasePanel({ state, busy, onBuy }: { state: GameState; busy: bool
           </Notice>
         ) : null}
         <ErrorNote error={error} />
-        <ul className="agent-list">
-          {state.agents.map((a) => {
-            const why = agentBlocker({ owned: a.owned, unlocked: a.unlocked, unlockCondition: a.unlock_condition, price: a.price }, b.available);
-            return (
-              <li key={a.role} className="agent-card">
-                <div className="agent-head">
-                  <strong>{ROLE_LABEL[a.role]}</strong>
-                  {a.owned ? <Pill tone="ok">Possédé</Pill> : a.unlocked ? <Pill tone="info">Débloqué</Pill> : <Pill>Verrouillé</Pill>}
-                </div>
-                <p className="agent-meta">{a.teaches}</p>
-                <p className="agent-meta">
-                  Prix : <strong>{a.price === 0 ? "gratuit" : money(a.price)}</strong> · Condition : {a.unlock_condition}
-                </p>
-                {a.owned ? null : pending === a.role ? (
-                  <div className="confirm" role="group" aria-label={`Confirmer l'achat de ${ROLE_LABEL[a.role]}`}>
-                    <p>
-                      Acheter <strong>{ROLE_LABEL[a.role]}</strong> pour <strong>{money(a.price)}</strong> ?
-                    </p>
-                    <button type="button" className="btn btn-primary btn-small" onClick={() => void buy(a.role)} disabled={busy}>
-                      Confirmer l&apos;achat
-                    </button>{" "}
-                    <button type="button" className="btn btn-small" onClick={() => setPending(null)}>
-                      Annuler
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button type="button" className="btn btn-small btn-primary" onClick={() => setPending(a.role)} disabled={!!why || busy} aria-describedby={why ? `bwhy-${a.role}` : undefined}>
-                      Acheter
-                    </button>
-                    {why ? (
-                      <p id={`bwhy-${a.role}`} className="help">
-                        {why}
+        {SECTION_ORDER.map((sec) => {
+          const group = state.agents.filter((a) => (a.section ?? "prospection") === sec);
+          if (group.length === 0) return null;
+          return (
+            <div key={sec} role="group" aria-label={`Agents ${SECTION_LABEL[sec]}`}>
+              <h3 className="h4">{SECTION_LABEL[sec]}</h3>
+              <ul className="agent-list">
+                {group.map((a) => {
+                  const why = agentBlocker({ owned: a.owned, unlocked: a.unlocked, unlockCondition: a.unlock_condition, price: a.price }, b.available);
+                  return (
+                    <li key={a.role} className="agent-card">
+                      <div className="agent-head">
+                        <strong>{ROLE_LABEL[a.role]}</strong>
+                        <AgentStatus a={a} available={b.available} />
+                      </div>
+                      <p className="agent-meta">{a.label && a.label !== ROLE_LABEL[a.role] ? a.label : a.teaches}</p>
+                      <p className="agent-meta">
+                        Prix : <strong>{a.price === 0 ? "gratuit" : money(a.price)}</strong>
+                        {a.owned ? null : <> · Condition : {a.unlock_condition}</>}
                       </p>
-                    ) : null}
-                  </>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                      {a.owned ? null : pending === a.role ? (
+                        <div className="confirm" role="group" aria-label={`Confirmer l'achat de ${ROLE_LABEL[a.role]}`}>
+                          <p>
+                            Acheter <strong>{ROLE_LABEL[a.role]}</strong> pour <strong>{money(a.price)}</strong> ?
+                          </p>
+                          <button type="button" className="btn btn-primary btn-small" onClick={() => void buy(a.role)} disabled={busy}>
+                            Confirmer l&apos;achat
+                          </button>{" "}
+                          <button type="button" className="btn btn-small" onClick={() => setPending(null)}>
+                            Annuler
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button type="button" className="btn btn-small btn-primary" onClick={() => setPending(a.role)} disabled={!!why || busy} aria-describedby={why ? `bwhy-${a.role}` : undefined}>
+                            Acheter
+                          </button>
+                          {why ? (
+                            <p id={`bwhy-${a.role}`} className="help">
+                              {why}
+                            </p>
+                          ) : null}
+                        </>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })}
       </section>
     </div>
   );

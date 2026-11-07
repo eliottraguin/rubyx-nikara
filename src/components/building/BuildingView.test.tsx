@@ -53,7 +53,7 @@ describe("vue Immeuble", () => {
     btns[2]!.focus();
     fireEvent.keyDown(list, { key: "Enter" });
     expect(screen.getByRole("heading", { name: "Salle du courrier" })).toBeInTheDocument();
-    expect(screen.getByText("Rien n'a été envoyé.")).toBeInTheDocument();
+    expect(screen.getByText(/Clients simulés : rien n'est envoyé/)).toBeInTheDocument();
     expect(btns[2]).toHaveAttribute("aria-current", "true");
     expect(onFloorChange).toHaveBeenCalledWith(expect.objectContaining({ id: "courrier" }));
   });

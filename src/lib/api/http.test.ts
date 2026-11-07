@@ -143,6 +143,22 @@ describe("adaptation de l'état réel", () => {
     expect(state.next_action).toBe("Acceptez la prochaine commande.");
     expect(state.balance).toEqual(WS.balance);
     expect(state.agents.find((a) => a.role === "triage")).toMatchObject({ unlocked: true, unlock_condition: "Réussir la commande M1" });
+    // sans `hangar` : repli sur les rôles historiques ; avec `hangar` : 4 rôles, libellés, section et condition en clair
+    const withHangar = mapState(
+      {
+        ...WS,
+        hangar: [
+          { role: "scout", label: "Éclaireur", section: "prospection", price: 0, owned: true, unlock_planet: null, unlock_min_score: null, score_condition_waived: false, unlocked: true },
+          { role: "triage", label: "Trieur de boîte", section: "clients", price: 35, owned: false, unlock_planet: "registre", unlock_min_score: 50, score_condition_waived: false, unlocked: false },
+          { role: "ads", label: "Directeur de campagne", section: "pub", price: 50, owned: false, unlock_planet: "linkedin", unlock_min_score: 50, score_condition_waived: true, unlocked: true },
+        ],
+      },
+      { detail: null, clarifications: [], payments: {}, actions: [], demo: { enabled: false, events: [] } },
+    );
+    expect(withHangar.agents.map((a) => a.role)).toEqual(["scout", "triage", "ads"]);
+    expect(withHangar.agents[1]).toMatchObject({ section: "clients", price: 35, unlocked: false, unlock_condition: "Faire une expédition à Hôtel de ville (Registre) avec un score d'au moins 50 sur 100" });
+    expect(withHangar.agents[2]).toMatchObject({ score_condition_waived: true, unlocked: true });
+    expect(withHangar.agents[2]!.unlock_condition).toContain("Mode Réel");
     expect(state.missions.find((m) => m.id === "m1")).toMatchObject({ status: "COMPLETED", best_payment: 20 });
     expect(state.hints_enabled).toBe(false);
   });

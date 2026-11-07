@@ -21,6 +21,7 @@ import {
   type RoleId,
   type SubmissionView,
 } from "@/lib/api/types";
+import { hangarUnlockText } from "@/lib/api/adapt";
 import { ERROR_MESSAGE } from "@/lib/format";
 import {
   AGENTS,
@@ -293,12 +294,15 @@ function attemptView(at: IAttempt): AttemptView {
   };
 }
 
+/** Mode Réel : la condition de score des rôles payants est levée, comme sur le serveur. */
+const waived = (a: { unlockedBy: string | null }) => srv.session?.mode === "expert" && a.unlockedBy !== null;
+
 function stateView(): GameState {
   const s = srv.session;
   const at = srv.attempt;
   const res = reserved();
   const doneCount = Object.keys(srv.completed).filter((k) => k !== "rescue").length;
-  let next = "Ouvrez la commande M1 depuis le bureau.";
+  let next = "Ouvrez la première expédition depuis le bureau.";
   if (at?.status === "ACTIVE") next = at.messages.length === 0 ? "Donnez une consigne au rédacteur dans l'atelier." : "Inspectez le livrable, modifiez-le si besoin, puis livrez une version.";
   else if (at?.status === "EVALUATING") next = "Le client évalue votre livraison.";
   else if (at?.status === "COMPLETED" || at?.status === "FAILED") next = "Lisez le retour du client, puis choisissez la suite.";
@@ -315,8 +319,11 @@ function stateView(): GameState {
       role: a.role,
       owned: srv.owned.includes(a.role),
       price: a.price,
-      unlock_condition: a.unlock_condition,
-      unlocked: a.unlockedBy === null || !!srv.completed[a.unlockedBy],
+      label: a.label,
+      section: a.section,
+      score_condition_waived: waived(a),
+      unlock_condition: hangarUnlockText({ unlock_planet: a.unlock_planet, unlock_min_score: a.unlock_min_score, score_condition_waived: waived(a) }),
+      unlocked: a.unlockedBy === null || waived(a) || !!srv.completed[a.unlockedBy],
       teaches: a.teaches,
     })),
     missions: MISSIONS.map((m) => {
@@ -567,7 +574,7 @@ export function createMockClient(): ApiClient {
       const ag = AGENTS.find((a) => a.role === role);
       if (!ag) throw err("ROLE_LOCKED");
       if (srv.owned.includes(role)) throw err("INVALID_STATE", "Cet agent est déjà possédé.");
-      if (ag.unlockedBy && !srv.completed[ag.unlockedBy]) throw err("ROLE_LOCKED");
+      if (ag.unlockedBy && !waived(ag) && !srv.completed[ag.unlockedBy]) throw err("ROLE_LOCKED");
       if (ag.price > srv.booked - reserved()) throw err("INSUFFICIENT_FUNDS");
       srv.booked -= ag.price;
       srv.owned.push(role);

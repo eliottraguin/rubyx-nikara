@@ -20,7 +20,7 @@ describe("Atelier (mock)", () => {
         <WorkshopScreen attemptId={attemptId} />
       </GameProvider>,
     );
-    const group = await screen.findByRole("group", { name: "État de la commande" });
+    const group = await screen.findByRole("group", { name: "État de l'expédition" });
     expect(group).toHaveTextContent("0/5");
     expect(group).toHaveTextContent("Coût max du prochain envoi");
   });
@@ -37,7 +37,7 @@ describe("Atelier (mock)", () => {
         <WorkshopScreen attemptId={attemptId} />
       </GameProvider>,
     );
-    await waitFor(() => expect(screen.getByRole("group", { name: "État de la commande" })).toHaveTextContent("5/5"));
+    await waitFor(() => expect(screen.getByRole("group", { name: "État de l'expédition" })).toHaveTextContent("5/5"));
     expect(screen.getByRole("textbox", { name: /Votre instruction/ })).toBeDisabled();
     expect(screen.getAllByText(/5 messages/).length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /Envoyer à/ })).toBeDisabled();

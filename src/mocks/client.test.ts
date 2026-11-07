@@ -56,7 +56,7 @@ describe("parcours M1 en mode mock", () => {
 
     const buy = api.purchaseAgent("triage");
     await wait(200);
-    expect((await buy).state.balance.available).toBe(23);
+    expect((await buy).state.balance.available).toBe(8);
     const again = api.purchaseAgent("ads");
     again.catch(() => {});
     await wait(200);

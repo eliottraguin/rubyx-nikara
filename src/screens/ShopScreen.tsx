@@ -1,5 +1,6 @@
 "use client";
 
+import { SECTION_LABEL } from "@/components/map/BasePanel";
 import { useState } from "react";
 import { BackLink, ErrorNote, Notice, Pill, RequireSession } from "@/components/ui";
 import type { AgentView, ApiError, GameState, RoleId } from "@/lib/api";
@@ -48,9 +49,10 @@ function Shop({ state }: { state: GameState }) {
           return (
             <li key={a.role} className="card">
               <h2 className="h3">{ROLE_LABEL[a.role]}</h2>
+              {a.section ? <p className="help">Section {SECTION_LABEL[a.section]}</p> : null}
               <p>
                 <strong>{a.price === 0 ? "Gratuit" : money(a.price)}</strong>{" "}
-                {a.owned ? <Pill tone="ok">Possédé</Pill> : a.unlocked ? <Pill tone="info">Débloqué</Pill> : <Pill>Verrouillé</Pill>}
+                {a.owned ? <Pill tone="ok">Possédé</Pill> : !a.unlocked ? <Pill>Verrouillé</Pill> : a.price > state.balance.available ? <Pill tone="warn">Fonds insuffisants</Pill> : <Pill tone="info">À acheter</Pill>}
               </p>
               <p>{a.teaches}</p>
               <p className="help">Condition : {a.unlock_condition}</p>
