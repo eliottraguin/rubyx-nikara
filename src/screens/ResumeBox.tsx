@@ -16,18 +16,12 @@ export function ResumeBox() {
     ) : (
       <Loading label="Recherche d'une partie à reprendre…" />
     );
-  if (!state?.session) return <p className="muted">Aucune partie à reprendre pour l&apos;instant.</p>;
+  if (!state?.session) return null;
   const s = state.session;
   return (
-    <div className="card card-accent">
-      <h2>Reprendre votre partie</h2>
-      <p>
-        <strong>{s.company}</strong> · mode {s.mode === "beginner" ? "Débutant" : "Expert"} · {state.stage.label} · solde
-        disponible {money(state.balance.available)}
-      </p>
-      <Link className="btn btn-primary" href="/carte">
-        Reprendre sur la carte
-      </Link>
-    </div>
+    <p className="muted">
+      Partie en cours : <strong>{s.company}</strong> · {money(state.balance.available)} ·{" "}
+      <Link href="/carte">Reprendre</Link>
+    </p>
   );
 }

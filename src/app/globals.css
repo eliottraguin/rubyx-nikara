@@ -1,21 +1,21 @@
 :root {
-  --ground: #eef2f1;
+  --ground: #ffffff;
   --paper: #ffffff;
-  --ink: #14262d;
-  --muted: #475a62;
-  --line: #c3cfcd;
+  --ink: #16191a;
+  --muted: #5d6669;
+  --line: #e6e9ea;
   --accent: #0b5c63;
-  --accent-soft: #dcefee;
+  --accent-soft: #f1f6f6;
   --ok: #17673a;
-  --ok-soft: #e0f1e6;
+  --ok-soft: #f1f7f3;
   --warn: #7c4a00;
-  --warn-soft: #fbefd5;
+  --warn-soft: #faf6ee;
   --bad: #9c2226;
-  --bad-soft: #f8e1e1;
+  --bad-soft: #faf1f1;
   --info: #1d4f91;
-  --info-soft: #e1ecf9;
+  --info-soft: #f2f5fa;
   --focus: #1a3fd1;
-  --radius: 10px;
+  --radius: 12px;
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -340,3 +340,78 @@ fieldset { border: 0; padding: 0; margin: 0 0 1rem; min-width: 0; }
 .mapbar { max-width: 1280px; margin: 0 auto; padding: .5rem 1rem 0; display: flex; flex-wrap: wrap; gap: .3rem 1rem; align-items: center; }
 .mapbar-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .9rem; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 700; text-decoration: none; }
 .mapbar-link:hover { background: #08474d; }
+
+
+/* ───────────── Style épuré : surcharges globales ─────────────
+   Principe : blanc, une seule couleur d'accent, peu de bordures, beaucoup d'espace.
+   Le focus visible et les cibles de 44 px sont conservés (accessibilité). */
+html { font-size: 16px; }
+body { line-height: 1.6; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.2rem; }
+main { padding: 2rem 1.25rem 5rem; }
+.page { max-width: 880px; }
+.hero { padding: 2rem 0 2.5rem; }
+.hero h1 { font-weight: 600; }
+.lead { color: var(--muted); }
+
+/* Barre du haut : claire, discrète */
+.topbar { background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--line); }
+.topbar-in { padding: .7rem 1.25rem; }
+.brand { color: var(--ink); font-weight: 600; }
+.nav a, .nav-more > summary { color: var(--muted); }
+.nav a:hover, .nav-more > summary:hover, .nav-more[open] > summary { background: var(--accent-soft); color: var(--ink); }
+.nav a[aria-current="page"], .nav .nav-main[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.nav .nav-main { background: none; font-weight: 600; color: var(--ink); }
+.nav-more > summary.nav-more-on { box-shadow: none; color: var(--accent); }
+.nav-more-list { background: var(--paper); border: 1px solid var(--line); box-shadow: 0 6px 20px rgba(0, 0, 0, .08); }
+.topbar :focus-visible { outline-color: var(--focus); }
+.badge-sim { background: var(--warn-soft); color: var(--warn); font-weight: 600; border: 1px solid #ecdcb8; }
+.mapbar-link { background: none; color: var(--accent); border: 1px solid var(--line); font-weight: 600; }
+.mapbar-link:hover { background: var(--accent-soft); }
+
+/* Cartes et panneaux : sans cadre, juste un fond léger */
+.card, .panel, .ap-block, .statusbar { background: var(--accent-soft); border: 0; box-shadow: none; padding: 1.25rem 1.35rem; }
+.statusbar { padding: .6rem 1rem; }
+.card-accent, .card-warn { border-left: 0; }
+.card-warn { background: var(--warn-soft); }
+.hist-item, .agent-card, .role-card, .choice, .role, .ver, .planet-item { border-width: 1px; }
+.cost-box, .planet-panel .facts div, .planet-detail .facts div { background: var(--accent-soft); }
+
+/* Boutons : un seul bouton plein, le reste en contour fin */
+.btn { border: 1px solid var(--line); color: var(--ink); font-weight: 600; border-radius: 10px; padding: .6rem 1.15rem; }
+.btn:hover:not(:disabled) { background: var(--accent-soft); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #084a50; }
+.btn:disabled { background: var(--accent-soft); color: #8a9497; border-color: var(--line); }
+
+/* Pastilles et messages : texte coloré, fond à peine teinté, sans contour */
+.pill, .status-chip, .phase-chip { border: 0; font-weight: 600; }
+.pill-neutral { background: var(--accent-soft); }
+.note { border: 0; }
+.note-info { color: var(--info); background: var(--info-soft); }
+.note-ok { color: var(--ok); background: var(--ok-soft); }
+.note-warn { color: var(--warn); background: var(--warn-soft); }
+.note-bad { color: var(--bad); background: var(--bad-soft); }
+.why, .why-list { border: 0; color: var(--warn); }
+.term-def, .confirm { border: 0; background: var(--accent-soft); }
+
+/* Champs : contour fin */
+input[type="text"], input:not([type]), textarea { border: 1px solid #c9d0d2; border-radius: 10px; padding: .65rem .8rem; }
+input[type="text"]:focus, input:not([type]):focus, textarea:focus { border-color: var(--accent); }
+.choice, .role, .ver, .check { border: 1px solid var(--line); }
+.choice-on, .role-on, .ver-on, .role-card.role-on { border-color: var(--accent); background: var(--accent-soft); }
+.tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: none; color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Carte : la scène reste sombre, les contrôles s'allègent */
+.map-stage { border: 0; }
+.map-report { border: 0; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); }
+.hud-chip { border: 0; }
+.planet-item[aria-pressed="true"] { box-shadow: none; }
+.planet-item-stars { color: var(--muted); }
+.side-panel { border-top: 0; }
+.home { padding-top: 4vh; }
+.home h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); max-width: 18ch; margin-bottom: 1rem; }
+.home .lead { margin-bottom: 2rem; }
