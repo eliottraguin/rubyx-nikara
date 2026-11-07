@@ -41,14 +41,14 @@ describe("agents d'une planète", () => {
     const s = stateWith("AVAILABLE");
     const slots = buildAgentSlots({ state: s, planet: planetOf(s), attempt: null, trips: [], now: 0, reduced: false });
     const writer = slots.find((x) => x.role === "writer")!;
-    expect(writer).toMatchObject({ kind: "home", used: 0, limit: DEFAULT_MESSAGE_LIMIT, remaining: DEFAULT_MESSAGE_LIMIT, costMax: 2, stateLabel: "Au hangar" });
+    expect(writer).toMatchObject({ kind: "home", used: 0, limit: DEFAULT_MESSAGE_LIMIT, remaining: DEFAULT_MESSAGE_LIMIT, costMax: 2, stateLabel: "Au garage" });
   });
 
   it("avec expédition : quota et coût viennent de la tentative ; l'agent déjà utilisé est « envoyé »", () => {
     const s = stateWith("ACTIVE");
     const a = attempt();
     const slots = buildAgentSlots({ state: s, planet: planetOf(s), attempt: a, trips: [], now: 0, reduced: false });
-    expect(slots[0]).toMatchObject({ role: "writer", kind: "sent", used: 2, remaining: 3, stateLabel: "Rentré à la base" });
+    expect(slots[0]).toMatchObject({ role: "writer", kind: "sent", used: 2, remaining: 3, stateLabel: "Rentré au garage" });
     expect(slots.map((x) => x.kind)).toEqual(["sent", "buyable", "locked"]);
   });
 
@@ -101,10 +101,10 @@ describe("envois impossibles : toujours expliqués", () => {
     expect(run(stateWith("AVAILABLE"), "writer", "Trouve 5 restaurants à Lyon").allowed).toBe(true);
   });
 
-  it("planète verrouillée : cause et condition de déblocage", () => {
+  it("lieu verrouillé : cause et condition de déblocage", () => {
     const r = run(stateWith("LOCKED"), "writer", "x");
     expect(r.allowed).toBe(false);
-    expect(r.reasons[0]).toMatch(/verrouillée/i);
+    expect(r.reasons[0]).toMatch(/verrouillé/i);
   });
 
   it("agent non choisi, non acheté, verrouillé", () => {

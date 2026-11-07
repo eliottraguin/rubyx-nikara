@@ -15,6 +15,7 @@ import type {
   AttemptView,
   Bilan,
   BriefVersion,
+  BuildingState,
   ClarificationItem,
   CriterionView,
   DiffLine,
@@ -78,6 +79,8 @@ export interface WireState {
     next_action: { type: string; message: string };
   } | null;
   active_actions: unknown[];
+  /** Additif (API-Q1) : absent tant que le serveur ne le renvoie pas. */
+  building?: { level?: number; total_earned?: number; next_level_at?: number | null } | null;
   quotas: { messages_per_agent_per_attempt: number; clarifications_per_attempt: number };
   llm: { provider: string; simulated: boolean };
   contracts_version: string;
@@ -416,6 +419,18 @@ function mapMission(m: WireState["missions"][number], payments: Record<string, n
   };
 }
 
+/** Immeuble lu dans /state ; niveau 1 par défaut tant que l'API ne le renvoie pas ou si la valeur est invalide. */
+export function mapBuilding(b: WireState["building"]): BuildingState {
+  const int = (v: unknown, min: number, max: number, dflt: number) => (typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.floor(v))) : dflt);
+  const level = int(b?.level, 1, 10, 1);
+  const next = b?.next_level_at;
+  return {
+    level,
+    total_earned: int(b?.total_earned, 0, Number.MAX_SAFE_INTEGER, 0),
+    next_level_at: level >= 10 ? null : typeof next === "number" && Number.isFinite(next) ? Math.max(0, Math.floor(next)) : null,
+  };
+}
+
 export function mapState(w: WireState, ctx: StateContext): GameState {
   const done = w.progress?.completed_missions.length ?? 0;
   const total = w.progress?.total_missions ?? 6;
@@ -453,6 +468,7 @@ export function mapState(w: WireState, ctx: StateContext): GameState {
     hints_enabled: false,
     notebook_enabled: false,
     balance: w.balance,
+    building: mapBuilding(w.building),
     stage: { index, total, label: `Étape ${index} sur ${total}` },
     next_action: w.progress?.next_action.message ?? "Ouvrez la commande M1 depuis le bureau.",
     agents,

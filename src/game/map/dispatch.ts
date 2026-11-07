@@ -1,5 +1,5 @@
 /**
- * Agents d'une planète et envoi d'un agent (pur). Le serveur reste maître : prix, quotas, droits et solde viennent de
+ * Agents d'un lieu (ex-planète) et envoi d'un agent (pur). Le serveur reste maître : prix, quotas, droits et solde viennent de
  * /state et de la tentative ; ici on les PRÉSENTE et on explique les envois impossibles (jamais masqués).
  */
 import { ROLE_LABEL, money } from "@/lib/format";
@@ -19,7 +19,7 @@ export interface AgentSlot {
   price: number;
   unlockCondition: string;
   kind: SlotKind;
-  /** Instructions utilisées sur l'expédition de cette planète (0 si aucune). */
+  /** Instructions utilisées sur l'expédition de ce lieu (0 si aucune). */
   used: number;
   limit: number;
   remaining: number;
@@ -32,7 +32,7 @@ export interface AgentSlot {
   stateLabel: string;
 }
 
-/** Tentative d'une planète : la tentative courante si elle appartient à la planète, sinon la dernière active récupérée. */
+/** Tentative d'un lieu : la tentative courante si elle appartient au lieu, sinon la dernière active récupérée. */
 export function planetAttempt(planet: PlanetVM, current: AttemptView | null | undefined, fetched: readonly AttemptView[]): AttemptView | null {
   if (!planet.missionId) return null;
   if (current && current.mission_id === planet.missionId) return current;
@@ -55,17 +55,19 @@ export function buildAgentSlots(opts: {
     const limit = quota?.limit ?? DEFAULT_MESSAGE_LIMIT;
     const trip = trips.find((t) => t.planetId === planet.id && t.role === ag.role);
     const phase = trip ? tripFrame(trip, now, reduced).phase : null;
-    const activePhase = phase && phase !== "home" ? phase : null;
+    const failed = phase === "failed";
+    const activePhase = phase && phase !== "home" && !failed ? phase : null;
     const free = !!quota?.free_credit;
     const costMax = free ? 0 : (quota?.next_cost_max ?? planet.unitPrice ?? 0);
     let kind: SlotKind;
     if (!ag.owned) kind = ag.unlocked ? "buyable" : "locked";
-    else if (used > 0 || activePhase) kind = "sent";
+    else if (used > 0 || activePhase || failed) kind = "sent";
     else kind = "home";
     let stateLabel: string;
     if (activePhase) stateLabel = TRIP_PHASE_SHORT[activePhase];
-    else if (kind === "sent") stateLabel = "Rentré à la base";
-    else if (kind === "home") stateLabel = "Au hangar";
+    else if (failed) stateLabel = TRIP_PHASE_SHORT.failed;
+    else if (kind === "sent") stateLabel = "Rentré au garage";
+    else if (kind === "home") stateLabel = "Au garage";
     else if (kind === "buyable") stateLabel = "À acheter";
     else stateLabel = "Verrouillé";
     return {
@@ -124,7 +126,7 @@ export function checkDispatch(opts: {
   const { planet, attempt, slot, balance, text } = opts;
   const reasons: string[] = [];
   if (planet.status === "locked") {
-    reasons.push(`Planète verrouillée : ${planet.unlockText}`);
+    reasons.push(`Lieu verrouillé : ${planet.unlockText}`);
     return { allowed: false, reasons };
   }
   if (!slot) {
@@ -133,9 +135,9 @@ export function checkDispatch(opts: {
   }
   const step = expeditionStep(planet, attempt);
   if (attempt?.status === "EVALUATING" || planet.missionStatus === "EVALUATING" || attempt?.submission?.status === "EVALUATING")
-    reasons.push("Le rapport de cette planète est en cours d'évaluation : attendez le résultat avant d'envoyer un agent.");
-  else if (step === "blocked") reasons.push("Cette planète n'est pas ouvrable pour le moment.");
-  if (slot.kind === "buyable") reasons.push(`${slot.label} n'est pas encore acheté : ${money(slot.price)} (voir le hangar de la base).`);
+    reasons.push("Le rapport de ce lieu est en cours d'évaluation : attendez le résultat avant d'envoyer un agent.");
+  else if (step === "blocked") reasons.push("Ce lieu n'est pas ouvrable pour le moment.");
+  if (slot.kind === "buyable") reasons.push(`${slot.label} n'est pas encore acheté : ${money(slot.price)} (voir le garage de l'immeuble).`);
   if (slot.kind === "locked") reasons.push(`${slot.label} est verrouillé : ${slot.unlockCondition}.`);
   if (slot.owned && slot.remaining <= 0)
     reasons.push(`Les ${slot.limit} instructions de cet agent sont utilisées pour cette expédition. Vous pouvez livrer le résultat ou en lancer une nouvelle.`);

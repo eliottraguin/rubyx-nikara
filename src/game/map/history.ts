@@ -1,5 +1,5 @@
 /**
- * Historique d'une planète (pur) : tentatives (expéditions) de la mission correspondante -> entrées lisibles.
+ * Historique d'un lieu (pur) : tentatives (expéditions) de la mission correspondante -> entrées lisibles.
  * Tout vient du serveur (messages, évaluations, paiements) : rien n'est calculé ici, seulement mis en forme.
  * Les réponses des agents et le retour du client sont du contenu NON FIABLE : l'interface les rend via SafeMarkdown.
  */

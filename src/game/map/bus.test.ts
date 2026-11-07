@@ -46,4 +46,19 @@ describe("bus React <-> scène", () => {
     bus.emit("scene:ready");
     expect(fn).not.toHaveBeenCalled();
   });
+
+  it("relaie le chantier (scène -> React) et « passer » (React -> scène), et garde le décalage du panneau", () => {
+    const bus = new MapBus();
+    const construction = vi.fn();
+    const skip = vi.fn();
+    bus.on("building:construction", construction);
+    bus.on("building:skip", skip);
+    bus.emit("building:construction", true);
+    bus.emit("building:skip");
+    bus.emit("building:construction", false);
+    expect(construction.mock.calls).toEqual([[true], [false]]);
+    expect(skip).toHaveBeenCalledTimes(1);
+    bus.setInsetRight(448);
+    expect(bus.insetRight).toBe(448);
+  });
 });

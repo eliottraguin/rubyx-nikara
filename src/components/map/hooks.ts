@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildingHeightPx } from "@/game/map/building";
+import { LAYOUT } from "@/game/map/layout";
+import { legMsForPlace } from "@/game/map/paths";
 import { isTerminalAction, pruneTrips, syncTrips, type Trip } from "@/game/map/trips";
 import type { MapViewModel } from "@/game/map/viewmodel";
 import type { ActionView, ApiClient, AttemptView, GameState, RoleId } from "@/lib/api/types";
@@ -19,11 +22,11 @@ export function useNow(active: boolean, ms = 250): number {
 export interface TripControls {
   trips: Trip[];
   now: number;
-  /** Démarre un voyage visuel (l'agent quitte la base) ; renvoie son identifiant. */
+  /** Démarre un voyage visuel (le bot quitte l'immeuble, véhicule du lieu) ; renvoie son identifiant. */
   launch: (planetId: string, role: RoleId) => string;
-  /** Lie le voyage à l'action serveur ; une action déjà terminée clôt le dialogue après son temps minimal. */
+  /** Lie le voyage à l'action serveur ; une action déjà terminée clôt le dialogue après son temps minimal ; un échec = panne. */
   bind: (tripId: string, action: ActionView | undefined) => void;
-  /** Annule le voyage (envoi refusé : l'agent ne part pas). */
+  /** Annule le voyage (envoi refusé : le bot ne part pas). */
   drop: (tripId: string) => void;
 }
 
@@ -39,13 +42,16 @@ export function useTrips(state: GameState | null | undefined, vm: MapViewModel, 
     return (attemptId: string) => (attempt && attempt.id === attemptId ? planetId : null);
   }, [state?.attempt, vm.planets]);
   const actions = state?.actions_in_progress;
+  // Durée cosmétique des trajets : selon le véhicule du LIEU (donnée), jamais le serveur.
+  const level = vm.building.level;
+  const legMsOf = useCallback((planetId: string) => legMsForPlace(LAYOUT, planetId, buildingHeightPx(level)), [level]);
 
   useEffect(() => {
     if (!actions) return;
     // Synchronisation avec une source externe (actions du serveur) : le voyage suit l'état serveur.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTrips((cur) => syncTrips(cur, actions, planetOfAttempt, Date.now(), reduced));
-  }, [actions, planetOfAttempt, reduced]);
+    setTrips((cur) => syncTrips(cur, actions, planetOfAttempt, Date.now(), reduced, legMsOf));
+  }, [actions, planetOfAttempt, reduced, legMsOf]);
 
   const active = trips.length > 0;
   const now = useNow(active);
@@ -55,17 +61,23 @@ export function useTrips(state: GameState | null | undefined, vm: MapViewModel, 
     return () => clearInterval(i);
   }, [active, reduced]);
 
-  const launch = useCallback((planetId: string, role: RoleId) => {
-    const id = `trip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-    setTrips((cur) => [...cur, { id, planetId, role, startedAt: Date.now(), doneAt: null }]);
-    return id;
-  }, []);
+  const launch = useCallback(
+    (planetId: string, role: RoleId) => {
+      const id = `trip-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const legMs = legMsOf(planetId);
+      setTrips((cur) => [...cur, { id, planetId, role, startedAt: Date.now(), doneAt: null, ...(legMs !== undefined ? { legMs } : {}) }]);
+      return id;
+    },
+    [legMsOf],
+  );
   const bind = useCallback((tripId: string, action: ActionView | undefined) => {
     setTrips((cur) =>
       cur.map((t) => {
         if (t.id !== tripId) return t;
         const finished = !action || isTerminalAction(action);
-        return { ...t, actionId: action?.id ?? t.actionId, doneAt: finished ? Date.now() : t.doneAt };
+        const now = Date.now();
+        // Échec technique : le bot tombe en panne, rien n'est débité (le serveur le garantit).
+        return { ...t, actionId: action?.id ?? t.actionId, doneAt: finished ? now : t.doneAt, ...(action?.status === "FAILED" ? { failedAt: now } : {}) };
       }),
     );
   }, []);

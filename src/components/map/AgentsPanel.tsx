@@ -26,7 +26,7 @@ interface Props {
 const costText = (n: number, free: boolean) => (free ? "gratuit (crédit exceptionnel)" : n === 0 ? "gratuit" : money(n));
 
 /**
- * Panneau de droite d'une planète : agents déjà envoyés (état, instructions restantes, coût) et formulaire pour en
+ * Panneau d'un lieu (en surimpression) : bots déjà envoyés (état, instructions restantes, coût) et formulaire pour en
  * envoyer un autre. Prix, quotas et droits viennent du serveur ; les envois impossibles sont expliqués.
  */
 export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy, onDispatch, onBuy, onOpenBase }: Props) {
@@ -58,7 +58,7 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
     setConfirming(false);
     if (err) setError(err);
     else {
-      setNotice(`${slot.label} quitte la base pour ${planet.name}. Suivez son voyage sur la carte.`);
+      setNotice(`${slot.label} part ${planet.vehicleManner} vers ${planet.placeName}. Suivez son trajet sur la carte.`);
       setText("");
       setDocIds([]);
     }
@@ -75,10 +75,10 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
     <div className="agents-panel">
       <section aria-labelledby="ap-sent" className="ap-block">
         <h2 className="h3" id="ap-sent">
-          Agents sur {planet.name}
+          Bots vers {planet.title}
         </h2>
         {sent.length === 0 ? (
-          <p className="muted">Aucun agent n&apos;a encore été envoyé ici. Choisissez-en un ci-dessous et rédigez sa mission.</p>
+          <p className="muted">Aucun bot n&apos;a encore été envoyé ici. Choisissez-en un ci-dessous et rédigez sa mission.</p>
         ) : (
           <ul className="agent-list">
             {sent.map((a) => (
@@ -103,10 +103,10 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
 
       <section aria-labelledby="ap-new" className="ap-block">
         <h2 className="h3" id="ap-new">
-          Envoyer un agent
+          Envoyer un bot
         </h2>
         {locked ? (
-          <Notice tone="warn" title="Planète verrouillée.">
+          <Notice tone="warn" title="Lieu verrouillé.">
             {planet.unlockText}
           </Notice>
         ) : (
@@ -117,7 +117,7 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
             }}
           >
             <fieldset className="role-picker">
-              <legend>1. Choisissez l&apos;agent</legend>
+              <legend>1. Choisissez le bot</legend>
               <ul className="role-list">
                 {slots.map((s: AgentSlot) => {
                   const why = s.owned ? null : agentBlocker(s, state.balance.available);
@@ -232,10 +232,10 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
                   </div>
                 </dl>
               ) : (
-                <p className="help">Choisissez un agent pour voir le coût et les instructions restantes.</p>
+                <p className="help">Choisissez un bot pour voir le coût et les instructions restantes.</p>
               )}
-              {step === "start" ? <p className="help">Une expédition sera ouverte sur cette planète à l&apos;envoi ; le serveur fige son tarif.</p> : null}
-              {step === "retry" ? <p className="help">Cette planète a déjà été visitée : une nouvelle expédition sera ouverte ; seul l&apos;écart de gain est versé.</p> : null}
+              {step === "start" ? <p className="help">Une expédition sera ouverte dans ce lieu à l&apos;envoi ; le serveur fige son tarif.</p> : null}
+              {step === "retry" ? <p className="help">Ce lieu a déjà été visité : une nouvelle expédition sera ouverte ; seul l&apos;écart de gain est versé.</p> : null}
             </div>
 
             {check.reasons.length > 0 && (text.length > 0 || !slot?.owned || locked) ? (
@@ -268,15 +268,15 @@ export function AgentsPanel({ state, planet, attempt, trips, now, reduced, busy,
               </div>
             ) : (
               <button type="submit" className="btn btn-primary btn-wide" disabled={!check.allowed || busy}>
-                Envoyer l&apos;agent
+                Envoyer le bot
               </button>
             )}
           </form>
         )}
         <p className="help">
-          Le hangar et le coffre sont sur la base.{" "}
+          Le garage et le coffre sont dans votre immeuble.{" "}
           <button type="button" className="linklike" onClick={onOpenBase}>
-            Ouvrir la base
+            Ouvrir l&apos;immeuble
           </button>
         </p>
       </section>

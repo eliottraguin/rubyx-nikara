@@ -6,7 +6,7 @@ import { agentBlocker } from "@/game/map/dispatch";
 import type { ApiError, GameState, RoleId } from "@/lib/api/types";
 import { ROLE_LABEL, money } from "@/lib/format";
 
-/** Base : coffre (trésorerie) et hangar (agents, achat). Les prix, soldes et déblocages viennent du serveur. */
+/** Votre immeuble : coffre (trésorerie) et garage (bots, achat). Les prix, soldes et déblocages viennent du serveur. */
 export function BasePanel({ state, busy, onBuy }: { state: GameState; busy: boolean; onBuy: (role: RoleId) => Promise<ApiError | null> }) {
   const [pending, setPending] = useState<RoleId | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -49,11 +49,11 @@ export function BasePanel({ state, busy, onBuy }: { state: GameState; busy: bool
 
       <section className="card" aria-labelledby="hangar-title2">
         <h2 className="h3" id="hangar-title2">
-          Hangar
+          Garage
         </h2>
         {done ? (
           <Notice tone="ok" title="Achat confirmé.">
-            {ROLE_LABEL[done]} rejoint votre hangar.
+            {ROLE_LABEL[done]} rejoint votre garage.
           </Notice>
         ) : null}
         <ErrorNote error={error} />

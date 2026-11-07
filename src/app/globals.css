@@ -415,3 +415,52 @@ input[type="text"]:focus, input:not([type]):focus, textarea:focus { border-color
 .home { padding-top: 4vh; }
 .home h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); max-width: 18ch; margin-bottom: 1rem; }
 .home .lead { margin-bottom: 2rem; }
+
+
+/* ───────────── Ville plein écran (jalon Q) ─────────────
+   La ville occupe tout l'espace sous la barre du haut ; barre d'état, menu, liste et panneau latéral sont en
+   SURIMPRESSION (le panneau ne réduit jamais la carte). Cible : ordinateur ; le mode liste reste le repli. */
+body:has(.map-fullscreen) { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+body:has(.map-fullscreen) main { flex: 1 1 auto; min-height: 0; padding: 0; position: relative; }
+.map-fullscreen { position: absolute; inset: 0; }
+.map-fullscreen .map-stage { position: absolute; inset: 0; height: 100%; min-height: 0; max-height: none; border-radius: 0; border: 0; background: #8dbbd6; }
+.map-fullscreen .map-loading { background: #8dbbd6; color: #10202a; }
+.map-fullscreen .map-hud { right: auto; max-width: calc(100% - 7rem); }
+.hud-sim { color: #ffd98a; }
+.map-menu { position: absolute; top: .6rem; right: .6rem; z-index: 6; display: grid; justify-items: end; gap: .35rem; }
+.map-fullscreen.panel-open .map-menu { right: calc(28rem + 1.35rem); }
+.map-menu-list { background: rgba(7, 19, 26, .95); border-radius: 12px; padding: .35rem; min-width: 15rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.map-menu-list ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; }
+.map-menu-list button, .map-menu-list a { display: flex; align-items: center; width: 100%; min-height: 40px; padding: 0 .75rem; font: inherit; color: #fff; background: none; border: 0; border-radius: 8px; text-align: left; text-decoration: none; cursor: pointer; }
+.map-menu-list button:hover, .map-menu-list a:hover { background: rgba(31, 122, 74, .9); }
+.map-menu-list button[aria-pressed="true"] { background: rgba(255, 255, 255, .14); }
+.map-menu-list :focus-visible { outline: 3px solid #9fc2ff; outline-offset: -2px; }
+.map-maquette { position: absolute; left: 50%; top: .6rem; transform: translateX(-50%); z-index: 5; pointer-events: auto; }
+.map-maquette a { color: inherit; }
+.map-building { position: absolute; left: .75rem; bottom: .75rem; z-index: 4; width: min(21rem, calc(100% - 7rem)); }
+.building-status { background: rgba(255, 255, 255, .94); color: var(--ink); border-radius: var(--radius); padding: .7rem .85rem; box-shadow: 0 6px 22px rgba(0, 0, 0, .25); }
+.building-status h2 { margin-bottom: .2rem; overflow-wrap: anywhere; }
+.building-text { font-weight: 600; margin: 0 0 .3rem; }
+.building-look { margin: 0 0 .5rem; font-size: .88rem; }
+.city-panel .building-status, .map-side .building-status { background: var(--accent-soft); box-shadow: none; }
+.map-drawer { position: absolute; left: .75rem; top: 3.4rem; bottom: 11rem; z-index: 4; width: min(21rem, calc(100% - 1.5rem)); overflow: auto; background: rgba(255, 255, 255, .96); color: var(--ink); border-radius: var(--radius); padding: .8rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); display: grid; gap: .9rem; align-content: start; }
+.planet-item-sub { flex-basis: 100%; font-size: .82rem; color: var(--muted); }
+.bot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.bot-item { padding: .35rem .6rem; border-radius: 8px; background: var(--accent-soft); }
+.bot-en_route, .bot-sur_place, .bot-retour { background: var(--info-soft); }
+.bot-en_panne { background: var(--bad-soft); color: var(--bad); }
+.city-panel { position: absolute; top: .75rem; right: .75rem; bottom: .75rem; z-index: 5; width: min(28rem, calc(100% - 1.5rem)); display: flex; flex-direction: column; background: var(--paper); color: var(--ink); border-radius: var(--radius); box-shadow: 0 10px 34px rgba(0, 0, 0, .35); overflow: hidden; }
+.city-panel-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.city-panel-head h2 { margin: 0; overflow-wrap: anywhere; }
+.city-panel-head h2:focus { outline: none; }
+.city-panel-body { overflow: auto; padding: .8rem .9rem 1.2rem; display: grid; gap: 1rem; align-content: start; }
+.city-panel-body .card, .city-panel-body .ap-block { margin-bottom: 0; }
+.map-fullscreen.panel-open .map-tools { right: calc(28rem + 1.35rem); }
+.map-fullscreen .map-report { left: 50%; top: 4rem; transform: translateX(-50%); }
+.map-fullscreen .map-tools { bottom: .75rem; right: .75rem; }
+@media (max-width: 899px) {
+  /* Pas de cible mobile : on garde seulement une mise en page qui ne casse pas. */
+  .city-panel { top: auto; height: 70%; left: .75rem; right: .75rem; width: auto; }
+  .map-fullscreen.panel-open .map-menu, .map-fullscreen.panel-open .map-tools { right: .75rem; }
+  .map-building { bottom: auto; top: 3.2rem; }
+}

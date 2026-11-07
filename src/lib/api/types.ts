@@ -279,6 +279,19 @@ export interface Bilan {
   results: { mission_id: string; title: string; best_score: number; best_payment: number }[];
 }
 
+/**
+ * Immeuble du joueur : niveau et total gagné, CALCULÉS PAR LE SERVEUR (`GET /api/state`, contrat additif).
+ * Purement cosmétique : ne débloque aucun droit. Le navigateur ne le choisit jamais.
+ */
+export interface BuildingState {
+  /** 1 à 10. */
+  level: number;
+  /** Somme des paiements d'expédition depuis le début (dollars de jeu). */
+  total_earned: number;
+  /** Total gagné qui ouvre le niveau suivant ; null au dernier niveau. */
+  next_level_at: number | null;
+}
+
 export interface GameState {
   contract_version: string;
   session: SessionInfo | null;
@@ -297,6 +310,8 @@ export interface GameState {
   demo_events?: DemoEventId[];
   /** Limites exposées par le serveur quand il les expose (sinon valeurs d'affichage par défaut). */
   limits?: { prompt_max_chars?: number };
+  /** Immeuble du joueur (absent tant que l'API ne le renvoie pas : niveau 1 par défaut côté interface). */
+  building?: BuildingState;
   agents: AgentView[];
   missions: MissionView[];
   attempt: AttemptView | null;

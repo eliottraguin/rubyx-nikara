@@ -3,16 +3,16 @@ import { money } from "@/lib/format";
 import type { MapViewModel, PlanetVM } from "@/game/map/viewmodel";
 import { StatusIcon } from "./StatusIcon";
 
-/** Fiche d'une planète : tout en texte (l'état n'est jamais porté par la couleur seule). */
+/** Fiche d'un lieu : tout en texte (l'état n'est jamais porté par la couleur seule). */
 export function PlanetPanel({ planet, vm }: { planet: PlanetVM | null; vm: MapViewModel }) {
   if (!planet) {
     return (
       <section className="card planet-panel" aria-labelledby="panel-title">
         <h2 className="h3" id="panel-title">
-          Choisissez une planète
+          Choisissez un lieu
         </h2>
         <p className="muted">
-          Cliquez une planète sur la carte ou dans la liste pour voir sa fiche : ce qu&apos;on y apprend, la récompense,
+          Cliquez un lieu sur la carte ou dans la liste pour voir sa fiche : ce qu&apos;on y apprend, la récompense,
           le coût par instruction et la condition de déblocage.
         </p>
       </section>
@@ -22,8 +22,11 @@ export function PlanetPanel({ planet, vm }: { planet: PlanetVM | null; vm: MapVi
   return (
     <section className="card planet-panel" aria-labelledby="panel-title" aria-live="off">
       <h2 className="h3" id="panel-title">
-        {planet.name}
+        {planet.title}
       </h2>
+      <p className="muted">
+        {planet.district} · trajet {planet.vehicleManner}
+      </p>
       <p>
         <span className={`status-chip status-chip-${planet.status}`}>
           <StatusIcon status={planet.status} />
@@ -57,7 +60,7 @@ export function PlanetPanel({ planet, vm }: { planet: PlanetVM | null; vm: MapVi
       ) : (
         <p className="help">Aperçu : créez une partie pour lancer une expédition.</p>
       )}
-      {!live ? <p className="help">Planètes en aperçu « maquette » : les états viendront du serveur.</p> : null}
+      {!live ? <p className="help">Lieux en aperçu « maquette » : les états viendront du serveur.</p> : null}
     </section>
   );
 }
@@ -66,14 +69,14 @@ export function AgentsSummary({ vm }: { vm: MapViewModel }) {
   return (
     <section className="card" aria-labelledby="hangar-title">
       <h2 className="h3" id="hangar-title">
-        Hangar
+        Garage
       </h2>
       <p>
         {vm.source === "serveur"
-          ? `${vm.base.agentsOwned} agent${vm.base.agentsOwned > 1 ? "s" : ""} au hangar sur ${vm.base.agentsTotal}.`
-          : "Aucun agent : créez une partie pour recruter."}
+          ? `${vm.base.agentsOwned} bot${vm.base.agentsOwned > 1 ? "s" : ""} au garage sur ${vm.base.agentsTotal}.`
+          : "Aucun bot : créez une partie pour recruter."}
       </p>
-      <p className="help">Bientôt : vos agents voyageront visiblement entre la base et les planètes.</p>
+      <p className="help">Vos bots partent de votre immeuble et traversent la ville jusqu&apos;aux lieux.</p>
     </section>
   );
 }

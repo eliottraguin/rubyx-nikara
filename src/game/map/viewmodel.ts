@@ -1,13 +1,15 @@
 /**
  * GameState -> MapViewModel (fonction pure, sans Phaser ni React ; docs/CARTE-TECH.md).
- * La carte AFFICHE un état ; elle ne décide ni solde, ni prix, ni quota, ni score, ni déblocage.
- * Jusqu'au ticket API-A1 (planètes dans /state), l'état d'une planète est dérivé de la mission correspondante
- * (statut serveur) ; sans partie, un aperçu « maquette » figé est affiché et signalé comme tel.
+ * La carte AFFICHE un état ; elle ne décide ni solde, ni prix, ni quota, ni score, ni déblocage, ni niveau d'immeuble.
+ * Jusqu'au ticket API-A1 (lieux dans /state), l'état d'un lieu (ex-planète, id technique `planet`) est dérivé de la
+ * mission correspondante (statut serveur) ; sans partie, un aperçu « maquette » figé est affiché et signalé comme tel.
  */
 import type { GameState, MissionStatus, MissionView } from "@/lib/api/types";
+import { buildingVM, type BuildingVM } from "./building";
 import { LAYOUT, type MapLayout } from "./layout";
 import type { Pt } from "./iso";
-import { PLANETS, type PlanetDef, type PlanetId, type PlanetPalette } from "./planets";
+import { PLANETS, type PlanetId, type PlanetPalette } from "./planets";
+import { VEHICLE_LABEL, VEHICLE_MANNER, type VehicleId } from "./vehicles";
 
 export type PlanetStatus = "locked" | "available" | "in_progress" | "visited";
 
@@ -20,7 +22,20 @@ export const PLANET_STATUS_LABEL: Record<PlanetStatus, string> = {
 
 export interface PlanetVM {
   id: PlanetId;
+  /** Nom de la plateforme (Annuaire, LinkedIn…) : toujours affiché avec le lieu. */
   name: string;
+  /** Nom du lieu dans la ville (« Bibliothèque publique »), donnée cosmétique. */
+  placeName: string;
+  /** Quartier du lieu. */
+  district: string;
+  /** Véhicule des bots vers ce lieu : donnée du lieu, purement visuelle. */
+  vehicle: VehicleId;
+  /** « Vélo », « Skate »… (texte). */
+  vehicleLabel: string;
+  /** Mode de déplacement en texte (« à vélo »). */
+  vehicleManner: string;
+  /** « Midtown : LinkedIn » : lieu et plateforme ensemble (le joueur doit savoir quelle source il interroge). */
+  title: string;
   tagline: string;
   blurb: string;
   status: PlanetStatus;
@@ -38,11 +53,10 @@ export interface PlanetVM {
   promptHint: string;
   examples: string[];
   palette: PlanetPalette;
-  radius: number;
-  ring: boolean;
-  surface: PlanetDef["surface"];
   grid: Pt;
   world: Pt;
+  /** Hauteur du bâtiment du lieu en étages (art). */
+  floors: number;
 }
 
 export interface MapViewModel {
@@ -52,8 +66,13 @@ export interface MapViewModel {
   /** Solde disponible côté serveur, null en maquette. */
   treasury: number | null;
   simulated: boolean;
+  /** Immeuble du joueur (id technique `base`) : position, agents au garage. */
   base: { grid: Pt; size: number; agentsOwned: number; agentsTotal: number };
+  /** Niveau et texte d'équivalent de l'immeuble, lus UNIQUEMENT dans l'état serveur. */
+  building: BuildingVM;
   planets: PlanetVM[];
+  /** Les lieux de la ville : même tableau que `planets` (identifiant technique conservé). */
+  places: PlanetVM[];
   /** Rectangle monde englobant (marges comprises). */
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
 }
@@ -83,21 +102,6 @@ export function starsFromPayment(best: number, max: number | null, visited: bool
   return 1;
 }
 
-function bounds(planets: { world: Pt; radius: number }[], base: { world: Pt; extent: number }) {
-  const pad = 90;
-  let minX = base.world.x - base.extent;
-  let maxX = base.world.x + base.extent;
-  let minY = base.world.y - base.extent;
-  let maxY = base.world.y + base.extent;
-  for (const p of planets) {
-    minX = Math.min(minX, p.world.x - p.radius * 1.5);
-    maxX = Math.max(maxX, p.world.x + p.radius * 1.5);
-    minY = Math.min(minY, p.world.y - p.radius * 1.5);
-    maxY = Math.max(maxY, p.world.y + p.radius * 2.1);
-  }
-  return { minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad };
-}
-
 function pickMission(missions: MissionView[], index: number): MissionView | null {
   const regular = missions.filter((m) => !m.is_rescue);
   return regular[index] ?? null;
@@ -105,7 +109,7 @@ function pickMission(missions: MissionView[], index: number): MissionView | null
 
 export function buildMapViewModel(state: GameState | null | undefined, layout: MapLayout = LAYOUT): MapViewModel {
   const source: MapViewModel["source"] = state ? "serveur" : "maquette";
-  const planets: PlanetVM[] = layout.planets.map((lp, i) => {
+  const planets: PlanetVM[] = layout.places.map((lp, i) => {
     const def = PLANETS.find((d) => d.id === lp.id)!;
     const mission = state ? pickMission(state.missions, i) : null;
     let status: PlanetStatus;
@@ -117,6 +121,12 @@ export function buildMapViewModel(state: GameState | null | undefined, layout: M
     return {
       id: def.id,
       name: def.name,
+      placeName: lp.name,
+      district: lp.district,
+      vehicle: lp.vehicle,
+      vehicleLabel: VEHICLE_LABEL[lp.vehicle],
+      vehicleManner: VEHICLE_MANNER[lp.vehicle],
+      title: `${lp.name} : ${def.name}`,
       tagline: def.tagline,
       blurb: def.blurb,
       status,
@@ -131,14 +141,11 @@ export function buildMapViewModel(state: GameState | null | undefined, layout: M
       promptHint: def.promptHint,
       examples: def.examples,
       palette: def.palette,
-      radius: def.radius,
-      ring: def.ring,
-      surface: def.surface,
       grid: lp.grid,
       world: lp.world,
+      floors: lp.floors,
     };
   });
-  const baseWorld = { x: 0, y: 0 };
   const agents = state?.agents ?? [];
   return {
     source,
@@ -146,12 +153,27 @@ export function buildMapViewModel(state: GameState | null | undefined, layout: M
     treasury: state ? state.balance.available : null,
     simulated: state ? state.simulated_provider : true,
     base: {
-      grid: layout.base.grid,
-      size: layout.base.size,
+      grid: layout.hq.grid,
+      size: layout.hq.footprint.w,
       agentsOwned: agents.filter((a) => a.owned).length,
       agentsTotal: agents.length,
     },
+    building: buildingVM(state?.building),
     planets,
-    bounds: bounds(planets, { world: baseWorld, extent: (layout.base.size * layout.tile.w) / 2 }),
+    places: planets,
+    bounds: layout.bounds,
   };
+}
+
+/** Instructions (messages) restantes sur l'expédition en cours, tous bots possédés confondus ; null sans expédition. */
+export function instructionsRemaining(state: GameState | null | undefined): number | null {
+  const attempt = state?.attempt;
+  if (!attempt || attempt.status !== "ACTIVE") return null;
+  const owned = new Set((state?.agents ?? []).filter((a) => a.owned).map((a) => a.role));
+  return attempt.roles.filter((r) => owned.has(r.role)).reduce((n, r) => n + Math.max(0, r.limit - r.used), 0);
+}
+
+/** Libellé du mode (valeurs API `beginner` / `expert`). */
+export function modeLabel(mode: string | null | undefined): string {
+  return mode === "expert" ? "Réel" : mode === "beginner" ? "Tutoriel" : "Aperçu";
 }

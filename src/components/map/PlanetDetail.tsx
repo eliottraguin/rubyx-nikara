@@ -12,12 +12,12 @@ import { StatusIcon } from "./StatusIcon";
 
 interface Props {
   planet: PlanetVM;
-  /** Expéditions de la planète (la tentative courante déjà fusionnée). */
+  /** Expéditions du lieu (la tentative courante déjà fusionnée). */
   attempts: AttemptView[];
   loading: boolean;
   loadError: string | null;
   onReload: () => void;
-  /** Tentative active de la planète, pour la livraison depuis la carte. */
+  /** Tentative active du lieu, pour la livraison depuis la carte. */
   active: AttemptView | null;
   busy: boolean;
   /** Livre une version du livrable ; renvoie l'erreur serveur ou null. */
@@ -32,7 +32,7 @@ const Heading = forwardRef<HTMLHeadingElement, { id: string; children: React.Rea
   );
 });
 
-/** Détail d'une planète : fiche, historique des expéditions, livraison du rapport. Tout en texte et rendu non fiable nettoyé. */
+/** Détail d'un lieu : fiche, historique des expéditions, livraison du rapport. Tout en texte et rendu non fiable nettoyé. */
 export const PlanetDetail = forwardRef<HTMLHeadingElement, Props>(function PlanetDetail({ planet, attempts, loading, loadError, onReload, active, busy, onDeliver }, headingRef) {
   const entries = buildPlanetHistory(attempts);
   const sum = summarizeHistory(entries);
@@ -40,7 +40,7 @@ export const PlanetDetail = forwardRef<HTMLHeadingElement, Props>(function Plane
     <div className="planet-detail">
       <section className="card" aria-labelledby="pd-title">
         <Heading id="pd-title" ref={headingRef}>
-          {planet.name}
+          {planet.title}
         </Heading>
         <p>
           <span className={`status-chip status-chip-${planet.status}`}>
@@ -54,6 +54,9 @@ export const PlanetDetail = forwardRef<HTMLHeadingElement, Props>(function Plane
               <span aria-hidden="true">{"☆".repeat(3 - planet.stars)}</span>
             </span>
           ) : null}
+        </p>
+        <p className="muted">
+          {planet.district} · trajet {planet.vehicleManner} · Plateforme : {planet.name}. Lieu illustré de façon générique, non affilié.
         </p>
         <p className="big-ish">{planet.tagline}</p>
         <p className="muted">{planet.blurb}</p>
@@ -90,7 +93,7 @@ export const PlanetDetail = forwardRef<HTMLHeadingElement, Props>(function Plane
 
       <section className="card" aria-labelledby="hist-title" id="planet-history">
         <h2 className="h3" id="hist-title">
-          Historique de {planet.name}
+          Historique de {planet.placeName}
         </h2>
         {loadError ? (
           <p className="note note-bad" role="alert">
@@ -104,7 +107,7 @@ export const PlanetDetail = forwardRef<HTMLHeadingElement, Props>(function Plane
             Chargement de l&apos;historique…
           </p>
         ) : entries.length === 0 ? (
-          <p className="muted">Rien n&apos;a encore été fait sur cette planète. Envoyez un premier agent depuis le panneau de droite : chaque expédition apparaîtra ici avec vos instructions, les réponses et le résultat.</p>
+          <p className="muted">Rien n&apos;a encore été fait dans ce lieu. Envoyez un premier bot depuis le panneau ci-dessous : chaque expédition apparaîtra ici avec vos instructions, les réponses et le résultat.</p>
         ) : (
           <>
             <p className="help">

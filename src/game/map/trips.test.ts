@@ -43,6 +43,24 @@ describe("phases d'un voyage (purement visuel)", () => {
   });
 });
 
+describe("durée de trajet selon le véhicule du lieu", () => {
+  it("legMs remplace la durée par défaut à l'aller et au retour", () => {
+    const t = trip({ legMs: 3000, doneAt: T0 });
+    expect(tripFrame(t, T0 + 2999).phase).toBe("outbound");
+    expect(tripFrame(t, T0 + 3001).phase).toBe("dialogue");
+    const dialogueEnd = T0 + 3000 + TIMING.dialogueMin;
+    expect(tripFrame(t, dialogueEnd + 2999).phase).toBe("return");
+    expect(tripFrame(t, dialogueEnd + 3001).phase).toBe("home");
+  });
+
+  it("une action ouverte inconnue crée un voyage déjà sur place avec la durée du lieu", () => {
+    const open = [{ id: "act_1", attempt_id: "att_1", role: "writer" as const, status: "RUNNING" as const }];
+    const out = syncTrips([], open, () => "annuaire", T0, false, () => 3500);
+    expect(out[0]).toMatchObject({ legMs: 3500, startedAt: T0 - 3500 });
+    expect(tripFrame(out[0]!, T0).phase).toBe("dialogue");
+  });
+});
+
 describe("synchronisation avec les actions ouvertes du serveur", () => {
   const planetOf = (id: string) => (id === "att_1" ? "annuaire" : null);
   const open = [{ id: "act_1", attempt_id: "att_1", role: "writer" as const, status: "RUNNING" as const }];

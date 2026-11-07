@@ -1,14 +1,15 @@
 /**
  * Bus typé React <-> scène (docs/CARTE-TECH.md). Pas de Phaser, pas de React : testable seul.
  * React possède l'état ; la scène affiche et émet des INTENTIONS (clic, survol), jamais de résultat de jeu.
+ * Vocabulaire de la ville : `planet` = lieu, `base` = votre immeuble ; les identifiants techniques ne changent pas.
  */
 import type { Trip } from "./trips";
 import type { MapViewModel } from "./viewmodel";
 
 export interface MapEvents {
-  /** scène -> React : clic sur une planète (null = clic dans le vide). */
+  /** scène -> React : clic sur un lieu ou sur l'immeuble (`base`) ; null = clic dans le vide. */
   "planet:select": [id: string | null];
-  /** scène -> React : survol d'une planète. */
+  /** scène -> React : survol d'un lieu ou de l'immeuble (`base`). */
   "planet:hover": [id: string | null];
   /** scène -> React : la scène est prête (textures générées, premier rendu). */
   "scene:ready": [];
@@ -22,17 +23,22 @@ export interface MapEvents {
   "camera:pan": [dx: number, dy: number];
   /** React -> scène : multiplier le zoom. */
   "camera:zoom": [factor: number];
+  /** React -> scène : recentrer sur l'immeuble du joueur (touche H, bouton « Recentrer »). */
   "camera:reset": [];
-  /** React -> scène : centrer sur une planète. */
+  /** React -> scène : centrer sur un lieu. */
   "camera:focus": [id: string];
-  /** React -> scène : entrer dans la vue d'une planète ou de la base (travelling animé). `base` = la base. */
+  /** React -> scène : aller voir un lieu ou l'immeuble (travelling animé, décalé du panneau latéral). `base` = l'immeuble. */
   "view:enter": [id: string];
   /** React -> scène : quitter la vue et revenir à la carte (travelling retour). */
   "view:leave": [];
   /** React -> scène : voyages visuels des agents (la scène les anime d'après l'horloge). */
   trips: [trips: Trip[]];
-  /** React -> scène : un gain vient d'être crédité par le serveur (animation de pièces vers la base). */
+  /** React -> scène : un gain vient d'être crédité par le serveur (animation de pièces vers l'immeuble). */
   reward: [planetId: string, amount: number];
+  /** scène -> React : un chantier (montée de niveau) commence ou finit ; sert au bouton « Passer ». Jamais bloquant. */
+  "building:construction": [active: boolean];
+  /** React -> scène : passer l'animation de chantier. */
+  "building:skip": [];
 }
 
 type Handler<K extends keyof MapEvents> = (...args: MapEvents[K]) => void;
@@ -41,6 +47,8 @@ export class MapBus {
   vm: MapViewModel | null = null;
   selectedId: string | null = null;
   reducedMotion = false;
+  /** Largeur (px) du panneau latéral en surimpression : la caméra décale son cadrage pour garder le lieu visible. */
+  insetRight = 0;
   trips: Trip[] = [];
   private handlers = new Map<keyof MapEvents, Set<(...a: never[]) => void>>();
 
@@ -72,6 +80,10 @@ export class MapBus {
   setTrips(trips: Trip[]): void {
     this.trips = trips;
     this.emit("trips", trips);
+  }
+
+  setInsetRight(px: number): void {
+    this.insetRight = px;
   }
 
   setReducedMotion(reduced: boolean): void {

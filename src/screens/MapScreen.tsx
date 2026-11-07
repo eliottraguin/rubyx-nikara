@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
-import { PlanetList } from "@/components/map/AccessibleLayer";
+import { BotList, BuildingStatus, PlanetList } from "@/components/map/AccessibleLayer";
 import { AgentsPanel } from "@/components/map/AgentsPanel";
 import { BasePanel } from "@/components/map/BasePanel";
 import { useTrips, usePlanetAttempts } from "@/components/map/hooks";
@@ -11,15 +11,20 @@ import { PlanetDetail } from "@/components/map/PlanetDetail";
 import { AgentsSummary, PlanetPanel } from "@/components/map/PlanetPanel";
 import { SidePanel } from "@/components/map/SidePanel";
 import { Loading, Notice } from "@/components/ui";
+import { botLine } from "@/game/map/bots";
 import { MapBus } from "@/game/map/bus";
+import { levelUpMessage } from "@/game/map/building";
 import { planetAttempt } from "@/game/map/dispatch";
 import { mergeCurrentAttempt } from "@/game/map/history";
-import { tripFrame } from "@/game/map/trips";
-import { buildMapViewModel } from "@/game/map/viewmodel";
+import { tripFrame, type TripPhase } from "@/game/map/trips";
+import { buildMapViewModel, instructionsRemaining, modeLabel } from "@/game/map/viewmodel";
 import { ApiError, type AttemptView, type GameState, type RoleId } from "@/lib/api/types";
 import { ROLE_LABEL, money } from "@/lib/format";
 import { useGame } from "@/lib/game-context";
 import { SafeMarkdown } from "@/lib/markdown";
+
+/** Largeur du panneau latéral en surimpression (28 rem à 16 px) : la caméra la déduit de son cadrage. */
+const PANEL_WIDTH = 448;
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -89,11 +94,15 @@ function MapView({ state }: { state: GameState | null }) {
   const [mapKey, setMapKey] = useState(0);
   const [focusId, setFocusId] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [placesOpen, setPlacesOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [constructing, setConstructing] = useState(false);
   const [live, setLive] = useState("");
   const [report, setReport] = useState<Report | null>(null);
   const focusRef = useRef<string | null>(null);
   const lastFocusEl = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const panelHeadRef = useRef<HTMLHeadingElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
   // Annonce (région aria-live) des planètes qui viennent d'être débloquées : état « précédent » gardé pendant le rendu.
@@ -103,7 +112,14 @@ function MapView({ state }: { state: GameState | null }) {
     setPrevSig(sig);
     const before = new Map(prevSig.split("|").map((s) => s.split(":") as [string, string]));
     const unlocked = vm.planets.filter((p) => before.get(p.id) === "locked" && p.status !== "locked");
-    if (unlocked.length) setLive(`${unlocked.map((p) => p.name).join(", ")} ${unlocked.length > 1 ? "sont maintenant disponibles" : "est maintenant disponible"}.`);
+    if (unlocked.length) setLive(`${unlocked.map((p) => p.title).join(", ")} ${unlocked.length > 1 ? "sont maintenant disponibles" : "est maintenant disponible"}.`);
+  }
+  // Montée de niveau de l'immeuble (niveau lu dans l'état serveur) : annonce texte, aussi en animations réduites.
+  const [prevLevel, setPrevLevel] = useState(vm.building.level);
+  if (vm.building.level !== prevLevel) {
+    setPrevLevel(vm.building.level);
+    const msg = levelUpMessage(prevLevel, vm.building.level);
+    if (msg) setLive(msg);
   }
 
   const vmRef = useRef(vm);
@@ -121,17 +137,15 @@ function MapView({ state }: { state: GameState | null }) {
     bus.setTrips(tc.trips);
   }, [bus, tc.trips]);
 
-  // Annonces des changements de phase (en route, sur place, retour, rentré) pour les lecteurs d'écran.
+  // Annonces des changements d'état des bots (en route, sur place, retour, panne) pour les lecteurs d'écran.
   const phaseRef = useRef(new Map<string, { phase: string; role: RoleId; planetId: string }>());
   useEffect(() => {
     const msgs: string[] = [];
-    const nameOf = (id: string) => vmRef.current.planets.find((p) => p.id === id)?.name ?? "la planète";
-    const say = (phase: string, role: RoleId, planetId: string) => {
-      const who = ROLE_LABEL[role];
-      if (phase === "outbound") msgs.push(`${who} quitte la base pour ${nameOf(planetId)}.`);
-      else if (phase === "dialogue") msgs.push(`${who} est arrivé sur ${nameOf(planetId)} : dialogue en cours avec l'agent de la planète.`);
-      else if (phase === "return") msgs.push(`${who} repart vers la base.`);
-      else msgs.push(`${who} est rentré à la base.`);
+    const placeOf = (id: string) => vmRef.current.places.find((p) => p.id === id) ?? null;
+    const say = (phase: TripPhase, role: RoleId, planetId: string) => {
+      const p = placeOf(planetId);
+      if (phase === "home") msgs.push(`${ROLE_LABEL[role]} est rentré au garage.`);
+      else msgs.push(`${botLine(role, phase, p ? { name: p.placeName, vehicle: p.vehicle } : null).text}.`);
     };
     const seen = new Set<string>();
     for (const t of tc.trips) {
@@ -158,10 +172,13 @@ function MapView({ state }: { state: GameState | null }) {
       if (!focusRef.current && document.activeElement instanceof HTMLElement) lastFocusEl.current = document.activeElement;
       focusRef.current = id;
       setFocusId(id);
+      setMenuOpen(false);
       bus.setSelected(id === "base" ? null : id);
+      // Le panneau se superpose à droite : la caméra décale son cadrage de sa largeur.
+      bus.setInsetRight(window.innerWidth >= 900 ? Math.min(PANEL_WIDTH, window.innerWidth) : 0);
       bus.emit("view:enter", id);
-      const name = id === "base" ? "la base" : (vmRef.current.planets.find((p) => p.id === id)?.name ?? id);
-      setLive(`Vue de ${id === "base" ? name : `la planète ${name}`} : détails, historique et agents.`);
+      const name = id === "base" ? "votre immeuble" : (vmRef.current.planets.find((p) => p.id === id)?.title ?? id);
+      setLive(`Vue de ${id === "base" ? name : `ce lieu : ${name}`} : détails, historique et bots.`);
       setUrlPlanet(id);
     },
     [bus],
@@ -173,8 +190,9 @@ function MapView({ state }: { state: GameState | null }) {
     setFocusId(null);
     setSheetOpen(false);
     bus.setSelected(null);
+    bus.setInsetRight(0);
     bus.emit("view:leave");
-    setLive("Retour à la carte.");
+    setLive("Retour à la ville.");
     setUrlPlanet(null);
     const el = lastFocusEl.current;
     lastFocusEl.current = null;
@@ -188,6 +206,7 @@ function MapView({ state }: { state: GameState | null }) {
         if (id) openFocus(id);
       }),
       bus.on("scene:ready", () => setReady(true)),
+      bus.on("building:construction", setConstructing),
     ];
     return () => offs.forEach((off) => off());
   }, [bus, openFocus]);
@@ -205,7 +224,22 @@ function MapView({ state }: { state: GameState | null }) {
     }
   }, [view, ready, openFocus]);
 
-  // Échap : retour à la carte (sauf dans un champ de saisie, pour ne pas perdre un texte en cours).
+  // Touche H : recentrer sur votre immeuble (hors champ de saisie).
+  useEffect(() => {
+    if (view !== "carte") return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if ((e.key !== "h" && e.key !== "H") || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t instanceof HTMLElement && (["TEXTAREA", "INPUT", "SELECT"].includes(t.tagName) || t.isContentEditable)) return;
+      e.preventDefault();
+      bus.emit("camera:reset");
+      setLive("Caméra recentrée sur votre immeuble.");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [bus, view]);
+
+  // Échap : retour à la ville (sauf dans un champ de saisie, pour ne pas perdre un texte en cours).
   useEffect(() => {
     if (!focusId) return;
     const onKey = (e: globalThis.KeyboardEvent) => {
@@ -219,9 +253,10 @@ function MapView({ state }: { state: GameState | null }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [focusId, closeFocus]);
 
-  // Le titre de la fiche reçoit le focus à l'ouverture (annonce et navigation au clavier).
+  // Le titre du panneau reçoit le focus à l'ouverture (annonce et navigation au clavier).
   useEffect(() => {
-    if (focusId && focusId !== "base") headingRef.current?.focus({ preventScroll: true });
+    if (!focusId) return;
+    (panelHeadRef.current ?? (focusId !== "base" ? headingRef.current : null))?.focus({ preventScroll: true });
   }, [focusId]);
 
   const planet = focusId && focusId !== "base" ? (vm.planets.find((p) => p.id === focusId) ?? null) : null;
@@ -236,7 +271,7 @@ function MapView({ state }: { state: GameState | null }) {
   // ───────────── Actions ─────────────
   const dispatchAgent = useCallback(
     async (input: { role: RoleId; text: string; docIds: string[] }): Promise<ApiError | null> => {
-      if (!planet || !state) return new ApiError("INVALID_STATE", "Aucune planète ouverte.");
+      if (!planet || !state) return new ApiError("INVALID_STATE", "Aucun lieu ouvert.");
       // Le voyage visuel part au clic ; il est annulé si le serveur refuse l'envoi.
       const tripId = tc.launch(planet.id, input.role);
       let attempt = planetAttempt(planet, state.attempt, attempts);
@@ -245,7 +280,7 @@ function MapView({ state }: { state: GameState | null }) {
         const missionId = planet.missionId;
         if (!missionId) {
           tc.drop(tripId);
-          return new ApiError("INVALID_STATE", "Cette planète n'est pas ouvrable pour le moment.");
+          return new ApiError("INVALID_STATE", "Ce lieu n'est pas ouvrable pour le moment.");
         }
         const opened = await mutate((a) => (retry ? a.retryMission(missionId) : a.startMission(missionId)));
         if (!opened.ok) {
@@ -275,7 +310,7 @@ function MapView({ state }: { state: GameState | null }) {
   const buyAgent = useCallback(
     async (role: RoleId): Promise<ApiError | null> => {
       const r = await mutate((a) => a.purchaseAgent(role));
-      if (r.ok) setLive(`${ROLE_LABEL[role]} rejoint votre hangar.`);
+      if (r.ok) setLive(`${ROLE_LABEL[role]} rejoint votre garage.`);
       return r.ok ? null : r.error;
     },
     [mutate],
@@ -307,8 +342,8 @@ function MapView({ state }: { state: GameState | null }) {
     const ev = cur.submission.evaluation;
     const p = vmRef.current.planets.find((x) => x.missionId === cur.mission_id);
     if (!p) return;
-    setReport({ key: evalKey, planetId: p.id, planetName: p.name, attemptNo: cur.attempt_no, attemptId: cur.id, score: ev.score, passed: ev.passed, payment: ev.payment.credited, feedback: ev.client_feedback });
-    setLive(`Retour d'expédition sur ${p.name} : score ${ev.score} sur 100${ev.payment.credited > 0 ? `, ${ev.payment.credited} dollars crédités` : ""}.`);
+    setReport({ key: evalKey, planetId: p.id, planetName: p.title, attemptNo: cur.attempt_no, attemptId: cur.id, score: ev.score, passed: ev.passed, payment: ev.payment.credited, feedback: ev.client_feedback });
+    setLive(`Retour d'expédition à ${p.title} : score ${ev.score} sur 100${ev.payment.credited > 0 ? `, ${ev.payment.credited} dollars crédités` : ""}.`);
     if (ev.payment.credited > 0) bus.emit("reward", p.id, ev.payment.credited);
   }, [evalKey, cur, bus]);
 
@@ -326,7 +361,7 @@ function MapView({ state }: { state: GameState | null }) {
       "=": () => bus.emit("camera:zoom", 1.25),
       "-": () => bus.emit("camera:zoom", 0.8),
       "0": () => bus.emit("camera:reset"),
-      Escape: () => closeFocus(),
+      Escape: () => (menuOpen ? setMenuOpen(false) : closeFocus()),
     };
     const fn = keys[e.key];
     if (fn) {
@@ -337,185 +372,309 @@ function MapView({ state }: { state: GameState | null }) {
 
   const sentCount = planet ? new Set(tc.trips.filter((t) => t.planetId === planet.id).map((t) => t.role)).size : 0;
   const open = focusId !== null;
+  const ownedRoles = (state?.agents ?? []).filter((a) => a.owned).map((a) => a.role);
+  const left = instructionsRemaining(state);
+  const toggleList = () => setView(view === "carte" ? "liste" : "carte");
 
-  return (
-    <div className="page wide map-page">
-      <div className="map-head">
-        <h1>{vm.company ? `Carte : ${vm.company}` : "Carte"}</h1>
-        <div className="row">
-          {open ? (
-            <button type="button" className="btn btn-small btn-primary" onClick={closeFocus} aria-keyshortcuts="Escape">
-              ← Retour à la carte
-            </button>
-          ) : null}
-          <button type="button" className="btn btn-small" aria-pressed={view === "liste"} onClick={() => setView(view === "carte" ? "liste" : "carte")}>
-            {view === "carte" ? "Afficher en liste" : "Afficher la carte"}
-          </button>
+  const noticeMaquette =
+    vm.source === "maquette" ? (
+      <Notice tone="info" title="Aperçu de la ville (maquette).">
+        Aucune partie en cours : les lieux sont figés. <Link href="/creer">Créer une entreprise</Link> pour jouer.
+      </Notice>
+    ) : null;
+
+  const detail =
+    planet && state ? (
+      <PlanetDetail
+        ref={headingRef}
+        planet={planet}
+        attempts={attempts}
+        loading={fetched.loading && attempts.length === 0}
+        loadError={fetched.error}
+        onReload={fetched.reload}
+        active={active}
+        busy={busy}
+        onDeliver={deliver}
+      />
+    ) : null;
+
+  const agentsPanel =
+    planet && state ? (
+      <AgentsPanel
+        // Réinitialise le formulaire en changeant de lieu.
+        key={planet.id}
+        state={state}
+        planet={planet}
+        attempt={active}
+        trips={tc.trips}
+        now={tc.now}
+        reduced={reduced}
+        busy={busy}
+        onDispatch={dispatchAgent}
+        onBuy={buyAgent}
+        onOpenBase={() => openFocus("base")}
+      />
+    ) : null;
+
+  const reportCard = report ? (
+    <section className="map-report" role="region" aria-label="Rapport d'expédition">
+      <h2 className="h4">Retour d&apos;expédition : {report.planetName}</h2>
+      <p>
+        Score <strong>{report.score} / 100</strong> — {report.passed ? "réussie" : "à retravailler"}.{" "}
+        {report.payment > 0 ? <strong>+{money(report.payment)} au coffre.</strong> : "Aucun gain crédité."}
+      </p>
+      {report.feedback ? (
+        <div className="report-feedback">
+          <SafeMarkdown text={report.feedback} />
         </div>
+      ) : null}
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-small btn-primary"
+          onClick={() => {
+            openFocus(report.planetId);
+            setSheetOpen(false);
+            requestAnimationFrame(() => document.getElementById("planet-history")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }));
+            setReport(null);
+          }}
+        >
+          Voir dans l&apos;historique
+        </button>
+        <button type="button" className="btn btn-small" onClick={() => setReport(null)}>
+          Fermer
+        </button>
       </div>
+      <p className="help report-links">
+        Écran détaillé (secondaire) : <Link href={`/retour/${report.attemptId}`}>retour du client</Link>
+      </p>
+    </section>
+  ) : null;
 
-      {vm.source === "maquette" ? (
-        <Notice tone="info" title="Aperçu de la carte (maquette).">
-          Aucune partie en cours : les planètes sont figées. <Link href="/creer">Créer une entreprise</Link> pour jouer.
-        </Notice>
-      ) : null}
-      {mapError ? (
-        <Notice tone="warn" title="La carte n'a pas pu se charger.">
-          Le jeu reste jouable avec la liste des planètes ci-dessous.{" "}
-          <button
-            type="button"
-            className="btn btn-small"
-            onClick={() => {
-              setMapError(null);
-              setReady(false);
-              setMapKey((k) => k + 1);
-            }}
-          >
-            Réessayer
-          </button>
-        </Notice>
-      ) : null}
+  const live$ = (
+    <div className="sr-only" role="status" aria-live="polite">
+      {live}
+    </div>
+  );
 
-      <div className={`map-layout ${showMap ? "" : "map-layout-list"} ${open ? "planet-open" : ""}`}>
-        <div className="map-main">
-          {showMap ? (
-            <div className="map-stage-wrap">
-              <div
-                ref={stageRef}
-                className="map-stage"
-                tabIndex={0}
-                role="group"
-                aria-label="Carte du jeu. Flèches : déplacer. Plus et moins : zoomer. Zéro : recentrer. Échap : revenir à la carte. La liste des planètes offre les mêmes actions."
-                onKeyDown={onKeyDown}
-              >
-                <MapHost key={mapKey} bus={bus} onError={setMapError} />
-                {!ready ? (
-                  <div className="map-loading" role="status">
-                    Chargement de la carte…
-                  </div>
-                ) : null}
-                <div className="map-hud" aria-label="Situation de la base">
-                  <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label={`Coffre : ${vm.treasury === null ? "inconnu" : money(vm.treasury)}. Ouvrir la base.`}>
-                    <span className="hud-label">Coffre</span> <strong>{vm.treasury === null ? "—" : money(vm.treasury)}</strong>
-                  </button>
-                  <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label="Hangar : ouvrir la base.">
-                    <span className="hud-label">Hangar</span> <strong>{vm.source === "serveur" ? `${vm.base.agentsOwned}/${vm.base.agentsTotal}` : "—"}</strong>
-                  </button>
-                  {planet ? (
-                    <span className="hud-chip hud-view">
-                      <span className="hud-label">Vue</span> <strong>{planet.name}</strong>
-                    </span>
-                  ) : null}
-                  {vm.source === "maquette" ? <span className="hud-chip hud-warn">Aperçu maquette</span> : null}
-                </div>
-                {report ? (
-                  <section className="map-report" role="region" aria-label="Rapport d'expédition">
-                    <h2 className="h4">Retour d&apos;expédition : {report.planetName}</h2>
-                    <p>
-                      Score <strong>{report.score} / 100</strong> — {report.passed ? "réussie" : "à retravailler"}.{" "}
-                      {report.payment > 0 ? <strong>+{money(report.payment)} au coffre.</strong> : "Aucun gain crédité."}
-                    </p>
-                    {report.feedback ? (
-                      <div className="report-feedback">
-                        <SafeMarkdown text={report.feedback} />
-                      </div>
-                    ) : null}
-                    <div className="row">
-                      <button
-                        type="button"
-                        className="btn btn-small btn-primary"
-                        onClick={() => {
-                          openFocus(report.planetId);
-                          setSheetOpen(false);
-                          requestAnimationFrame(() => document.getElementById("planet-history")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }));
-                          setReport(null);
-                        }}
-                      >
-                        Voir dans l&apos;historique
-                      </button>
-                      <button type="button" className="btn btn-small" onClick={() => setReport(null)}>
-                        Fermer
-                      </button>
-                    </div>
-                    <p className="help report-links">
-                      Écran détaillé (secondaire) : <Link href={`/retour/${report.attemptId}`}>retour du client</Link>
-                    </p>
-                  </section>
-                ) : null}
-                {open ? (
-                  <button type="button" className="map-back" onClick={closeFocus} aria-keyshortcuts="Escape">
-                    ← Carte
-                  </button>
-                ) : null}
-                <div className="map-tools">
-                  <button type="button" className="map-tool" aria-label="Zoom avant" onClick={() => bus.emit("camera:zoom", 1.3)}>
-                    +
-                  </button>
-                  <button type="button" className="map-tool" aria-label="Zoom arrière" onClick={() => bus.emit("camera:zoom", 0.77)}>
-                    −
-                  </button>
-                  <button type="button" className="map-tool map-tool-wide" aria-label="Recentrer la carte" onClick={() => bus.emit("camera:reset")}>
-                    Recentrer
-                  </button>
-                </div>
-              </div>
-              <p className="help map-help">Glisser pour déplacer, molette ou pincement pour zoomer, cliquer une planète pour l&apos;ouvrir (Échap pour revenir).</p>
+  // ───────────── Mode liste (repli sans la ville) ─────────────
+  if (!showMap) {
+    return (
+      <div className="page wide map-page">
+        <div className="map-head">
+          <h1>{vm.company ? `Ville : ${vm.company}` : "Ville"}</h1>
+          <div className="row">
+            {open ? (
+              <button type="button" className="btn btn-small btn-primary" onClick={closeFocus} aria-keyshortcuts="Escape">
+                ← Retour à la liste
+              </button>
+            ) : null}
+            <button type="button" className="btn btn-small" aria-pressed={view === "liste"} onClick={toggleList}>
+              Afficher la ville
+            </button>
+          </div>
+        </div>
+        {noticeMaquette}
+        {mapError ? (
+          <Notice tone="warn" title="La ville n'a pas pu se charger.">
+            Le jeu reste jouable avec la liste des lieux ci-dessous.{" "}
+            <button
+              type="button"
+              className="btn btn-small"
+              onClick={() => {
+                setMapError(null);
+                setReady(false);
+                setMapKey((k) => k + 1);
+                setView("carte");
+              }}
+            >
+              Réessayer
+            </button>
+          </Notice>
+        ) : null}
+        <div className={`map-layout map-layout-list ${open ? "planet-open" : ""}`}>
+          <div className="map-main">{detail}</div>
+          {open && state ? (
+            <SidePanel
+              title={planet ? `Bots vers ${planet.title}` : "Votre immeuble : garage et coffre"}
+              summary={planet ? (sentCount > 0 ? `${sentCount} en mission` : "Envoyer un bot") : money(state.balance.available)}
+              open={sheetOpen}
+              onToggle={() => setSheetOpen((o) => !o)}
+            >
+              {planet ? agentsPanel : <BasePanel state={state} busy={busy} onBuy={buyAgent} />}
+            </SidePanel>
+          ) : (
+            <div className="map-side">
+              <PlanetPanel planet={null} vm={vm} />
+              <BuildingStatus vm={vm} onEnter={() => openFocus("base")} />
+              <PlanetList vm={vm} selectedId={null} onSelect={openFocus} />
+              <BotList vm={vm} ownedRoles={ownedRoles} trips={tc.trips} now={tc.now} reduced={reduced} />
+              <AgentsSummary vm={vm} />
             </div>
-          ) : null}
+          )}
+        </div>
+        {live$}
+      </div>
+    );
+  }
 
-          {planet && state ? (
-            <PlanetDetail
-              ref={headingRef}
-              planet={planet}
-              attempts={attempts}
-              loading={fetched.loading && attempts.length === 0}
-              loadError={fetched.error}
-              onReload={fetched.reload}
-              active={active}
-              busy={busy}
-              onDeliver={deliver}
-            />
+  // ───────────── Ville plein écran ─────────────
+  const panelTitle = planet ? planet.title : "Votre immeuble : garage et coffre";
+  return (
+    <div className={`map-fullscreen ${open ? "panel-open" : ""}`}>
+      <div
+        ref={stageRef}
+        className="map-stage"
+        tabIndex={0}
+        role="group"
+        aria-label="Ville du jeu, plein écran. Flèches : déplacer. Plus et moins : zoomer. H ou zéro : recentrer sur votre immeuble. Échap : revenir à la ville. Le menu et la liste des lieux offrent les mêmes actions."
+        onKeyDown={onKeyDown}
+      >
+        <MapHost key={mapKey} bus={bus} onError={setMapError} />
+        {!ready ? (
+          <div className="map-loading" role="status">
+            Chargement de la ville…
+          </div>
+        ) : null}
+
+        <div className="map-hud" aria-label="Barre d'état">
+          <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label={`Coffre : ${vm.treasury === null ? "inconnu" : money(vm.treasury)}. Ouvrir votre immeuble.`}>
+            <span className="hud-label">Coffre</span> <strong>{vm.treasury === null ? "—" : money(vm.treasury)}</strong>
+          </button>
+          {left !== null ? (
+            <span className="hud-chip" aria-label={`${left} instruction${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""} sur l'expédition en cours`}>
+              <span className="hud-label">Instructions</span> <strong>{left}</strong>
+            </span>
           ) : null}
+          <button type="button" className="hud-chip hud-btn" onClick={() => openFocus("base")} aria-label="Garage : ouvrir votre immeuble.">
+            <span className="hud-label">Garage</span> <strong>{vm.source === "serveur" ? `${vm.base.agentsOwned}/${vm.base.agentsTotal}` : "—"}</strong>
+          </button>
+          <span className="hud-chip" title={vm.simulated ? "Les réponses des bots et des lieux sont simulées" : "Données réelles"}>
+            <span className="hud-label">Mode</span> <strong>{modeLabel(state?.session?.mode)}</strong>
+            {vm.simulated ? <span className="hud-sim"> · simulé</span> : null}
+          </span>
+          {planet ? (
+            <span className="hud-chip hud-view">
+              <span className="hud-label">Vue</span> <strong>{planet.placeName}</strong>
+            </span>
+          ) : null}
+        </div>
+
+        <div className="map-menu">
+          <button type="button" className="hud-chip hud-btn" aria-expanded={menuOpen} aria-controls="city-menu" onClick={() => setMenuOpen((o) => !o)}>
+            Menu
+          </button>
+          {menuOpen ? (
+            <nav id="city-menu" className="map-menu-list" aria-label="Menu de la ville">
+              <ul>
+                <li>
+                  <button type="button" onClick={() => openFocus("base")}>
+                    Entrer dans votre immeuble
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    aria-pressed={placesOpen}
+                    onClick={() => {
+                      setPlacesOpen((o) => !o);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    Lieux et bots (liste)
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      bus.emit("camera:reset");
+                      setMenuOpen(false);
+                      setLive("Caméra recentrée sur votre immeuble.");
+                    }}
+                  >
+                    Recentrer sur le siège (H)
+                  </button>
+                </li>
+                <li>
+                  <Link href="/carnet">Carnet et bilan</Link>
+                </li>
+                <li>
+                  <Link href="/boutique">Boutique</Link>
+                </li>
+                <li>
+                  <button type="button" onClick={toggleList}>
+                    Afficher en liste (sans la ville)
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          ) : null}
+        </div>
+
+        {vm.source === "maquette" ? (
+          <div className="map-maquette hud-chip hud-warn" role="note">
+            Aperçu maquette : <Link href="/creer">créer une entreprise</Link> pour jouer.
+          </div>
+        ) : null}
+
+        {placesOpen ? (
+          <aside className="map-drawer" aria-label="Lieux et bots">
+            <button type="button" className="btn btn-small" onClick={() => setPlacesOpen(false)}>
+              Fermer la liste
+            </button>
+            <PlanetList vm={vm} selectedId={planet?.id ?? null} onSelect={openFocus} />
+            <BotList vm={vm} ownedRoles={ownedRoles} trips={tc.trips} now={tc.now} reduced={reduced} />
+          </aside>
+        ) : null}
+
+        {focusId !== "base" ? (
+          <div className="map-building">
+            <BuildingStatus vm={vm} onEnter={() => openFocus("base")} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
+          </div>
+        ) : null}
+
+        {reportCard}
+
+        <div className="map-tools">
+          <button type="button" className="map-tool" aria-label="Zoom avant" onClick={() => bus.emit("camera:zoom", 1.3)}>
+            +
+          </button>
+          <button type="button" className="map-tool" aria-label="Zoom arrière" onClick={() => bus.emit("camera:zoom", 0.77)}>
+            −
+          </button>
+          <button type="button" className="map-tool map-tool-wide" aria-label="Recentrer sur votre immeuble (touche H)" onClick={() => bus.emit("camera:reset")}>
+            Recentrer (H)
+          </button>
         </div>
 
         {open && state ? (
-          <SidePanel
-            title={planet ? `Agents sur ${planet.name}` : "Base : hangar et coffre"}
-            summary={planet ? (sentCount > 0 ? `${sentCount} en mission` : "Envoyer un agent") : money(state.balance.available)}
-            open={sheetOpen}
-            onToggle={() => setSheetOpen((o) => !o)}
-          >
-            {planet ? (
-              <AgentsPanel
-                // Réinitialise le formulaire en changeant de planète.
-                key={planet.id}
-                state={state}
-                planet={planet}
-                attempt={active}
-                trips={tc.trips}
-                now={tc.now}
-                reduced={reduced}
-                busy={busy}
-                onDispatch={dispatchAgent}
-                onBuy={buyAgent}
-                onOpenBase={() => openFocus("base")}
-              />
-            ) : (
-              <BasePanel state={state} busy={busy} onBuy={buyAgent} />
-            )}
-          </SidePanel>
-        ) : (
-          <div className="map-side">
-            <PlanetPanel planet={null} vm={vm} />
-            <PlanetList vm={vm} selectedId={null} onSelect={openFocus} />
-            <AgentsSummary vm={vm} />
-          </div>
-        )}
+          <aside className="city-panel" aria-label={panelTitle}>
+            <div className="city-panel-head">
+              <h2 className="h3" ref={panelHeadRef} tabIndex={-1}>
+                {panelTitle}
+              </h2>
+              <button type="button" className="btn btn-small" onClick={closeFocus} aria-keyshortcuts="Escape">
+                Fermer
+              </button>
+            </div>
+            <div className="city-panel-body">
+              {planet ? (
+                <>
+                  {agentsPanel}
+                  {detail}
+                </>
+              ) : (
+                <>
+                  <BuildingStatus vm={vm} onEnter={() => openFocus("base")} constructing={constructing} onSkip={() => bus.emit("building:skip")} />
+                  <BasePanel state={state} busy={busy} onBuy={buyAgent} />
+                </>
+              )}
+            </div>
+          </aside>
+        ) : null}
       </div>
-
-      <div className="sr-only" role="status" aria-live="polite">
-        {live}
-      </div>
+      {live$}
     </div>
   );
 }

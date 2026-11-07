@@ -3,7 +3,7 @@ import actionMessage from "./__fixtures__/action-message.json";
 import attemptEvaluated from "./__fixtures__/attempt-evaluated.json";
 import attemptStart from "./__fixtures__/attempt-start.json";
 import wireState from "./__fixtures__/state.json";
-import { API_ERROR_CODES, briefToText, mapAction, mapAttempt, mapErrorCode, mapState, type WireDetail, type WireState } from "./adapt";
+import { API_ERROR_CODES, briefToText, mapAction, mapAttempt, mapBuilding, mapErrorCode, mapState, type WireDetail, type WireState } from "./adapt";
 import { createHttpClient } from "./http";
 
 // Les fixtures sont des réponses RÉELLES de l'API (fournisseur mock), capturées après une livraison de M1 réussie.
@@ -145,6 +145,14 @@ describe("adaptation de l'état réel", () => {
     expect(state.agents.find((a) => a.role === "prospector")).toMatchObject({ unlocked: true, unlock_condition: "Réussir la commande M1" });
     expect(state.missions.find((m) => m.id === "m1")).toMatchObject({ status: "COMPLETED", best_payment: 20 });
     expect(state.hints_enabled).toBe(false);
+  });
+
+  it("immeuble : niveau 1 par défaut tant que l'API ne le renvoie pas, valeurs du serveur sinon (bornées)", () => {
+    expect(state.building).toEqual({ level: 1, total_earned: 0, next_level_at: null });
+    expect(mapBuilding(null)).toEqual({ level: 1, total_earned: 0, next_level_at: null });
+    expect(mapBuilding({ level: 5, total_earned: 112, next_level_at: 125 })).toEqual({ level: 5, total_earned: 112, next_level_at: 125 });
+    expect(mapBuilding({ level: 99, total_earned: -4, next_level_at: 700 })).toEqual({ level: 10, total_earned: 0, next_level_at: null });
+    expect(mapBuilding({ level: Number.NaN, total_earned: 20 })).toMatchObject({ level: 1, total_earned: 20 });
   });
 
   it("tentative : brief lisible, documents, quotas du serveur, livrables, livraison évaluée", () => {

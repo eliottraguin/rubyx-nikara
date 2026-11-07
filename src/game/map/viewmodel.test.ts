@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { GameState, MissionStatus, MissionView } from "@/lib/api/types";
-import { buildMapViewModel, planetStatusFromMission, starsFromPayment } from "./viewmodel";
+import { buildMapViewModel, instructionsRemaining, modeLabel, planetStatusFromMission, starsFromPayment } from "./viewmodel";
 
 function mission(i: number, status: MissionStatus, extra: Partial<MissionView> = {}): MissionView {
   return { id: `m${i + 1}`, title: `M${i + 1}`, status, max_reward: 20 + i * 10, unit_price: i === 0 ? 0 : 1, best_payment: 0, ...extra };
@@ -82,14 +82,56 @@ describe("états de planète dérivés des missions (le serveur décide)", () =>
     expect(vm.planets.map((p) => p.statusLabel).slice(0, 4)).toEqual(["Visitée", "Expédition en cours", "Disponible", "Verrouillée"]);
   });
 
-  it("englobe toutes les planètes dans les bornes monde", () => {
+  it("englobe tous les lieux et l'immeuble dans les bornes monde", () => {
     const vm = buildMapViewModel(null);
     for (const p of vm.planets) {
-      expect(p.world.x - p.radius).toBeGreaterThan(vm.bounds.minX);
-      expect(p.world.x + p.radius).toBeLessThan(vm.bounds.maxX);
-      expect(p.world.y - p.radius).toBeGreaterThan(vm.bounds.minY);
-      expect(p.world.y + p.radius).toBeLessThan(vm.bounds.maxY);
+      expect(p.world.x).toBeGreaterThan(vm.bounds.minX);
+      expect(p.world.x).toBeLessThan(vm.bounds.maxX);
+      expect(p.world.y).toBeGreaterThan(vm.bounds.minY);
+      expect(p.world.y).toBeLessThan(vm.bounds.maxY);
     }
+    expect(vm.bounds.minX).toBeLessThan(0);
+    expect(vm.bounds.maxX).toBeGreaterThan(0);
+  });
+
+  it("expose le lieu (nom, quartier), le véhicule de la donnée du lieu et le titre « lieu : plateforme »", () => {
+    const vm = buildMapViewModel(null);
+    expect(vm.places).toBe(vm.planets);
+    const byId = Object.fromEntries(vm.places.map((p) => [p.id, p]));
+    expect(byId.annuaire).toMatchObject({ placeName: "Bibliothèque publique", district: "Bryant Park", vehicle: "foot", vehicleManner: "à pied", title: "Bibliothèque publique : Annuaire" });
+    expect(byId.registre).toMatchObject({ placeName: "Hôtel de ville", vehicle: "bike" });
+    expect(byId["carte-locale"]).toMatchObject({ placeName: "SoHo", vehicle: "skate" });
+    expect(byId.linkedin).toMatchObject({ title: "Midtown : LinkedIn", vehicle: "bike" });
+    expect(byId.glassdoor).toMatchObject({ placeName: "Wall Street", vehicle: "skate" });
+    expect(byId.constellation).toMatchObject({ placeName: "Times Square", vehicle: "helicopter", vehicleLabel: "Hélicoptère" });
+    // Le véhicule ne dépend jamais de l'état serveur.
+    const live = buildMapViewModel(state([mission(0, "COMPLETED"), mission(1, "ACTIVE")]));
+    expect(live.places.map((p) => p.vehicle)).toEqual(vm.places.map((p) => p.vehicle));
+  });
+});
+
+describe("immeuble du joueur (lu uniquement dans l'état serveur)", () => {
+  it("sans champ `building`, niveau 1 par défaut", () => {
+    const vm = buildMapViewModel(state([mission(0, "AVAILABLE")]));
+    expect(vm.building).toMatchObject({ level: 1, maxLevel: 10, source: "defaut", totalEarned: 0 });
+    expect(buildMapViewModel(null).building.level).toBe(1);
+  });
+
+  it("lit le niveau, le total gagné et le prochain palier dans /state, avec l'équivalent texte", () => {
+    const vm = buildMapViewModel(state([mission(0, "AVAILABLE")], { building: { level: 5, total_earned: 112, next_level_at: 125 } }));
+    expect(vm.building).toMatchObject({ level: 5, totalEarned: 112, nextLevelAt: 125, source: "serveur" });
+    expect(vm.building.text).toBe("Immeuble niveau 5 sur 10, 112\u00a0$ gagnés au total, prochain niveau à 125\u00a0$");
+  });
+
+  it("le niveau ne dépend ni du solde ni des missions réussies côté navigateur", () => {
+    const rich = buildMapViewModel(state([mission(0, "COMPLETED", { best_payment: 500 })], { balance: { booked: 900, reserved: 0, available: 900 } }));
+    expect(rich.building.level).toBe(1);
+  });
+
+  it("le dernier niveau n'a pas de prochain palier", () => {
+    const vm = buildMapViewModel(state([], { building: { level: 10, total_earned: 640, next_level_at: 700 } }));
+    expect(vm.building.nextLevelAt).toBeNull();
+    expect(vm.building.text).toMatch(/niveau maximal atteint/);
   });
 });
 
@@ -113,5 +155,22 @@ describe("étoiles de score (cosmétique)", () => {
     expect(starsFromPayment(13, 20, true)).toBe(2);
     expect(starsFromPayment(19, 20, true)).toBe(3);
     expect(starsFromPayment(5, null, true)).toBe(1);
+  });
+});
+
+describe("barre d'état", () => {
+  it("instructions restantes : somme sur les bots possédés de l'expédition active, null sinon", () => {
+    expect(instructionsRemaining(null)).toBeNull();
+    expect(instructionsRemaining(state([]))).toBeNull();
+    const attempt = { status: "ACTIVE", roles: [{ role: "writer", used: 2, limit: 5 }, { role: "prospector", used: 0, limit: 5 }] } as unknown as GameState["attempt"];
+    expect(instructionsRemaining(state([], { attempt }))).toBe(3); // « prospector » n'est pas possédé
+    const done = { status: "COMPLETED", roles: [] } as unknown as GameState["attempt"];
+    expect(instructionsRemaining(state([], { attempt: done }))).toBeNull();
+  });
+
+  it("libellé de mode", () => {
+    expect(modeLabel("beginner")).toBe("Tutoriel");
+    expect(modeLabel("expert")).toBe("Réel");
+    expect(modeLabel(undefined)).toBe("Aperçu");
   });
 });
