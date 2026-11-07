@@ -15,8 +15,10 @@ from .db import make_engine, make_session_factory, run_migrations
 from .errors import install_error_handlers
 from .llm import get_adapter
 from .logging_config import configure_logging, request_log_middleware
-from .routes import actions, agents, attempts, demo, health, messages, missions, ops, sessions, stubs
+from .routes import actions, agents, attempts, demo, health, messages, missions, ops, profile, sessions, stubs
+from .profile_spec import load_profile_spec
 from .rules import load_rules
+from .rules_v2 import load_rules_v2
 from .services.actions import ActionEngine
 from .services.evaluation import evaluate_submission, recover_pending
 from .services.actions_reconcile import reconcile
@@ -27,6 +29,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings.validate()
     configure_logging(settings)
     rules = load_rules(settings.data_dir, settings.rules_version)
+    rules_v2 = load_rules_v2(settings.data_dir)  # cap prospection : prix des 7 rôles, building, limites, rétention
+    profile_spec = load_profile_spec(settings.data_dir)  # bornes de la fiche entreprise et cible
     llm = get_adapter(settings.llm_provider)
 
     @asynccontextmanager
@@ -35,7 +39,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = make_engine(settings)
         app.state.engine = engine
         app.state.session_factory = make_session_factory(engine)
-        app.state.actions = ActionEngine(app.state.session_factory, app.state.rules, app.state.llm)
+        app.state.actions = ActionEngine(app.state.session_factory, app.state.rules, app.state.llm, profile_spec=app.state.profile_spec)
         reconcile(app.state.actions)  # RUNNING interrompus et réservations expirées (BE04)
         if settings.auto_evaluate:  # BE06 : évaluateur serveur + reprise des livraisons restées EVALUATING
             eng = app.state.actions
@@ -55,6 +59,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.settings = settings
     app.state.rules = rules
+    app.state.rules_v2 = rules_v2
+    app.state.profile_spec = profile_spec
     app.state.llm = llm
 
     if settings.cors_origins:
@@ -62,7 +68,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             CORSMiddleware,
             allow_origins=list(settings.cors_origins),
             allow_credentials=True,
-            allow_methods=["GET", "POST", "DELETE"],
+            allow_methods=["GET", "POST", "PUT", "DELETE"],
             allow_headers=["Content-Type", "Idempotency-Key"],
         )
     request_log_middleware(app)
@@ -70,6 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(sessions.router)
     app.include_router(agents.router)
+    app.include_router(profile.router)
     app.include_router(messages.router)
     app.include_router(actions.router)
     app.include_router(missions.router)

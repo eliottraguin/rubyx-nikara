@@ -34,11 +34,13 @@ from ..models import (
     Reservation,
     GameSession,
 )
+from ..profile_spec import ProfileSpec
 from ..rules import Rules
 from ..schemas.actions import ActionOut, ActionStepOut
 from ..schemas.common import Role
 from ..schemas.entities import MessageOut, ReservationOut
 from . import artifacts, events, ledger, quotas
+from . import profile as profile_svc
 from .purchases import REUSED_KEY, owned_roles, request_hash
 
 HISTORY_MESSAGES = 10  # derniers messages du rôle rejoués dans le contexte
@@ -50,6 +52,7 @@ class ActionEngine:
     sf: sessionmaker[Session]
     rules: Rules
     llm: LLMAdapter
+    profile_spec: ProfileSpec | None = None  # bornes/exemples de la fiche entreprise (bloc de données des agents, API-H2)
     semaphore: threading.BoundedSemaphore = field(init=False)
 
     def __post_init__(self) -> None:
@@ -292,7 +295,7 @@ def submit_message(eng: ActionEngine, session_id: str, attempt_id: str, key: str
         db.flush()
         update_step(action, 0, message_id=player.id)
         attempt.model_calls += 1  # appel engagé dès la réservation (plafond global)
-        context = _build_message_context(db, game, attempt, role, text, linked, is_plan)
+        context = _build_message_context(eng, db, game, attempt, role, text, linked, is_plan)
         request = LLMRequest(
             role=Role(role),
             context=context,
@@ -315,8 +318,12 @@ def _plan_schema() -> dict[str, Any]:
     return {"title": "LeadPlan", **LeadPlan.model_json_schema()}
 
 
-def _build_message_context(db: Session, game: GameSession, attempt: MissionAttempt, role: str, text: str, linked: list[str], is_plan: bool) -> str:
+def _build_message_context(eng: ActionEngine, db: Session, game: GameSession, attempt: MissionAttempt, role: str, text: str, linked: list[str], is_plan: bool) -> str:
     parts: list[str] = []
+    # Fiche entreprise et cible : bloc de DONNÉES délimité, version figée à l'ouverture de l'expédition (règle 3, API-H2)
+    block = profile_svc.block_for_attempt(db, eng.profile_spec, attempt, game.mode)
+    if block:
+        parts.append(block)
     history = history_context(db, attempt.id, role)
     if history:
         parts.append(f"Historique :\n{history}")

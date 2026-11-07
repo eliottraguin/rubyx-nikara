@@ -103,6 +103,8 @@ def make_settings(tmp_path: Path, *, content: bool = True, demo_secret: str | No
     data = tmp_path / "data"
     (data / "rules").mkdir(parents=True, exist_ok=True)
     shutil.copy(REPO_DIR / "data" / "rules" / "rules_v1.json", data / "rules" / "rules_v1.json")
+    shutil.copy(REPO_DIR / "data" / "rules" / "rules_v2.json", data / "rules" / "rules_v2.json")
+    shutil.copytree(REPO_DIR / "data" / "profile", data / "profile", dirs_exist_ok=True)
     if content:
         write_content(data)
     return Settings(db_path=tmp_path / name, data_dir=data, demo_secret=demo_secret, auto_evaluate=auto_evaluate)

@@ -33,6 +33,7 @@ from ..schemas.common import Role
 from ..schemas.state import MissionView
 from . import events as ev
 from . import ledger
+from . import profile as profile_svc
 from .missions import ContentError, MissionContent, load_mission_content
 
 OPEN_STATUSES = ("ACTIVE", "EVALUATING")
@@ -329,6 +330,7 @@ def _open_attempt(
         attempt_no=max((a.attempt_no for a in mine), default=0) + 1,
         unit_price=rule.unit_price,  # tarif figé : la campagne peut progresser, pas ce prix
         open_key_hash=_key_hash(key),
+        profile_version=profile_svc.latest_version_number(db, game.id),  # fiche figée à l'ouverture (API-H2)
     )
     db.add(attempt)
     try:

@@ -61,6 +61,20 @@ class GameSession(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
 
+class TargetProfileVersion(Base):
+    """Une version de la fiche entreprise et cible (docs/PRODUIT-PROSPECTION.md §11). Immuable : trigger SQLite (migration 0005)."""
+
+    __tablename__ = "target_profile_versions"
+    __table_args__ = (UniqueConstraint("session_id", "version"), UniqueConstraint("session_id", "key_hash"))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("tpv"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    data: Mapped[dict] = mapped_column(JSON, nullable=False)  # champs de la fiche (texte non fiable : une donnée, jamais une consigne)
+    key_hash: Mapped[str | None] = mapped_column(String)  # empreinte de l'Idempotency-Key de l'écriture (jamais la clé)
+    request_hash: Mapped[str | None] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
 class AgentOwnership(Base):
     __tablename__ = "agent_ownerships"
     __table_args__ = (UniqueConstraint("session_id", "role"),)
@@ -102,6 +116,7 @@ class MissionAttempt(Base):
     attempt_no: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     unit_price: Mapped[int] = mapped_column(Integer, nullable=False)  # figé à l'ouverture
     open_key_hash: Mapped[str | None] = mapped_column(String)  # empreinte de l'Idempotency-Key d'ouverture (rejeu de retry)
+    profile_version: Mapped[int | None] = mapped_column(Integer)  # version de la fiche entreprise à l'ouverture (figée, API-H2)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 

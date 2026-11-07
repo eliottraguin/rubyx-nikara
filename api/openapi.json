@@ -920,6 +920,37 @@
         "title": "BriefView",
         "type": "object"
       },
+      "BuildingOut": {
+        "description": "Immeuble du joueur, calculé par le serveur (total des paiements d'expédition ; ne baisse jamais).",
+        "properties": {
+          "level": {
+            "title": "Level",
+            "type": "integer"
+          },
+          "next_level_at": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Level At"
+          },
+          "total_earned": {
+            "title": "Total Earned",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "level",
+          "total_earned",
+          "next_level_at"
+        ],
+        "title": "BuildingOut",
+        "type": "object"
+      },
       "ClarificationIn": {
         "additionalProperties": false,
         "properties": {
@@ -1226,6 +1257,9 @@
           "balance": {
             "$ref": "#/components/schemas/Balance"
           },
+          "building": {
+            "$ref": "#/components/schemas/BuildingOut"
+          },
           "contracts_version": {
             "title": "Contracts Version",
             "type": "string"
@@ -1255,6 +1289,9 @@
           },
           "session": {
             "$ref": "#/components/schemas/SessionInfo"
+          },
+          "target_profile": {
+            "$ref": "#/components/schemas/TargetProfileOut"
           }
         },
         "required": [
@@ -1263,6 +1300,8 @@
           "agents",
           "missions",
           "quotas",
+          "target_profile",
+          "building",
           "llm",
           "contracts_version"
         ],
@@ -1582,6 +1621,88 @@
           "message"
         ],
         "title": "NextAction",
+        "type": "object"
+      },
+      "ProfileIn": {
+        "additionalProperties": false,
+        "description": "Corps de `PUT /api/profile` : remplace la fiche courante. Aucun prix, solde ni droit n'est accepté.",
+        "properties": {
+          "besoin": {
+            "default": "",
+            "title": "Besoin",
+            "type": "string"
+          },
+          "cible_fonctions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Fonctions",
+            "type": "array"
+          },
+          "cible_secteurs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Secteurs",
+            "type": "array"
+          },
+          "cible_taille": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetSize"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cible_zone": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Zone",
+            "type": "array"
+          },
+          "entreprise_nom": {
+            "default": "",
+            "title": "Entreprise Nom",
+            "type": "string"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "expected_version": {
+            "description": "Version courante connue du client ; périmée => VERSION_CONFLICT",
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "offre": {
+            "default": "",
+            "title": "Offre",
+            "type": "string"
+          },
+          "ton": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Valeur de l'énumération de la spécification ; défaut de la spécification si absent",
+            "title": "Ton"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "title": "ProfileIn",
         "type": "object"
       },
       "Progress": {
@@ -2040,6 +2161,112 @@
           "attempt_status"
         ],
         "title": "SubmitOut",
+        "type": "object"
+      },
+      "TargetProfileOut": {
+        "properties": {
+          "besoin": {
+            "title": "Besoin",
+            "type": "string"
+          },
+          "cible_fonctions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Fonctions",
+            "type": "array"
+          },
+          "cible_secteurs": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Secteurs",
+            "type": "array"
+          },
+          "cible_taille": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TargetSize"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cible_zone": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cible Zone",
+            "type": "array"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "entreprise_nom": {
+            "title": "Entreprise Nom",
+            "type": "string"
+          },
+          "exclusions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusions",
+            "type": "array"
+          },
+          "modifie_le": {
+            "format": "date-time",
+            "title": "Modifie Le",
+            "type": "string"
+          },
+          "offre": {
+            "title": "Offre",
+            "type": "string"
+          },
+          "profile_version": {
+            "title": "Profile Version",
+            "type": "integer"
+          },
+          "ton": {
+            "title": "Ton",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile_version",
+          "entreprise_nom",
+          "offre",
+          "besoin",
+          "cible_secteurs",
+          "cible_zone",
+          "cible_taille",
+          "cible_fonctions",
+          "exclusions",
+          "ton",
+          "modifie_le",
+          "complete"
+        ],
+        "title": "TargetProfileOut",
+        "type": "object"
+      },
+      "TargetSize": {
+        "additionalProperties": false,
+        "properties": {
+          "effectif_max": {
+            "title": "Effectif Max",
+            "type": "integer"
+          },
+          "effectif_min": {
+            "title": "Effectif Min",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "effectif_min",
+          "effectif_max"
+        ],
+        "title": "TargetSize",
         "type": "object"
       },
       "ValidationError": {
@@ -3351,6 +3578,88 @@
         "summary": "Add Notebook Entry",
         "tags": [
           "à venir (501)"
+        ]
+      }
+    },
+    "/api/profile": {
+      "put": {
+        "description": "Remplace la fiche entreprise et cible : crée la **version suivante** (immuable) et la renvoie (200, y compris au rejeu).\n`expected_version` périmée => `VERSION_CONFLICT`. Bornes lues dans `data/profile/` (Réel : offre, secteurs et zone requis).\nLe texte saisi est une donnée : il n'a aucun effet sur les prix, droits ni scores. Même `Idempotency-Key` + même requête :\nmême version, aucune écriture.",
+        "operationId": "put_profile_api_profile_put",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Put Profile",
+        "tags": [
+          "fiche entreprise et cible"
         ]
       }
     },

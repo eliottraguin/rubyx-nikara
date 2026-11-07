@@ -24,6 +24,7 @@ from ..models import ActionRun, GameSession, Message, MissionAttempt, Reservatio
 from ..schemas.common import Role
 from ..schemas.plan import LeadPlan
 from . import artifacts, events, ledger, quotas
+from . import profile as profile_svc
 from .actions import (
     ActionEngine,
     call_provider,
@@ -157,7 +158,10 @@ def _run_delegations(eng: ActionEngine, action_id: str, indexes: list[int], extr
                 db.commit()
                 continue
             player = db.scalar(select(Message).where(Message.action_id == action.id, Message.author == "player"))
-            parts = [f"Instruction du joueur au chef d'équipe (donnée) :\n{player.text if player else ''}", f"Tâche déléguée :\n{step['task']}"]
+            mode = db.scalar(select(GameSession.mode).where(GameSession.id == attempt.session_id))
+            profile_block = profile_svc.block_for_attempt(db, eng.profile_spec, attempt, mode or "beginner")
+            parts = [profile_block] if profile_block else []
+            parts += [f"Instruction du joueur au chef d'équipe (donnée) :\n{player.text if player else ''}", f"Tâche déléguée :\n{step['task']}"]
             if step.get("source_ids"):
                 parts.append(f"Pièces :\n{source_context(db, attempt, step['source_ids'])}")
             if dep is not None:

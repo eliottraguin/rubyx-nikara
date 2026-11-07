@@ -25,6 +25,7 @@ def normalize_state(state: dict[str, Any]) -> dict[str, Any]:
     s["session"]["id"] = "ses_exemple0000000001"
     s["session"]["created_at"] = "2026-01-01T09:00:00Z"
     s["session"]["seed"] = 12345
+    s["target_profile"]["modifie_le"] = "2026-01-01T09:00:00Z"
     return s
 
 

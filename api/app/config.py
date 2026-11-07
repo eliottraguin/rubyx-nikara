@@ -147,6 +147,9 @@ class Settings:
             p.append("RUBIX_RULES_VERSION invalide.")
         elif not (self.data_dir / "rules" / f"{self.rules_version}.json").is_file():
             p.append(f"Règles introuvables : {self.data_dir / 'rules' / (self.rules_version + '.json')} (RUBIX_DATA_DIR / RUBIX_RULES_VERSION).")
+        for rel in ("rules/rules_v2.json", "profile/target_profile_v1.json"):
+            if not (self.data_dir / rel).is_file():
+                p.append(f"Données introuvables : {self.data_dir / rel} (RUBIX_DATA_DIR).")
         if self.db_path.is_dir():
             p.append(f"RUBIX_DB_PATH désigne un dossier : {self.db_path}.")
         else:

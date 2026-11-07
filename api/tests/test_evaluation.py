@@ -76,7 +76,7 @@ class ScriptedJudge(MockLLMAdapter):
 @pytest.fixture
 def data_dir(tmp_path):
     d = tmp_path / "data"
-    for sub in ("rules", "rubrics", "missions", "roles"):
+    for sub in ("rules", "rubrics", "missions", "roles", "profile"):
         shutil.copytree(DATA / sub, d / sub)
     return d
 

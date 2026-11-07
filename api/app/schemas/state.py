@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .campaign import AttemptSummary, MissionStatus, Progress
 from .common import Mode, Role
+from .profile import TargetProfileOut
 
 
 class CompanyOut(BaseModel):
@@ -78,6 +79,14 @@ class ActiveActionView(BaseModel):
     updated_at: datetime
 
 
+class BuildingOut(BaseModel):
+    """Immeuble du joueur, calculé par le serveur (total des paiements d'expédition ; ne baisse jamais)."""
+
+    level: int
+    total_earned: int
+    next_level_at: int | None  # null au niveau maximal
+
+
 class GameState(BaseModel):
     session: SessionInfo
     balance: Balance
@@ -87,6 +96,8 @@ class GameState(BaseModel):
     progress: Progress | None = None
     active_actions: list[ActiveActionView] = []
     quotas: QuotaInfo
+    target_profile: TargetProfileOut  # fiche entreprise et cible courante (versionnée ; PUT /api/profile)
+    building: BuildingOut
     llm: LLMInfo
     contracts_version: str
 

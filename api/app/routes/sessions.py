@@ -18,7 +18,7 @@ def create_session(payload: SessionCreate, request: Request, response: Response,
     Rejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e."""
     app = request.app
     cookie_name = app.state.settings.cookie_name
-    game, token, replayed = svc.create_session_idempotent(db, app.state.rules, payload, key, request.cookies.get(cookie_name))
+    game, token, replayed = svc.create_session_idempotent(db, app.state.rules, payload, key, request.cookies.get(cookie_name), app.state.profile_spec)
     if replayed:
         response.status_code = 200
     if token is not None:
@@ -30,13 +30,13 @@ def create_session(payload: SessionCreate, request: Request, response: Response,
             secure=app.state.settings.cookie_secure,
             path="/",
         )
-    return svc.build_state(db, app.state.rules, app.state.llm, game)
+    return svc.build_state(db, app.state.rules, app.state.llm, game, rules_v2=app.state.rules_v2, profile_spec=app.state.profile_spec)
 
 
 @router.get("/api/state", response_model=GameState, responses={401: ERRORS[401]})
 def get_state(request: Request, db: DB, game: CurrentSession) -> GameState:
     """État complet utile à l'UI ; la partie est déterminée par le cookie uniquement."""
-    return svc.build_state(db, request.app.state.rules, request.app.state.llm, game)
+    return svc.build_state(db, request.app.state.rules, request.app.state.llm, game, rules_v2=request.app.state.rules_v2, profile_spec=request.app.state.profile_spec)
 
 
 @router.delete("/api/session", status_code=204, responses={401: ERRORS[401], 422: ERRORS[422]})

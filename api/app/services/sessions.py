@@ -13,7 +13,9 @@ from ..deps import hash_token
 from ..errors import ApiError, ErrorCode
 from ..llm.base import LLMAdapter
 from ..models import ActionRun, AgentOwnership, GameSession, LedgerEntry, Reservation, utcnow
+from ..profile_spec import ProfileSpec
 from ..rules import Rules
+from ..rules_v2 import RulesV2
 from ..schemas.common import Mode
 from ..schemas.state import (
     ActiveActionView,
@@ -27,7 +29,7 @@ from ..schemas.state import (
     SessionInfo,
 )
 from .. import CONTRACTS_VERSION
-from . import campaign
+from . import building, campaign, profile
 from .purchases import REUSED_KEY, request_hash
 
 
@@ -52,7 +54,9 @@ def _creation_replay(db: Session, key_hash: str, req_hash: str, current_token: s
     return game, token
 
 
-def _add_game(db: Session, rules: Rules, payload: SessionCreate, key_hash: str | None, req_hash: str | None) -> tuple[GameSession, str]:
+def _add_game(
+    db: Session, rules: Rules, payload: SessionCreate, key_hash: str | None, req_hash: str | None, profile_spec: ProfileSpec | None = None
+) -> tuple[GameSession, str]:
     """Insère partie, capital initial (écriture de ledger) et agents initiaux, sans commit. Retourne (partie, jeton en clair)."""
     token = secrets.token_urlsafe(32)
     game = GameSession(
@@ -79,12 +83,13 @@ def _add_game(db: Session, rules: Rules, payload: SessionCreate, key_hash: str |
     )
     for role in rules.initial_agents:
         db.add(AgentOwnership(session_id=game.id, role=role.value, price_paid=0, purchased_at=utcnow()))
+    profile.add_initial_version(db, game, profile_spec, payload.profile)  # fiche v1 ; l'ancien `profile` devient `offre`
     return game, token
 
 
-def create_session(db: Session, rules: Rules, payload: SessionCreate) -> tuple[GameSession, str]:
+def create_session(db: Session, rules: Rules, payload: SessionCreate, profile_spec: ProfileSpec | None = None) -> tuple[GameSession, str]:
     """Crée une partie sans clé d'idempotence (CLI de démo, tests). Retourne (partie, jeton en clair)."""
-    game, token = _add_game(db, rules, payload, None, None)
+    game, token = _add_game(db, rules, payload, None, None, profile_spec)
     db.commit()
     return game, token
 
@@ -106,7 +111,7 @@ def _creation_replay(db: Session, key_hash: str, req_hash: str, current_token: s
 
 
 def create_session_idempotent(
-    db: Session, rules: Rules, payload: SessionCreate, key: str, current_token: str | None
+    db: Session, rules: Rules, payload: SessionCreate, key: str, current_token: str | None, profile_spec: ProfileSpec | None = None
 ) -> tuple[GameSession, str | None, bool]:
     """Création rejouable par `Idempotency-Key`. Retourne (partie, jeton à poser en cookie ou None, rejeu)."""
     key_hash = hash_token(key)
@@ -115,7 +120,7 @@ def create_session_idempotent(
     if replay is not None:
         return replay[0], replay[1], True
     try:
-        game, token = _add_game(db, rules, payload, key_hash, req_hash)
+        game, token = _add_game(db, rules, payload, key_hash, req_hash, profile_spec)
         db.commit()
     except IntegrityError:  # deux créations simultanées avec la même clé : l'unicité n'en laisse passer qu'une
         db.rollback()
@@ -158,7 +163,7 @@ def active_actions(db: Session, session_id: str) -> list[ActiveActionView]:
     ]
 
 
-def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession) -> GameState:
+def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession, *, rules_v2: RulesV2, profile_spec: ProfileSpec) -> GameState:
     owned = set(db.scalars(select(AgentOwnership.role).where(AgentOwnership.session_id == game.id)))
     attempts = campaign.attempts_of(db, game.id)  # moteur de campagne (BE02) : missions, progression, prochaine action
     unlocked = campaign.unlocked_roles(rules, attempts)
@@ -190,6 +195,8 @@ def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSessio
             messages_per_agent_per_attempt=rules.quotas.messages_per_agent_per_attempt,
             clarifications_per_attempt=rules.quotas.clarifications_per_attempt,
         ),
+        target_profile=profile.view_for_game(db, profile_spec, game),
+        building=building.building_view(db, rules_v2, game.id),
         llm=LLMInfo(provider=adapter.name, simulated=adapter.simulated),
         contracts_version=CONTRACTS_VERSION,
     )
