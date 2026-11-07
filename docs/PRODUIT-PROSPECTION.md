@@ -4,14 +4,18 @@
 >
 > **Précision du 2026-11-07 (Noah, 2e décision).** La prospection n'est pas un simple thème de jeu : c'est la **fonction réelle du produit**. En mode Réel, le joueur cherche **de vrais clients pour sa vraie entreprise**. La valeur du produit est la **liste de prospects exploitables** (carnet de prospection, fiches clients, premiers messages, export CSV) ; le score, les gains en $ et les déblocages sont des **mécaniques d'apprentissage et de progression**, jamais le but. Voir §1 et §11 à §14.
 >
+> **3e décision du 2026-11-07 (Noah).** Deux sections s'ajoutent à la prospection : **Clients** (messagerie gérée par des agents, simulée en Tutoriel, branchée à une vraie boîte mail en Réel) et **Pub** (agent publicitaire, contenus prêts à publier). Référence : `PRODUIT-CLIENTS-PUB.md`. « **Seule la prospection est traitée** » (§1) ne vaut donc plus pour le produit entier : ce document reste la référence de la **section Prospection**.
+>
+> **4e décision du 2026-11-07 (Noah) : le décor devient une ville.** Fini l'espace : la carte est **plein écran**, inspirée de **New York** ; **votre immeuble est au centre** et s'améliore avec l'argent gagné ; les agents sont des **bots** qui partent à pied, à vélo, en skate ou en hélicoptère ; les **planètes deviennent des lieux** (Bibliothèque publique, Hôtel de ville, SoHo, Midtown, Wall Street, Times Square). **Lire « planète » comme « lieu » et « vaisseau/navette » comme « bot » dans tout ce document** : les règles, gains, déblocages et identifiants techniques (`planet`, `hangar`) sont **inchangés**. Référence visuelle : `VILLE-ET-BATIMENT.md`.
+>
 > Ce cap n'est pas un retour à l'ancien cadrage « Prospect Tycoon » (hackathon 48 h, TypeScript seul, sans base de données) : la pile (Next.js + FastAPI + SQLite), le moteur et les tests restent ceux du dépôt.
 
 ## 1. Vision
 Une **appweb** (navigateur uniquement, pas d'application native) en français, solo. Un **tycoon très visuel en vue de dessus 3/4** : le joueur dirige **sa propre entreprise** (une entreprise d'exemple en mode Tutoriel) et part à la recherche de **ses clients**. Le but est de **rendre agréable une tâche qu'on évite d'habitude** : trouver des prospects, puis en faire quelque chose.
 
 - **Seule la prospection** est traitée. Pas de rédaction générale, pas de veille, pas d'analyse de tableaux.
-- Une **carte unique** : la **base** de l'entreprise au centre, des **planètes** autour. Chaque planète est une **plateforme** de données (Annuaire, Registre, Carte locale, LinkedIn, Glassdoor…), débloquée au fil de la partie.
-- Le joueur **voit ses agents** quitter la base, voyager, atterrir et **discuter avec l'agent de la planète**.
+- Une **carte unique** (une ville) : **votre immeuble** au centre, des **lieux** autour (anciennement planètes). Chaque lieu est une **plateforme** de données (Annuaire, Registre, Carte locale, LinkedIn, Glassdoor…), débloquée au fil de la partie.
+- Le joueur **voit ses bots** quitter l'immeuble (à pied, à vélo, en skate ou en hélicoptère selon le lieu), arriver et **discuter avec l'agent du lieu**.
 - Ce que le joueur apprend : **écrire le prompt qui fait trouver les bons prospects**. Le prompt est noté ; c'est lui qu'on améliore, version après version.
 
 ### Ce qui est le produit, ce qui est le jeu
@@ -24,7 +28,7 @@ Conséquences de conception :
 1. **Consulter, trier, exporter, annoter et supprimer** ses prospects n'est **jamais** conditionné par la monnaie ni par la progression du jeu (`RULES.md` §11).
 2. En mode Réel, tout « résultat » montré au joueur est **vérifiable** (source, date, fiabilité) et **utilisable sans le jeu** (export).
 3. Le score mesure la qualité du **prompt** et la fiabilité du **rapport**, pas la valeur commerciale d'un prospect : il ne doit jamais être présenté comme tel.
-4. Rien n'est jamais **envoyé** au nom du joueur : le produit prépare, le joueur agit (§14).
+4. Rien n'est envoyé **automatiquement** au nom du joueur : le produit prépare, le joueur agit (§14). Seule exception : en mode Réel, le joueur peut **confirmer l'envoi** d'un email depuis sa boîte connectée (`PRODUIT-CLIENTS-PUB.md` §4).
 
 ## 2. Boucle de jeu
 1. **Choisir une planète** disponible sur la carte. Un panneau montre la **fiche cible** (le commanditaire cherche quel type de prospects), la récompense maximale, le coût par instruction.
@@ -146,10 +150,10 @@ Détails d'interface dans `UX.md`, d'architecture dans `CARTE-TECH.md`. Principe
 
 | Élément | États visibles |
 |---|---|
-| **Base** | Trésorerie (coffre), hangar (agents présents / dehors), **classeur** (nombre de prospects du carnet ; ouvre le carnet), niveau d'activité |
-| **Planète** | Verrouillée (voilée + condition en texte) · disponible (halo) · expédition en cours · visitée (étoiles = meilleur score) |
-| **Agent** | Au hangar · en vol · en discussion (bulle) · de retour avec rapport · en panne (échec technique, reprise sûre) |
-| **Retours** | Gain en $ qui s'envole vers le coffre · leads qui tombent en cartes dans la soute · compteur d'instructions restantes |
+| **Immeuble** | Niveau 1 à 10 selon le **total gagné** (apparence seulement), enseigne au nom de l'entreprise, halo « Votre siège » ; à l'intérieur : coffre (trésorerie), garage (bots présents / dehors), archives (nombre de prospects, ouvre le carnet) |
+| **Lieu** | Verrouillé (voilé + condition en texte) · disponible (halo) · expédition en cours · visité (étoiles = meilleur score) |
+| **Bot** | Au garage · en route (à pied, vélo, skate ou hélicoptère) · en discussion (bulle) · de retour avec rapport · en panne (échec technique, reprise sûre) |
+| **Retours** | Gain en $ qui s'envole vers le coffre · leads qui arrivent en dossier · compteur d'instructions restantes |
 
 Les animations ne **retardent jamais** un résultat : bouton « passer », et l'animation s'adapte à la durée réelle de l'appel (boucle de vol tant que la réponse n'est pas arrivée).
 
@@ -314,9 +318,9 @@ Chaque prospect porte **sa source, sa date de collecte et sa fiabilité**, visib
 | **Sauvegardes** | Une sauvegarde de démo (BE08) qui contiendrait de vrais prospects est **exclue ou chiffrée** |
 
 ### Aucune action externe automatique
-- Le produit **n'envoie jamais** un message, un email, une invitation ou une demande de connexion, et ne se connecte à aucune messagerie ni à aucun CRM.
-- Le brouillon est du **texte à copier** ; « contacté » est **déclaratif**.
-- Les seules sorties vers l'extérieur sont : l'**export** que le joueur télécharge et les **requêtes de sources** pilotées par le serveur (liste blanche).
+- Le produit **n'envoie jamais de lui-même** un message, un email, une invitation ou une demande de connexion, et ne se connecte à aucun CRM. **Exception unique (3e décision)** : en mode Réel, la section **Clients** peut se connecter à la boîte mail du joueur et envoyer **un email à la fois, après confirmation explicite du joueur**, avec les garde-fous de `PRODUIT-CLIENTS-PUB.md` §4. Aucun agent ne dispose d'un outil d'envoi.
+- Dans la section Prospection, le brouillon `outreach` reste du **texte à copier** ; « contacté » est **déclaratif**. Le joueur peut aussi l'utiliser comme premier message d'une **conversation** (section Clients).
+- Les seules sorties vers l'extérieur sont : l'**export** que le joueur télécharge, les **requêtes de sources** pilotées par le serveur (liste blanche) et, en mode Réel, l'**envoi d'email confirmé** de la section Clients.
 
 ### Persistance sans compte
 Le moteur n'a **pas de comptes** (cookie de session). Un carnet réel est donc **lié au navigateur** : si le cookie est perdu, il est perdu. Le produit **rappelle d'exporter** (bandeau après N prospects, rappel avant purge). Décision sur l'ajout de comptes : `OPEN-QUESTIONS.md`.

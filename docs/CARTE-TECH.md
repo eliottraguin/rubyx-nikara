@@ -2,6 +2,18 @@
 
 > Nouveau document (2026-11-07). Complète `ARCHITECTURE.md` et `UX.md`. **Les contrats d'API proposés ici sont à reporter dans `CONTRACTS.md` avant fusion** (règle non négociable n° 10) et à signaler à toute l'équipe.
 
+## Cap ville (4e décision, 2026-11-07)
+Le thème spatial est abandonné : la carte devient une **ville plein écran** avec l'**immeuble du joueur** au centre, des **bots** à pied, à vélo, en skate ou en hélicoptère, des **drones** pour la pub, et une **coupe d'immeuble** pour l'intérieur (`VILLE-ET-BATIMENT.md`). **Rien de l'architecture ci-dessous ne change** (Phaser dans Next.js, état serveur = source de vérité, trace d'événements, couche DOM, tests purs). Ce qui change :
+- **Scènes** : `WorldScene` (ville, immeuble central, caméra plein écran) et **nouvelle** `BuildingScene` (coupe, agents à leur poste, ascenseur). Le **contenu** de chaque étage reste en **panneaux React** (texte copiable, accessible).
+- **Données** : `data/map/city_v1.json` (grille, îlots, parc, **graphe de rues**, lieux avec `vehicle`, héliport) remplace `layout_v1.json` ; `data/map/building_v1.json` (apparence par niveau, postes) ; `rules_v2.building.levels` (seuils de **total gagné**, calcul serveur).
+- **ViewModel** : ajoute `building` (niveau, équivalent texte), `places[].vehicle`, `drones[]`, `interior` ; **toujours** une fonction pure testée.
+- **Trajets** (`trips.ts`, `route.ts`) : marche, vélo et skate suivent le **graphe de rues** ; l'hélicoptère suit une courbe aérienne avec ombre. Le véhicule est **cosmétique** (donnée du lieu), jamais une règle.
+- **Contrat** : `GET /api/state` gagne `building: { level, total_earned, next_level_at }` (calcul serveur, additif ; à reporter dans `CONTRACTS.md` avant fusion).
+- **Code existant** (`src/game/map/`, ≈ 2 100 lignes) : garder la logique pure (`iso`, `route`, `bus`, `dispatch`, `history`, `viewmodel`) ; adapter `art.ts` (textures de ville), `trips.ts`, `layout.ts`, `WorldScene.ts`. Les **identifiants** (`planet`, `hangar`) ne changent pas ; seuls les libellés passent à « lieu » et « garage ».
+- **Drones** : jouent **seulement pendant** la génération d'un kit et au retour ; jamais le signe qu'une pub est publiée.
+- **Style** : « Les Sims en réaliste » (décision Noah) : **sprites isométriques pré-rendus en 3D** en atlas, personnages animés, coupe à murs ouverts ; l'art généré par le code ne sert que de **placeholder** (`VILLE-ET-BATIMENT.md` §12). `BuildingScene` est une **scène Phaser animée** (décision Noah).
+- **Performance** : budget ≤ **8 Mo** au premier affichage puis chargement progressif, atlas compressés, culling, pools, décor plafonné (piétons ≤ 30), scène en pause quand la coupe la couvre ; dégradation ordonnée pour portable modeste (décor animé, ombres, résolution, nombre de bots). **Cible : ordinateur** ; téléphone = mode liste.
+
 ## Choix et principes
 - **Phaser 3** pour la scène 2D (sprites animés, caméra, tuiles isométriques 2:1). Dépendance du front uniquement.
 - **Le serveur reste maître** (règles 1 à 8 de `CLAUDE.md`). La carte **affiche** un état et **joue** des animations ; elle ne décide ni solde, ni prix, ni quota, ni score, ni déblocage.
@@ -72,8 +84,8 @@ Contrat proposé (additif ; à documenter dans `CONTRACTS.md`) :
 | Projection | Isométrique 2:1, tuiles 64×32 px (échelle ×2 pour écrans denses) |
 | Carte | **Tiled** (JSON) pour la base ; planètes = sprites positionnés par données |
 | Sprites | **Atlas** unique par catégorie (agents, navettes, bulles, effets) généré en un fichier PNG + JSON |
-| Style | Palette limitée, cohérente ; **pack libre de droits (CC0) ou créé pour le projet** — voir `OPEN-QUESTIONS.md` |
-| Poids | Cible ≤ 3 Mo d'assets au premier affichage ; chargement progressif des planètes lointaines |
+| Style | **Semi-réaliste façon Les Sims** : sprites **pré-rendus en 3D**, éclairage cohérent, personnages animés ; **créé pour le projet ou sous licence commerciale** (un pack CC0 réaliste complet est peu probable) — voir `OPEN-QUESTIONS.md` n° 50 |
+| Poids | Cible ≤ **8 Mo** d'assets au premier affichage (rendu réaliste), chargement progressif des quartiers lointains, des étages et des niveaux d'immeuble suivants ; atlas compressés |
 | Licences | Fichier `ASSETS.md` listant chaque source et sa licence (obligatoire avant fusion) |
 
 Les assets vivent dans `public/map/` ; les données de disposition dans `data/map/`.

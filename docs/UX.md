@@ -1,5 +1,7 @@
 # Écrans et expérience utilisateur
 
+> **Cap ville (4e décision, 2026-11-07)** : la carte est une **ville plein écran** avec **votre immeuble** au centre, et on **entre dans l'immeuble** (coupe, un étage par activité) pour gérer le courrier, la pub et le carnet. Référence : `VILLE-ET-BATIMENT.md`. Ce document garde les écrans et règles d'interface ; **lire « planète » comme « lieu », « navette » comme « bot » et « base » comme « immeuble »**. Les tableaux « Vue d'ensemble », « Disposition » et « Les agents sur la carte » ci-dessous sont **remplacés** par les sections correspondantes de `VILLE-ET-BATIMENT.md` (§5, §7, §9).
+>
 > **Réécrit le 2026-11-07** pour le cap « tycoon de prospection » (`PRODUIT-PROSPECTION.md`). Langue : **français**, solo, navigateur. L'ancien parcours « bureau + écrans de formulaires + 6 missions » est **obsolète**. Architecture de la carte : `CARTE-TECH.md`.
 
 ## Principe
@@ -8,29 +10,32 @@ Le jeu **se joue sur la carte**. Les écrans-formulaires deviennent des **pannea
 **Le jeu est le moyen, le carnet est le produit** (`PRODUIT-PROSPECTION.md` §1). L'interface doit rendre le carnet de prospection aussi **accessible et utilisable** que la carte : il s'ouvre depuis le **classeur** de la base **et** depuis la barre de navigation (sans carte), ne dépend ni du score ni de l'argent, et reste complet en mode liste.
 
 ## Vue d'ensemble de la carte
-Vue **de dessus en 3/4** (projection isométrique 2:1).
+Vue **de dessus en 3/4** (isométrique 2:1), **plein écran**. Interface minimale en surimpression.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [Trésorerie 30 $]  [Instructions restantes 5/5]  [Mode simulé]│  barre d'état (toujours visible)
+│ [30 $]  [Instructions 5/5]  [Mode simulé]          [☰ Menu]  │  barre d'état (surimpression)
 │                                                              │
-│           ◯ Glassdoor        ◯ LinkedIn                      │
-│                      ⇢ (navette en vol)                      │
-│   ◯ Registre            ┌──────────┐        ◯ Carte locale   │
-│                         │   BASE   │                         │
-│              ◯ Annuaire │ hangar ▣ │                         │
-│                         └──────────┘                         │
-│ ┌ Panneau (planète / agent / prompt / résultats) ┐           │
+│     ◯ Wall Street        ◯ Midtown                           │
+│              ⇢ 🚲 (bot en route)        🌳 Central Park       │
+│  ◯ Hôtel de ville     ┌───────────┐       ◯ SoHo             │
+│                       │ VOTRE     │                          │
+│        ◯ Bibliothèque │ IMMEUBLE ★│      ◯ Times Square      │
+│                       └───────────┘      (hélico 🚁)          │
+│ ┌ Panneau (lieu / agent / prompt / rapport) ┐                │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+Au clic sur l'immeuble : zoom, puis **coupe** (Toit, Studio pub, Salle du courrier, Archives, Accueil et garage), détaillée dans `VILLE-ET-BATIMENT.md` §7.
 
 ## Écrans et panneaux
 | Écran / panneau | Contenu et actions principales |
 |---|---|
-| **Accueil** | Promesse en une phrase, démarrer, reprendre, explication des deux modes (Tutoriel / Réel) |
+| **Accueil** | Promesse en une phrase, démarrer, reprendre (version épurée : un titre, un bouton, une ligne de reprise) |
 | **Création** | Étape 1 : nom de l'entreprise, mode. Étape 2 : **fiche entreprise et cible** (Tutoriel : exemple pré-rempli, modifiable ; Réel : saisie guidée, 3 champs minimum). On arrive **sur la carte** |
 | **Fiche entreprise et cible** | Formulaire guidé (offre, besoin, secteurs, zone, taille, fonctions, exclusions, ton), **diff** entre versions, rappel « décrivez une cible, pas des personnes » ; accessible depuis la base |
-| **Carte** (écran principal) | Base, planètes, agents mobiles, barre d'état ; clic ou touche sur une planète ou un agent |
+| **Ville** (écran principal) | Ville plein écran, **votre immeuble** au centre, lieux, bots mobiles, drones, barre d'état ; clic ou touche sur un lieu, un bot ou l'immeuble |
+| **Immeuble en coupe** | Étages cliquables (ascenseur au clavier) : Toit, Studio pub, Salle du courrier, Archives, Accueil et garage ; chaque étage ouvre ses panneaux ; retour à la ville par bouton ou `Échap` |
 | **Panneau planète** | Fiche cible du commanditaire, récompense max, coût par instruction, meilleur score, condition de déblocage **en texte**, bouton « Préparer une expédition » |
 | **Panneau agent / prompt** | Éditeur du prompt, version courante et versions précédentes, compteur « n/5 », **coût maximal avant envoi**, bouton « Envoyer » ; envois impossibles désactivés **avec la cause affichée** |
 | **Dialogue de planète** | Bulles de l'agent et de la planète pendant la discussion ; **transcript complet** repliable ; bouton « Passer l'animation » |
@@ -38,6 +43,10 @@ Vue **de dessus en 3/4** (projection isométrique 2:1).
 | **Retour client** | **Deux scores** (« Votre prompt », « Vos résultats »), critères réussis/ratés, phrases du prompt en cause, paiement, dépenses, prochain objectif |
 | **Hangar** (boutique) | Agents, prix, rôle, condition de déblocage, confirmation d'achat |
 | **Carnet de prompts** (apprentissage ; distinct du carnet de prospection) | Versions de prompts, score de chacune, **diff** entre deux versions, réutilisation (consomme une instruction dans un envoi normal) |
+| **Section Clients** (menu principal, distincte de la carte) | Liste des **conversations** (tri par dernière activité, filtre par intention et statut), fil d'une conversation (messages envoyés et reçus, badge `simulé` ou `réel`), **synthèse** du trieur, brouillon du rédacteur de réponse (coût maximal et quota n/5 avant envoi), zone « écrire sans agent », bouton **Utiliser le brouillon de premier message** |
+| **Envoi réel** (Réel, confirmation) | Écran de confirmation : **destinataire en clair, objet, texte exact**, mention « Ce message sera réellement envoyé depuis votre boîte », bouton **Envoyer** ; causes de refus affichées (désinscription, plafond, brouillon périmé). Tutoriel : bouton « Envoyer (simulé) » et bandeau « rien ne sort » |
+| **Boîte mail** (Réel) | Connexion (OAuth), adresse masquée, plafonds du jour, **Actualiser**, déconnexion (révocation) avec choix de supprimer les messages importés |
+| **Section Pub** (menu principal) | Liste des campagnes ; fiche de campagne (nom, objectif, plateforme, audience, budget indicatif, consigne) ; **kit** par sections avec **Copier** par section et **Exporter** ; contrôles réussis ; versions ; bandeau permanent « Rien n'a été publié ni dépensé » ; **aucun bouton Publier** |
 | **Carnet de prospection** (produit) | Liste des prospects : **tri**, **filtres**, **recherche**, compteurs par statut, actions groupées (marquer contacté, écarter, supprimer), **Exporter en CSV** ; voir « Carnet de prospection et atelier du prospect » |
 | **Fiche prospect** | Détail et provenance, statut, notes, **fiche client** (agent), **brouillons de message** (agent), historique ; suppression |
 | **Fin et bilan** | Résultats, compétences illustrées par des actions observées, nouvelle partie |
@@ -116,3 +125,8 @@ Si Phaser ne se charge pas (réseau, WebGL indisponible, appareil faible) : band
 
 ## Cohérence
 Pages et composants partagent mêmes statuts, formats monétaires et messages d'erreur (codes stables de `CONTRACTS.md`). Les panneaux et la couche DOM lisent **le même état serveur** que la carte ; il n'existe pas deux sources de vérité.
+
+## Navigation : ville, immeuble, étages (3e et 4e décisions, 2026-11-07)
+La navigation à trois sections (Prospection, Clients, Pub) devient **trois endroits d'une même ville** : Prospection = la ville (et les Archives pour le carnet), Clients = Salle du courrier (étage 2), Pub = Studio (étage 3). Un **raccourci** du menu ouvre directement chacun. Le hangar, le carnet de prompts et « Mes données » sont au rez-de-chaussée. Aucune section ne dépend de la carte (le mode liste couvre tout).
+
+Règles communes : envois impossibles **désactivés avec la cause affichée** ; tout texte reçu d'un client est rendu en **texte**, jamais en HTML ; aucun écran n'affiche une adresse email au modèle ni dans un journal, l'adresse n'apparaît **qu'au joueur**, sur l'écran de confirmation d'envoi, au **Départ du courrier**. Le niveau de l'immeuble est **visuel** : il ne conditionne aucune action. Détails : `VILLE-ET-BATIMENT.md` et `PRODUIT-CLIENTS-PUB.md`.

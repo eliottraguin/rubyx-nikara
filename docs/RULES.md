@@ -15,9 +15,9 @@
 | Rôle | Id technique | Prix | Déblocage |
 |---|---|---|---|
 | Éclaireur | `scout` | 0 | Au lancement |
-| Qualificateur | `qualifier` | 30 | Score ≥ 60 sur la planète 2 |
-| Analyste de fiche client | `profiler` | 40 | Score ≥ 60 sur la planète 3 |
-| Rédacteur de premier message | `outreach` | 45 | Score ≥ 60 sur la planète 4 |
+| Qualificateur | `qualifier` | 30 | Score ≥ 50 sur la planète 2 |
+| Analyste de fiche client | `profiler` | 40 | Score ≥ 50 sur la planète 3 |
+| Rédacteur de premier message | `outreach` | 45 | Score ≥ 50 sur la planète 4 |
 
 `scout` et `qualifier` travaillent en expédition ; `profiler` et `outreach` travaillent sur un prospect du carnet (§11). **Mode Réel : la condition de score de déblocage est levée** pour `qualifier`, `profiler` et `outreach` (seul le prix reste ; décision par défaut, `OPEN-QUESTIONS.md`) ; en Tutoriel, elle s'applique.
 
@@ -85,7 +85,7 @@ La mécanique (code d'abord, client IA pour le sémantique, plafond essentiel, p
 - Les formats et calculs sont vérifiés **par du code** ; le client IA ne juge que le sémantique et explique les écarts.
 - Le serveur valide types et bornes (`rating ∈ [0,1]`, ids connus, preuve valide) puis calcule le **score /100**. Tout champ de récompense suggéré par le modèle est **ignoré**.
 - Hors sujet ⇒ **0**. Critère essentiel non rempli ⇒ score **plafonné à 40**.
-- Réussite : mission ordinaire **≥ 60** sans échec essentiel ; **finale ≥ 70** avec tous les essentiels.
+- Réussite : mission ordinaire **≥ 50** sans échec essentiel ; **finale ≥ 60** avec tous les essentiels.
 - Paiement cible = `floor(gain_max × score / 100)` (ex. max 20 : 0→0, 65→13, 100→20).
 - Une livraison fige texte + brief + grille ; son id et son empreinte empêchent les paiements répétés (T04).
 - **Reprise** : nouvelle tentative avec ses compteurs ; paiement supplémentaire = `max(0, cible − meilleur paiement déjà acquis)` (13 → 17 crédite 4, T05).
@@ -107,7 +107,7 @@ Tout événement a un id, un point de déclenchement et crée une **nouvelle ver
 - Mode Démo : le présentateur choisit un événement admissible avant livraison, sans changer note ni solde ; badge visible ; commandes cachées jamais actives en partie normale.
 
 ## 7. Fin de campagne **[ADAPTÉ]**
-- Constellation (ex-M6) : victoire = score ≥ 70, essentiels exacts, **dépense ≤ 30**, ≥ **2 rôles** ayant produit une contribution liée au rapport, sur **≥ 2 planètes**.
+- Constellation (ex-M6) : victoire = score ≥ 60, essentiels exacts, **dépense ≤ 30**, ≥ **2 rôles** ayant produit une contribution liée au rapport, sur **≥ 2 planètes**.
 - Les planètes 1 à 5 sont réalisables avec le seul éclaireur ; la fin est atteignable sans acheter tous les agents (T12).
 - Planète de secours : rejouable (nouveaux ids d'expédition), accessible sans argent (T11).
 
@@ -156,4 +156,39 @@ Règles chiffrées ; le cadre complet est dans `PRODUIT-PROSPECTION.md` §14 (à
 - **Export** : CSV du carnet (neutralisation des formules, `PRODUIT-PROSPECTION.md` §12) et **JSON complet** de la partie, propriété de session vérifiée.
 - **Journaux** : aucun nom, contact, note ni instantané ; seulement ids, compteurs, durées.
 - **LLM** : jamais de valeur d'email ou de téléphone, jamais les notes du joueur au MVP.
-- **Aucune action externe automatique** (envoi, invitation, CRM) : le brouillon est copié par le joueur.
+- **Aucune action externe automatique** (invitation, CRM, publication) : le brouillon est copié par le joueur. **Seule exception** (décision du 2026-11-07, 3e) : en mode Réel, l'**envoi d'un email confirmé par le joueur** depuis sa boîte connectée (§13).
+
+## 13. Clients : messagerie **[NOUVEAU]**
+Référence produit : `PRODUIT-CLIENTS-PUB.md` §3 et §4. Valeurs dans `data/rules/rules_v2.json`.
+
+| Action | Coût | Quota | Gain |
+|---|---|---|---|
+| Créer une conversation, consulter, annoter, **envoyer** (Réel, confirmé), **recevoir/actualiser**, **exporter**, **supprimer** | **Gratuit, jamais refusé pour manque de fonds** | Plafonds d'**envoi** seulement (ci-dessous) | Aucun |
+| **Synthèse** (`triage`) | 1 $ par génération (valeur de départ) | **5 par (conversation, rôle)**, jamais 6 | **Aucun** |
+| **Brouillon de réponse** (`replier`) | 2 $ par génération (valeur de départ) | **5 par (conversation, rôle)**, jamais 6 | **Aucun** |
+| Tour du **client simulé** (Tutoriel) | À la charge de la plateforme (budget §8) | **6 tours** par conversation (`messaging.sim_turns_max`) | Aucun |
+
+- Mécanisme **identique au moteur** : réservation + quota avant l'appel, règlement après, aucune transaction ouverte pendant l'appel, aucun débit ni quota consommé sans réponse exploitable, `Idempotency-Key`, coût maximal affiché avant l'envoi, ledger sans contenu.
+- **Aucun outil d'envoi pour un agent.** L'envoi réel est une route **réservée au joueur** (`POST /api/conversations/{id}/send`), qui exige : mode Réel, boîte connectée, `confirm: true`, **version de brouillon existante** (le serveur envoie le texte **figé** de cette version), destinataire = **adresse du prospect stockée par le serveur**, aucun autre destinataire ni copie.
+- **Garde-fous d'envoi** : prospect non `ecarte` et non désinscrit (`OPTED_OUT`) ; contrôles par code du brouillon **repassés** à l'envoi ; plafonds `messaging.send_per_day` (20), `messaging.send_per_hour` (5), un seul envoi par conversation et par 24 h sans réponse du client (`SEND_LIMIT`) ; idempotence stricte (un clic = un envoi) ; échec fournisseur ⇒ `NON_ENVOYE`, aucun renvoi automatique.
+- **Réception** : seuls les messages dont l'expéditeur correspond **exactement** à un prospect du carnet ayant une conversation sont importés ; les autres sont **ignorés sans stockage**. Texte brut seulement, pièces jointes ignorées, longueur ≤ `messaging.inbound_max_chars` (4 000). Import idempotent (identifiant de message du fournisseur).
+- **Désinscription** : détectée **par code** (mots-clés de `data/clients/optout_keywords.json`) **ou** par le modèle ; le code l'emporte. Effet : prospect `ecarte`, envoi verrouillé, bandeau au joueur.
+- **Jetons de messagerie** : chiffrés au repos, jamais renvoyés au navigateur ni journalisés ; déconnexion = révocation chez le fournisseur + suppression ; **une boîte par partie**.
+- **Données** : le **modèle ne reçoit jamais une adresse ni un numéro** ; le texte reçu est une **donnée délimitée** (règle 3) ; journaux sans contenu ni adresse ; rétention et suppression en cascade comme le carnet (§12) ; export JSON de la partie incluant les conversations.
+- **Client simulé** : persona tirée de `data/clients/` avec la graine de la partie ; réponse produite **à la demande** (jamais par minuteur) ; le **résultat de conversation** (objectif de la persona atteint ou non) est **calculé par code**, jamais par le modèle ; aucun gain en $.
+- Contrôle d'accès : une conversation n'est lisible que par la session propriétaire (réponse identique à « introuvable » sinon, règle 6).
+- Valeurs dans `rules_v2` : `messaging.send_per_day`, `messaging.send_per_hour`, `messaging.send_cooldown_hours` (24), `messaging.inbound_max_chars`, `messaging.sim_turns_max`, `messaging.reply_max_chars` (1 200), `prospect_actions.triage`, `prospect_actions.replier` (coût et quota).
+
+## 14. Pub : agent publicitaire **[NOUVEAU]**
+Référence produit : `PRODUIT-CLIENTS-PUB.md` §5.
+
+| Action | Coût | Quota | Gain |
+|---|---|---|---|
+| Créer, consulter, modifier, **exporter** (Markdown), **supprimer** une campagne, copier le kit | **Gratuit, jamais refusé pour manque de fonds** | Aucun | Aucun |
+| **Génération d'un kit** (`ads`) | 4 $ par génération (valeur de départ) | **5 par (campagne, rôle)**, jamais 6 | **Aucun** |
+
+- Mécanisme identique au moteur (voir §13). Les kits sont des **versions immuables** ; l'édition du joueur crée une version enfant avec son auteur.
+- **Aucune publication, aucune connexion à une plateforme publicitaire, aucune dépense réelle.** Le `budget_indicatif` est un **texte de plan** : il ne touche jamais la monnaie du jeu ni un budget réel.
+- **Contrôles par code** (liste de réussites, sans paiement) : sections présentes et bornées ; **limites de caractères par format** lues dans `data/ads/formats.json` ; aucun fait, chiffre, pourcentage, prix, date, témoignage ou label absent de la fiche entreprise ; aucune URL ni numéro absent des données ; aucune cible nominative ni particulier ; `a_verifier` non vide si un fait manque. Un contrôle essentiel en échec ⇒ `INVALID_OUTPUT` (une réparation, puis échec sans débit).
+- **Règle 3** : la fiche entreprise est une donnée délimitée ; une consigne cachée dans l'offre est ignorée. Sorties rendues en texte nettoyé, sans lien cliquable produit par le modèle.
+- Valeurs dans `rules_v2` : `prospect_actions.ads` (coût et quota), `limits.campaigns_max` (20), `limits.campaign_name_max_chars` (80), `limits.campaign_instruction_max_chars` (500). Les actions `triage`, `replier` et `ads` **n'entrent pas** dans la dépense de la finale (§10).
