@@ -22,6 +22,7 @@ class ErrorCode(StrEnum):
     INVALID_OUTPUT = "INVALID_OUTPUT"
     LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
     LEAD_UNVERIFIED = "LEAD_UNVERIFIED"  # cap prospection : lead sans source_ref vérifiable (refus par position, 422 si levé seul)
+    OPTED_OUT = "OPTED_OUT"  # 409 messagerie : prospect écarté ou désinscrit, envoi refusé (docs/CONTRACTS.md §5)
     # Compléments BE01 (le contrat décrit ces cas sans code : à valider)
     INVALID_REQUEST = "INVALID_REQUEST"  # 422 validation d'entrée
     RATE_LIMITED = "RATE_LIMITED"  # 429 saturation
@@ -41,6 +42,7 @@ CATALOG: dict[ErrorCode, tuple[int, str]] = {
     ErrorCode.INVALID_OUTPUT: (422, "La réponse du modèle est inexploitable, même après réparation. Rien n'a été débité."),
     ErrorCode.LLM_UNAVAILABLE: (503, "Le fournisseur de modèles est indisponible. Rien n'a été débité ; réessayez."),
     ErrorCode.LEAD_UNVERIFIED: (422, "Ce lead ne peut pas être vérifié auprès de la source : il n'est pas ajouté au carnet."),
+    ErrorCode.OPTED_OUT: (409, "Ce prospect a demandé à ne plus être contacté : aucun message ne peut lui être envoyé."),
     ErrorCode.INVALID_REQUEST: (422, "Requête invalide."),
     ErrorCode.RATE_LIMITED: (429, "Trop de demandes en cours ; réessayez dans un instant."),
     ErrorCode.SESSION_REQUIRED: (401, "Aucune partie active : créez une partie ou reprenez-en une."),

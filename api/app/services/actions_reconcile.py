@@ -12,6 +12,7 @@ from ..errors import ErrorCode
 from ..models import ActionRun, Message, Reservation
 from . import ledger
 from .actions import ActionEngine, error_dict, update_step
+from .conversation_actions import release_interrupted_quota
 
 INTERRUPTED_STATUSES = ("PENDING", "RESERVED", "RUNNING")
 
@@ -25,6 +26,7 @@ def reconcile(eng: ActionEngine) -> dict[str, int]:
             interrupted += 1
             for rsv in db.scalars(select(Reservation).where(Reservation.action_id == action.id)):
                 ledger.release(rsv)
+            release_interrupted_quota(db, action)  # messagerie : la génération réservée est rendue
             for msg in db.scalars(select(Message).where(Message.action_id == action.id, Message.status == "PENDING")):
                 msg.status = "FAILED"
             error = error_dict(ErrorCode.LLM_UNAVAILABLE, "Action interrompue : rien n'a été débité, vous pouvez réessayer.", "interrupted")

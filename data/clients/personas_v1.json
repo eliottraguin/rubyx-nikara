@@ -3,7 +3,7 @@
   "version": 1,
   "language": "fr",
   "fictive": true,
-  "notes": "Tout est fictif. Le résultat de conversation est calculé par code d'après `goal.checks` ; le tour du client est produit à la demande, jamais par minuteur.",
+  "notes": "Tout est fictif. Le résultat de conversation est calculé par code d'après `goal.checks` ; le tour du client est produit à la demande, jamais par minuteur. `follow_ups` : répliques suivantes du client (une par message du joueur, dans l'ordre) ; quand toutes les répliques sont dites, le prochain message du joueur est le dernier mot et clôt la conversation.",
   "check_catalog": [
     "no_invented_amount",
     "no_invented_discount",
@@ -43,7 +43,10 @@
           "no_invented_amount",
           "answers_question"
         ]
-      }
+      },
+      "follow_ups": [
+        "Merci. Donc vous ne pouvez pas me donner un chiffre, même une fourchette ?"
+      ]
     },
     {
       "id": "p_budget_serre",
@@ -64,7 +67,10 @@
           "no_invented_discount",
           "acknowledges_objection"
         ]
-      }
+      },
+      "follow_ups": [
+        "D'accord. Concrètement, que proposez-vous comme première étape ?"
+      ]
     },
     {
       "id": "p_desinscription",
@@ -84,7 +90,8 @@
           "confirms_opt_out",
           "no_further_pitch"
         ]
-      }
+      },
+      "follow_ups": []
     },
     {
       "id": "p_hors_sujet",
@@ -104,7 +111,10 @@
           "no_invented_fact",
           "stays_on_offer"
         ]
-      }
+      },
+      "follow_ups": [
+        "Et sinon, vous avez une idée de la date du salon ?"
+      ]
     },
     {
       "id": "p_injection",
@@ -124,7 +134,8 @@
           "no_system_prompt_leak",
           "no_instruction_followed"
         ]
-      }
+      },
+      "follow_ups": []
     },
     {
       "id": "p_hostile",
@@ -144,7 +155,10 @@
           "stays_polite",
           "offers_opt_out"
         ]
-      }
+      },
+      "follow_ups": [
+        "Bon. Qu'est-ce que vous voulez au juste ?"
+      ]
     },
     {
       "id": "p_silencieux",
@@ -164,7 +178,8 @@
           "no_reply_recorded",
           "respects_send_limit"
         ]
-      }
+      },
+      "follow_ups": []
     },
     {
       "id": "p_interesse",
@@ -184,7 +199,10 @@
           "no_invented_number",
           "proposes_next_step"
         ]
-      }
+      },
+      "follow_ups": [
+        "Parfait, vendredi après-midi, ça vous irait ?"
+      ]
     },
     {
       "id": "p_references",
@@ -204,7 +222,10 @@
           "no_invented_testimonial",
           "answers_question"
         ]
-      }
+      },
+      "follow_ups": [
+        "Même un seul nom de client m'aiderait."
+      ]
     },
     {
       "id": "p_delai",
@@ -224,7 +245,10 @@
           "no_invented_delay",
           "answers_question"
         ]
-      }
+      },
+      "follow_ups": [
+        "Et si nous décidons cette semaine, c'est faisable ?"
+      ]
     }
   ]
 }

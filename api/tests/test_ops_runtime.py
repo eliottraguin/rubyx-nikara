@@ -97,6 +97,14 @@ def populate(db, sid: str, tag: str = "a") -> None:
     db.flush()
     db.add(CampaignVersion(campaign_id=camp.id, numero=2, parent_id=kit_v1.id, auteur="joueur", kit={}, checks=[], simule=True))
     db.add(CampaignRequest(session_id=sid, key_hash=f"h-{tag}", request_hash="r", status_code=201))
+    from app.models import Conversation, ConversationMessage, ConversationSynthesis, ReplyDraft
+
+    conv = Conversation(session_id=sid, prospect_id="pro_1")
+    db.add(conv)
+    db.flush()
+    db.add(ConversationMessage(conversation_id=conv.id, seq=1, sens="envoye", etat="ENVOYE", text="t"))
+    db.add(ReplyDraft(conversation_id=conv.id, auteur="agent", corps="c"))
+    db.add(ConversationSynthesis(conversation_id=conv.id, intention="question", urgence="normale"))
     db.commit()
 
 

@@ -23,6 +23,26 @@
         "title": "Accroche",
         "type": "object"
       },
+      "ActionIn": {
+        "additionalProperties": false,
+        "description": "Corps de `triage` et `reply` : consigne facultative du joueur (donnée, jamais une consigne système).",
+        "properties": {
+          "instruction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Consigne facultative (500 caractères maximum, vérifiés par le serveur)",
+            "title": "Instruction"
+          }
+        },
+        "title": "ActionIn",
+        "type": "object"
+      },
       "ActionOut": {
         "properties": {
           "answer": {
@@ -1722,6 +1742,613 @@
         "title": "CompanyOut",
         "type": "object"
       },
+      "Controle": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "essentiel": {
+            "title": "Essentiel",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reussi": {
+            "title": "Reussi",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "essentiel",
+          "reussi"
+        ],
+        "title": "Controle",
+        "type": "object"
+      },
+      "ConversationActionOut": {
+        "description": "`ActionOut` + le résultat de l'action de messagerie (synthèse ou brouillon) et ses contrôles par code.",
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          },
+          "brouillon": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReplyDraftOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "debited": {
+            "title": "Debited",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "messages_remaining": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Messages Remaining",
+            "type": "object"
+          },
+          "pending_cost": {
+            "title": "Pending Cost",
+            "type": "integer"
+          },
+          "plan_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Summary"
+          },
+          "reservations": {
+            "items": {
+              "$ref": "#/components/schemas/ReservationOut"
+            },
+            "title": "Reservations",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ActionStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "synthese": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SynthesisOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "type",
+          "status",
+          "steps",
+          "error",
+          "debited",
+          "pending_cost",
+          "reservations",
+          "messages",
+          "balance",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ConversationActionOut",
+        "type": "object"
+      },
+      "ConversationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "prospect_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Prospect Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prospect_id"
+        ],
+        "title": "ConversationCreate",
+        "type": "object"
+      },
+      "ConversationDetail": {
+        "properties": {
+          "bac": {
+            "enum": [
+              "a_traiter",
+              "en_attente",
+              "a_ne_plus_contacter",
+              "clos"
+            ],
+            "title": "Bac",
+            "type": "string"
+          },
+          "bandeau": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mention affichée au joueur (ex. « Mode simulé : rien n'a été envoyé »)",
+            "title": "Bandeau"
+          },
+          "brouillons": {
+            "items": {
+              "$ref": "#/components/schemas/ReplyDraftOut"
+            },
+            "title": "Brouillons",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dernier_message_le": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dernier Message Le"
+          },
+          "entreprise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entreprise"
+          },
+          "etat": {
+            "enum": [
+              "ouverte",
+              "close",
+              "desinscrit"
+            ],
+            "title": "Etat",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "intention": {
+            "anyOf": [
+              {
+                "enum": [
+                  "interesse",
+                  "question",
+                  "objection",
+                  "refus",
+                  "desinscription",
+                  "hors_sujet"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intention"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "prospect_id": {
+            "title": "Prospect Id",
+            "type": "string"
+          },
+          "quota_restant": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Générations restantes par rôle (`triage`, `replier`)",
+            "title": "Quota Restant",
+            "type": "object"
+          },
+          "resultat": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tutoriel : résultat calculé par code, null tant que la conversation est ouverte",
+            "title": "Resultat"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "statut_prospect": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statut Prospect"
+          },
+          "synthese": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SynthesisOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tours_client": {
+            "title": "Tours Client",
+            "type": "integer"
+          },
+          "tours_client_max": {
+            "title": "Tours Client Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "prospect_id",
+          "simule",
+          "etat",
+          "bac",
+          "dernier_message_le",
+          "tours_client",
+          "tours_client_max",
+          "created_at",
+          "messages",
+          "synthese",
+          "brouillons"
+        ],
+        "title": "ConversationDetail",
+        "type": "object"
+      },
+      "ConversationList": {
+        "properties": {
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "counts"
+        ],
+        "title": "ConversationList",
+        "type": "object"
+      },
+      "ConversationMessageOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Version Id"
+          },
+          "etat": {
+            "anyOf": [
+              {
+                "enum": [
+                  "ENVOYE",
+                  "NON_ENVOYE"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etat"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "sens": {
+            "enum": [
+              "envoye",
+              "recu"
+            ],
+            "title": "Sens",
+            "type": "string"
+          },
+          "seq": {
+            "title": "Seq",
+            "type": "integer"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "sens",
+          "text",
+          "simule",
+          "created_at"
+        ],
+        "title": "ConversationMessageOut",
+        "type": "object"
+      },
+      "ConversationOut": {
+        "properties": {
+          "bac": {
+            "enum": [
+              "a_traiter",
+              "en_attente",
+              "a_ne_plus_contacter",
+              "clos"
+            ],
+            "title": "Bac",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "dernier_message_le": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dernier Message Le"
+          },
+          "entreprise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entreprise"
+          },
+          "etat": {
+            "enum": [
+              "ouverte",
+              "close",
+              "desinscrit"
+            ],
+            "title": "Etat",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "intention": {
+            "anyOf": [
+              {
+                "enum": [
+                  "interesse",
+                  "question",
+                  "objection",
+                  "refus",
+                  "desinscription",
+                  "hors_sujet"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intention"
+          },
+          "prospect_id": {
+            "title": "Prospect Id",
+            "type": "string"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "statut_prospect": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statut Prospect"
+          },
+          "tours_client": {
+            "title": "Tours Client",
+            "type": "integer"
+          },
+          "tours_client_max": {
+            "title": "Tours Client Max",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "prospect_id",
+          "simule",
+          "etat",
+          "bac",
+          "dernier_message_le",
+          "tours_client",
+          "tours_client_max",
+          "created_at"
+        ],
+        "title": "ConversationOut",
+        "type": "object"
+      },
       "DemoEventIn": {
         "additionalProperties": false,
         "properties": {
@@ -1836,6 +2463,33 @@
           "title"
         ],
         "title": "DocumentView",
+        "type": "object"
+      },
+      "DraftEditIn": {
+        "additionalProperties": false,
+        "properties": {
+          "objet": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objet"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "DraftEditIn",
         "type": "object"
       },
       "ErrorBody": {
@@ -2311,6 +2965,109 @@
           "created_at"
         ],
         "title": "MessageOut",
+        "type": "object"
+      },
+      "MessageSendIn": {
+        "additionalProperties": false,
+        "properties": {
+          "draft_version_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Brouillon dont le texte est repris (« Utiliser ce brouillon ») ; le texte envoyé est `text`",
+            "title": "Draft Version Id"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "MessageSendIn",
+        "type": "object"
+      },
+      "MessageSendOut": {
+        "properties": {
+          "client_error": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Le client simulé n'a pas pu répondre (rien débité) ; réessayez en envoyant un message",
+            "title": "Client Error"
+          },
+          "conversation_id": {
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "etat": {
+            "enum": [
+              "ouverte",
+              "close",
+              "desinscrit"
+            ],
+            "title": "Etat",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "resultat": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resultat"
+          },
+          "simule": {
+            "default": true,
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "statut_prospect": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statut Prospect"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "messages",
+          "statut_prospect",
+          "etat"
+        ],
+        "title": "MessageSendOut",
         "type": "object"
       },
       "MissionView": {
@@ -3276,6 +4033,91 @@
         "title": "RefusedLead",
         "type": "object"
       },
+      "ReplyDraftOut": {
+        "properties": {
+          "a_verifier": {
+            "items": {
+              "type": "string"
+            },
+            "title": "A Verifier",
+            "type": "array"
+          },
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "auteur": {
+            "enum": [
+              "agent",
+              "joueur"
+            ],
+            "title": "Auteur",
+            "type": "string"
+          },
+          "controles": {
+            "items": {
+              "$ref": "#/components/schemas/Controle"
+            },
+            "title": "Controles",
+            "type": "array"
+          },
+          "corps": {
+            "title": "Corps",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "objet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objet"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          }
+        },
+        "required": [
+          "id",
+          "parent_id",
+          "auteur",
+          "objet",
+          "corps",
+          "a_verifier",
+          "controles",
+          "action_id",
+          "created_at"
+        ],
+        "title": "ReplyDraftOut",
+        "type": "object"
+      },
       "ReservationOut": {
         "properties": {
           "action_id": {
@@ -3365,6 +4207,27 @@
         ],
         "title": "Role",
         "type": "string"
+      },
+      "SendIn": {
+        "additionalProperties": false,
+        "properties": {
+          "confirm": {
+            "title": "Confirm",
+            "type": "boolean"
+          },
+          "draft_version_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Draft Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "draft_version_id",
+          "confirm"
+        ],
+        "title": "SendIn",
+        "type": "object"
       },
       "SessionCreate": {
         "additionalProperties": false,
@@ -3644,6 +4507,111 @@
           "attempt_status"
         ],
         "title": "SubmitOut",
+        "type": "object"
+      },
+      "SynthesisOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "controles": {
+            "items": {
+              "$ref": "#/components/schemas/Controle"
+            },
+            "title": "Controles",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "desinscription_detectee_par_code": {
+            "title": "Desinscription Detectee Par Code",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "intention": {
+            "enum": [
+              "interesse",
+              "question",
+              "objection",
+              "refus",
+              "desinscription",
+              "hors_sujet"
+            ],
+            "title": "Intention",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SynthesisPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "statut_suggere": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Statut Suggere"
+          },
+          "urgence": {
+            "enum": [
+              "faible",
+              "normale",
+              "elevee"
+            ],
+            "title": "Urgence",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "intention",
+          "points",
+          "urgence",
+          "statut_suggere",
+          "desinscription_detectee_par_code",
+          "controles",
+          "action_id",
+          "created_at"
+        ],
+        "title": "SynthesisOut",
+        "type": "object"
+      },
+      "SynthesisPoint": {
+        "properties": {
+          "citation": {
+            "title": "Citation",
+            "type": "string"
+          },
+          "texte": {
+            "title": "Texte",
+            "type": "string"
+          }
+        },
+        "required": [
+          "texte",
+          "citation"
+        ],
+        "title": "SynthesisPoint",
         "type": "object"
       },
       "TargetProfileOut": {
@@ -5376,6 +6344,1026 @@
         "summary": "Edit Version",
         "tags": [
           "pub"
+        ]
+      }
+    },
+    "/api/conversations": {
+      "get": {
+        "description": "Tri par dernière activité (récente d'abord). `counts` : conversations par bac (sur toute la partie).",
+        "operationId": "list_conversations_api_conversations_get",
+        "parameters": [
+          {
+            "description": "Statut du prospect",
+            "in": "query",
+            "name": "statut",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "nouveau",
+                    "contacte",
+                    "en_discussion",
+                    "gagne",
+                    "perdu",
+                    "ecarte"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Statut du prospect",
+              "title": "Statut"
+            }
+          },
+          {
+            "description": "Intention de la dernière synthèse",
+            "in": "query",
+            "name": "intention",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "interesse",
+                    "question",
+                    "objection",
+                    "refus",
+                    "desinscription",
+                    "hors_sujet"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Intention de la dernière synthèse",
+              "title": "Intention"
+            }
+          },
+          {
+            "in": "query",
+            "name": "bac",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "a_traiter",
+                    "en_attente",
+                    "a_ne_plus_contacter",
+                    "clos"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Bac"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "List Conversations",
+        "tags": [
+          "clients"
+        ]
+      },
+      "post": {
+        "description": "Crée la conversation d'un prospect du carnet (une seule par prospect). Existante ou rejeu : la même, 200.",
+        "operationId": "create_conversation_api_conversations_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Create Conversation",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}": {
+      "delete": {
+        "description": "Suppression en cascade (messages, brouillons, synthèses). Idempotente avec la même clé. Gratuite.",
+        "operationId": "delete_conversation_api_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Delete Conversation",
+        "tags": [
+          "clients"
+        ]
+      },
+      "get": {
+        "description": "Fil complet, dernière synthèse, brouillons (versions), résultat de conversation (calculé par code) et quotas restants.",
+        "operationId": "get_conversation_api_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Conversation",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}/drafts/{draft_id}": {
+      "patch": {
+        "description": "Copie éditée par le joueur : crée une version enfant (auteur `joueur`) ; l'original reste intact.",
+        "operationId": "edit_draft_api_conversations__conversation_id__drafts__draft_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftEditIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyDraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Edit Draft",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}/messages": {
+      "post": {
+        "description": "Tutoriel : « Envoyer (simulé) ». Rien ne sort ; le client simulé répond à la demande (6 tours au plus).",
+        "operationId": "send_message_api_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageSendIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageSendOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Send Message",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}/reply": {
+      "post": {
+        "description": "Action `conversation_reply` (agent `replier`) : crée une version de brouillon de réponse. Rien n'est envoyé.",
+        "operationId": "reply_api_conversations__conversation_id__reply_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ActionIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Reply",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}/send": {
+      "post": {
+        "description": "Envoi réel confirmé (mode Réel) : **non livré** (jalon O : boîte mail connectée, validation juridique).\nTutoriel : `INVALID_STATE` (utiliser `messages`). Aucun agent n'a d'outil d'envoi.",
+        "operationId": "send_real_api_conversations__conversation_id__send_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_IMPLEMENTED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Send Real",
+        "tags": [
+          "clients"
+        ]
+      }
+    },
+    "/api/conversations/{conversation_id}/triage": {
+      "post": {
+        "description": "Action `conversation_triage` (agent `triage`) : synthèse du fil. Quota 5 par (conversation, rôle), aucun gain.",
+        "operationId": "triage_api_conversations__conversation_id__triage_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ActionIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Triage",
+        "tags": [
+          "clients"
         ]
       }
     },

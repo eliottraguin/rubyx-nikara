@@ -456,6 +456,9 @@ def delete_prospect(sf: sessionmaker[Session], session_id: str, prospect_id: str
         if _replay(db, session_id, key_hash, req_hash) is not None:
             return
         row = _owned(db, session_id, prospect_id)
+        from .conversations import delete_for_prospect
+
+        delete_for_prospect(db, session_id, prospect_id)  # cascade : conversations, messages, brouillons, synthèses
         db.delete(row)
         _remember(db, session_id, key_hash, req_hash, 204, None)
         db.commit()
@@ -470,6 +473,10 @@ def purge_prospects(sf: sessionmaker[Session], session_id: str, key: str) -> int
         _begin(db, session_id)
         if _replay(db, session_id, key_hash, req_hash) is not None:
             return 0
+        from .conversations import delete_for_prospect
+
+        for pid in list(db.scalars(select(Prospect.id).where(Prospect.session_id == session_id))):
+            delete_for_prospect(db, session_id, pid)
         n = db.execute(delete(Prospect).where(Prospect.session_id == session_id)).rowcount or 0
         _remember(db, session_id, key_hash, req_hash, 204, None)
         db.commit()

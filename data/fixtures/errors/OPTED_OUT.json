@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "OPTED_OUT",
+      "message": "Ce prospect a demandé à ne plus être contacté : aucun message ne peut lui être envoyé."
+    }
+  }
+}

@@ -367,3 +367,72 @@ class ProspectIdempotency(Base):
     status_code: Mapped[int] = mapped_column(Integer, nullable=False)
     result: Mapped[dict | None] = mapped_column(JSON)  # identifiants et positions seulement
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class Conversation(Base):
+    """Une conversation par prospect du carnet (docs/PRODUIT-CLIENTS-PUB.md §3). `prospect_id` n'a PAS de clé étrangère
+    ici : le carnet (`prospects`) est construit en parallèle ; au raccord, la suppression d'un prospect appelle
+    `services.conversations.delete_for_prospect` (cascade) et une FK pourra être ajoutée."""
+
+    __tablename__ = "conversations"
+    __table_args__ = (UniqueConstraint("session_id", "prospect_id"), Index("ix_conversations_session_id", "session_id"))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("cnv"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    prospect_id: Mapped[str] = mapped_column(String, nullable=False)
+    simule: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    persona_id: Mapped[str | None] = mapped_column(String)  # client simulé (Tutoriel) : choisi par la graine de la partie
+    client_turns: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # tours du client simulé déjà joués
+    opted_out: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)  # désinscription (code OU modèle)
+    closed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    outcome: Mapped[dict | None] = mapped_column(JSON)  # résultat de conversation, calculé par code (Tutoriel)
+    last_message_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+    __table_args__ = (UniqueConstraint("conversation_id", "seq"),)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("cmg"))
+    conversation_id: Mapped[str] = _fk("conversations.id")
+    seq: Mapped[int] = mapped_column(Integer, nullable=False)
+    sens: Mapped[str] = mapped_column(String, nullable=False)  # envoye | recu
+    etat: Mapped[str | None] = mapped_column(String)  # ENVOYE | NON_ENVOYE (messages envoyés seulement)
+    text: Mapped[str] = mapped_column(Text, nullable=False)  # contenu non fiable : rendu texte, jamais HTML
+    simule: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    draft_version_id: Mapped[str | None] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class ReplyDraft(Base):
+    """Version immuable d'un brouillon de réponse (agent `replier`) ou copie éditée par le joueur (`parent_id`)."""
+
+    __tablename__ = "reply_drafts"
+    __table_args__ = (Index("ix_reply_drafts_conversation_id", "conversation_id"),)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("drf"))
+    conversation_id: Mapped[str] = _fk("conversations.id")
+    parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("reply_drafts.id", ondelete="CASCADE"))
+    auteur: Mapped[str] = mapped_column(String, nullable=False)  # agent | joueur
+    objet: Mapped[str | None] = mapped_column(String)
+    corps: Mapped[str] = mapped_column(Text, nullable=False)
+    a_verifier: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    controles: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    action_id: Mapped[str | None] = mapped_column(String)  # pas de FK : un UPDATE (SET NULL) violerait l'immutabilité
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class ConversationSynthesis(Base):
+    """Synthèse immuable d'une conversation (agent `triage`)."""
+
+    __tablename__ = "conversation_syntheses"
+    __table_args__ = (Index("ix_conversation_syntheses_conversation_id", "conversation_id"),)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("syn"))
+    conversation_id: Mapped[str] = _fk("conversations.id")
+    intention: Mapped[str] = mapped_column(String, nullable=False)
+    points: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    urgence: Mapped[str] = mapped_column(String, nullable=False)
+    statut_suggere: Mapped[str | None] = mapped_column(String)
+    desinscription_code: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)  # détecté par le code
+    controles: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    action_id: Mapped[str | None] = mapped_column(String)  # pas de FK : un UPDATE (SET NULL) violerait l'immutabilité
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)

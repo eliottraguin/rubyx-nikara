@@ -15,7 +15,7 @@ from .db import make_engine, make_session_factory, run_migrations
 from .errors import install_error_handlers
 from .llm import get_adapter
 from .logging_config import configure_logging, request_log_middleware
-from .routes import actions, agents, attempts, campaigns, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
+from .routes import actions, agents, attempts, campaigns, conversations, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
 from .profile_spec import load_profile_spec
 from .rules import load_rules
 from .rules_v2 import load_rules_v2
@@ -26,6 +26,8 @@ from .services.campaigns import PubEngine
 from .services.actions import ActionEngine
 from .services.evaluation import evaluate_submission, recover_pending
 from .services.actions_reconcile import reconcile
+from .services.messaging_data import load_messaging_data
+from .services.prospect_lookup import SqlProspectLookup
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -37,6 +39,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     profile_spec = load_profile_spec(settings.data_dir)  # bornes de la fiche entreprise et cible
     ads_spec = load_ads_spec(settings.data_dir)  # section Pub : formats, limites, checklist, grille du kit
     sources_spec = load_sources_spec(settings.data_dir)  # listes blanches de champs par source (data/sources/)
+    # messagerie : personas fictives, mentions, mots-clés de désinscription ; dossier absent (jeu de données réduit) => routes en 501
+    messaging_data = load_messaging_data(settings.data_dir) if (settings.data_dir / "clients").is_dir() else None
     llm = get_adapter(settings.llm_provider)
 
     @asynccontextmanager
@@ -72,6 +76,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.sources_spec = sources_spec
     app.state.ads_spec = ads_spec
     app.state.llm = llm
+    app.state.messaging_data = messaging_data
+    app.state.prospects = SqlProspectLookup()  # la messagerie lit le carnet réel par ce `ProspectLookup`
 
     if settings.cors_origins:
         app.add_middleware(
@@ -90,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(prospects.router)
     app.include_router(campaigns.router)
     app.include_router(messages.router)
+    app.include_router(conversations.router)
     app.include_router(actions.router)
     app.include_router(missions.router)
     app.include_router(attempts.router)
