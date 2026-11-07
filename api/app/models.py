@@ -8,6 +8,7 @@ from uuid import uuid4
 from sqlalchemy import (
     JSON,
     Boolean,
+    CheckConstraint,
     DateTime,
     Float,
     ForeignKey,
@@ -276,3 +277,24 @@ class AppliedEvent(Base):
     event_id: Mapped[str] = mapped_column(String, nullable=False)
     brief_version: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class TargetActionUse(Base):
+    """Compteur de générations d'une action sur une cible (cap prospection, RULES §4 et §11) : quota 5 jamais 6.
+
+    Clé `(session, kind, target_id, key)` : `kind` = `prospect` (key = action : `prospect_profile`, `prospect_message`),
+    `conversation` ou `campaign` (key = rôle). `used` = générations consommées ; `reserved` = en cours d'appel modèle
+    (rendues si la réponse est inexploitable : jamais de génération comptée sans réponse)."""
+
+    __tablename__ = "target_action_uses"
+    __table_args__ = (
+        UniqueConstraint("session_id", "kind", "target_id", "key"),
+        CheckConstraint("used >= 0 AND reserved >= 0", name="ck_target_action_uses_non_negative"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    kind: Mapped[str] = mapped_column(String, nullable=False)
+    target_id: Mapped[str] = mapped_column(String, nullable=False)
+    key: Mapped[str] = mapped_column(String, nullable=False)
+    used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    reserved: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

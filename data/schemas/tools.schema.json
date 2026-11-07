@@ -31,7 +31,8 @@
                 "researcher",
                 "analyst",
                 "qa",
-                "lead"
+                "lead",
+                "scout"
               ]
             },
             "minItems": 1

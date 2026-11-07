@@ -29,7 +29,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings.validate()
     configure_logging(settings)
     rules = load_rules(settings.data_dir, settings.rules_version)
-    rules_v2 = load_rules_v2(settings.data_dir)  # cap prospection : prix des 7 rôles, building, limites, rétention
+    rules_v2 = load_rules_v2(settings.data_dir)  # cap prospection : prix des 4 rôles du hangar, building, limites, rétention
     profile_spec = load_profile_spec(settings.data_dir)  # bornes de la fiche entreprise et cible
     llm = get_adapter(settings.llm_provider)
 

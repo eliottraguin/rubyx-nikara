@@ -24,8 +24,8 @@ MODES = ["beginner", "expert"]
 ROLES = ["writer", "prospector", "researcher", "analyst", "qa", "lead"]
 SYSTEM_ROLES = ["client_evaluator", "client_clarifier", "coach"]
 # Cap prospection : rôles, grilles et données ajoutés (rules_v2, docs/RULES.md §11 à §14)
-NEW_ROLES = ["profiler", "outreach", "triage", "replier", "ads"]
-V2_ROLES = ["scout", "qualifier"] + NEW_ROLES
+NEW_ROLES = ["triage", "replier", "ads"]
+V2_ROLES = ["scout"] + NEW_ROLES
 PROSPECT_RUBRICS = ["prospect_fiche_v1", "prospect_message_v1", "conversation_synthese_v1", "conversation_reponse_v1", "ad_kit_v1"]
 SOURCES = ["annuaire", "registre", "carte-locale", "linkedin", "glassdoor"]
 LEVELS = ["off_topic", "incomplete", "acceptable", "complete"]
@@ -365,7 +365,7 @@ def main() -> int:
                 if abs(got - v["expected"]) > 1e-9:
                     err(f"vecteur de test d'outil faux ({t['id']}) : {v['input']} → {got} ≠ {v['expected']}")
     role_files = {}
-    for rid in ROLES + NEW_ROLES:
+    for rid in ROLES + ["scout"] + NEW_ROLES:
         p = c.d / "roles" / f"{rid}.json"
         if not p.exists():
             err(f"rôle manquant : data/roles/{rid}.json")
@@ -970,7 +970,7 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         if set(ids) != set(V2_ROLES):
             err(f"rules_v2 : agents attendus {sorted(V2_ROLES)}, obtenus {sorted(ids)}")
         prices = {a["id"]: a["price"] for a in r2["agents"]}
-        expected = {"scout": 0, "qualifier": 30, "profiler": 40, "outreach": 45, "triage": 35, "replier": 45, "ads": 50}
+        expected = {"scout": 0, "triage": 35, "replier": 45, "ads": 50}
         if prices != expected:
             err(f"rules_v2 : prix des rôles inattendus {prices}")
         if not set(r2["initial_agents"]) <= set(ids):
@@ -983,6 +983,19 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         for a in r2["agents"]:
             if a["unlock_planet"] is not None and a["unlock_planet"] not in pids:
                 err(f"rules_v2 : agent {a['id']} débloqué par une planète inconnue")
+        for a in r2["agents"]:
+            if (a["unlock_planet"] is None) != (a["unlock_min_score"] is None):
+                err(f"rules_v2 : agent {a['id']} : unlock_planet et unlock_min_score vont ensemble")
+            if a["id"] in r2["real_mode_waives_score_unlock"] and a["unlock_planet"] is None:
+                err(f"rules_v2 : {a['id']} n'a pas de condition de score à lever")
+        if r1:
+            ms = {m["id"] for m in r1["missions"]}
+            for p in r2["planets"]:
+                if p["engine_mission"] not in ms:
+                    err(f"rules_v2 : planète {p['id']} : mission moteur inconnue ({p['engine_mission']})")
+        for k, act_ in r2["prospect_actions"].items():
+            if act_["role"] not in ids:
+                err(f"rules_v2 : action {k} : rôle inconnu")
         if r2["scoring"].get("final_mission_id") not in pids:
             err("rules_v2 : scoring.final_mission_id doit être une planète")
         if r2["scoring"]["pass_score"] != 50 or r2["scoring"]["final_pass_score"] != 60:
@@ -1016,6 +1029,8 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         r = role_files.get(rid)
         if not r:
             continue
+        if rid == "replier" and {x["action"] for x in r.get("actions", [])} != {"prospect_profile", "prospect_message", "conversation_reply"}:
+            err("rôle replier : une section par action attendue (prospect_profile, prospect_message, conversation_reply)")
         if r["allowed_tools"] or r["clarification_requests"]["allowed"]:
             err(f"rôle {rid} : aucun outil ni clarification au MVP")
         if "envoi" not in r["system_instructions"] and "publication" not in r["system_instructions"]:
@@ -1155,7 +1170,7 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
 
     # --- grilles de contrôles par code
     n_rub = 0
-    role_by_rub = {"prospect_fiche_v1": "profiler", "prospect_message_v1": "outreach", "conversation_synthese_v1": "triage",
+    role_by_rub = {"prospect_fiche_v1": "replier", "prospect_message_v1": "replier", "conversation_synthese_v1": "triage",
                    "conversation_reponse_v1": "replier", "ad_kit_v1": "ads"}
     for rid in PROSPECT_RUBRICS:
         rb = load(f"rubrics/{rid}.json", "prospect_rubric")
@@ -1168,7 +1183,9 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         if not any(k["essential"] for k in rb["checks"]):
             err(f"grille {rid} : au moins un contrôle essentiel attendu")
         if r2:
-            act_ = r2["prospect_actions"][rb["role"]]
+            act_ = r2["prospect_actions"][rb["action"]]
+            if act_["role"] != rb["role"]:
+                err(f"grille {rid} : rôle différent de rules_v2.prospect_actions.{rb['action']}.role")
             if rb["quota"]["per_target"] != act_["quota_per_target"] or rb["quota"]["target"] != act_["target"]:
                 err(f"grille {rid} : quota différent de rules_v2.prospect_actions")
         for k in rb["checks"]:

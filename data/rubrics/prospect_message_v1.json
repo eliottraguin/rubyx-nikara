@@ -1,7 +1,7 @@
 {
   "id": "prospect_message_v1",
   "action": "prospect_message",
-  "role": "outreach",
+  "role": "replier",
   "version": 1,
   "title": "Premier message à un prospect",
   "language": "fr",

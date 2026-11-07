@@ -1,6 +1,6 @@
 {
   "version": "rules_v2",
-  "source": "docs/RULES.md (sections 1 à 14, cap prospection) ; docs/PRODUIT-CLIENTS-PUB.md ; docs/VILLE-ET-BATIMENT.md section 4",
+  "source": "docs/RULES.md (sections 1 à 14, cap prospection ; §2 5e décision : hangar à 4 rôles) ; docs/PRODUIT-CLIENTS-PUB.md ; docs/VILLE-ET-BATIMENT.md section 4",
   "supersedes": "rules_v1",
   "initial_capital": 30,
   "initial_agents": [
@@ -12,55 +12,38 @@
       "label": "Éclaireur",
       "section": "prospection",
       "price": 0,
-      "unlock_planet": null
-    },
-    {
-      "id": "qualifier",
-      "label": "Qualificateur",
-      "section": "prospection",
-      "price": 30,
-      "unlock_planet": "registre"
-    },
-    {
-      "id": "profiler",
-      "label": "Analyste de fiche client",
-      "section": "prospection",
-      "price": 40,
-      "unlock_planet": "carte-locale"
-    },
-    {
-      "id": "outreach",
-      "label": "Rédacteur de premier message",
-      "section": "prospection",
-      "price": 45,
-      "unlock_planet": "linkedin"
+      "unlock_planet": null,
+      "unlock_min_score": null
     },
     {
       "id": "triage",
       "label": "Trieur de boîte",
       "section": "clients",
       "price": 35,
-      "unlock_planet": null
+      "unlock_planet": "registre",
+      "unlock_min_score": 50
     },
     {
       "id": "replier",
-      "label": "Rédacteur de réponse",
+      "label": "Rédacteur (fiche client, premier message, réponses)",
       "section": "clients",
       "price": 45,
-      "unlock_planet": null
+      "unlock_planet": "carte-locale",
+      "unlock_min_score": 50
     },
     {
       "id": "ads",
       "label": "Directeur de campagne",
       "section": "pub",
       "price": 50,
-      "unlock_planet": null
+      "unlock_planet": "linkedin",
+      "unlock_min_score": 50
     }
   ],
   "real_mode_waives_score_unlock": [
-    "qualifier",
-    "profiler",
-    "outreach"
+    "triage",
+    "replier",
+    "ads"
   ],
   "planets": [
     {
@@ -69,7 +52,8 @@
       "max_reward": 20,
       "unit_price": 0,
       "requires_pass": null,
-      "initially_available": true
+      "initially_available": true,
+      "engine_mission": "m1"
     },
     {
       "id": "registre",
@@ -77,7 +61,8 @@
       "max_reward": 30,
       "unit_price": 1,
       "requires_pass": "annuaire",
-      "initially_available": false
+      "initially_available": false,
+      "engine_mission": "m2"
     },
     {
       "id": "carte-locale",
@@ -85,7 +70,8 @@
       "max_reward": 40,
       "unit_price": 1,
       "requires_pass": "registre",
-      "initially_available": false
+      "initially_available": false,
+      "engine_mission": "m3"
     },
     {
       "id": "linkedin",
@@ -93,7 +79,8 @@
       "max_reward": 60,
       "unit_price": 2,
       "requires_pass": "carte-locale",
-      "initially_available": false
+      "initially_available": false,
+      "engine_mission": "m4"
     },
     {
       "id": "glassdoor",
@@ -101,7 +88,8 @@
       "max_reward": 90,
       "unit_price": 2,
       "requires_pass": "linkedin",
-      "initially_available": false
+      "initially_available": false,
+      "engine_mission": "m5"
     },
     {
       "id": "constellation",
@@ -109,7 +97,8 @@
       "max_reward": 150,
       "unit_price": 3,
       "requires_pass": "glassdoor",
-      "initially_available": false
+      "initially_available": false,
+      "engine_mission": "m6"
     },
     {
       "id": "secours",
@@ -117,7 +106,8 @@
       "max_reward": 10,
       "unit_price": 0,
       "requires_pass": null,
-      "initially_available": true
+      "initially_available": true,
+      "engine_mission": "rescue"
     }
   ],
   "quotas": {
@@ -136,29 +126,32 @@
     "final_min_contributing_roles": 2
   },
   "prospect_actions": {
-    "profiler": {
+    "prospect_profile": {
+      "role": "replier",
       "cost": 3,
       "quota_per_target": 5,
       "quota_key": [
         "target",
-        "role"
+        "action"
       ],
       "target": "prospect",
       "gain": 0,
       "counts_in_final_spend": false
     },
-    "outreach": {
+    "prospect_message": {
+      "role": "replier",
       "cost": 2,
       "quota_per_target": 5,
       "quota_key": [
         "target",
-        "role"
+        "action"
       ],
       "target": "prospect",
       "gain": 0,
       "counts_in_final_spend": false
     },
-    "triage": {
+    "conversation_triage": {
+      "role": "triage",
       "cost": 1,
       "quota_per_target": 5,
       "quota_key": [
@@ -169,7 +162,8 @@
       "gain": 0,
       "counts_in_final_spend": false
     },
-    "replier": {
+    "conversation_reply": {
+      "role": "replier",
       "cost": 2,
       "quota_per_target": 5,
       "quota_key": [
@@ -180,7 +174,8 @@
       "gain": 0,
       "counts_in_final_spend": false
     },
-    "ads": {
+    "ad_campaign": {
+      "role": "ads",
       "cost": 4,
       "quota_per_target": 5,
       "quota_key": [

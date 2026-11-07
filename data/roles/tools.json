@@ -29,7 +29,8 @@
       "id": "search_catalog",
       "description": "Filtre le catalogue fictif de la mission (lecture seule).",
       "roles": [
-        "prospector"
+        "prospector",
+        "scout"
       ],
       "server_side": true,
       "deterministic": true,

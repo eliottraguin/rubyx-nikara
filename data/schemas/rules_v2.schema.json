@@ -26,9 +26,6 @@
         "type": "string",
         "enum": [
           "scout",
-          "qualifier",
-          "profiler",
-          "outreach",
           "triage",
           "replier",
           "ads"
@@ -45,9 +42,6 @@
             "type": "string",
             "enum": [
               "scout",
-              "qualifier",
-              "profiler",
-              "outreach",
               "triage",
               "replier",
               "ads"
@@ -74,6 +68,14 @@
               "string",
               "null"
             ]
+          },
+          "unlock_min_score": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100
           }
         },
         "required": [
@@ -81,11 +83,13 @@
           "label",
           "section",
           "price",
-          "unlock_planet"
+          "unlock_planet",
+          "unlock_min_score"
         ],
         "additionalProperties": false
       },
-      "minItems": 7
+      "minItems": 4,
+      "maxItems": 4
     },
     "real_mode_waives_score_unlock": {
       "type": "array",
@@ -93,9 +97,6 @@
         "type": "string",
         "enum": [
           "scout",
-          "qualifier",
-          "profiler",
-          "outreach",
           "triage",
           "replier",
           "ads"
@@ -132,6 +133,10 @@
           },
           "initially_available": {
             "type": "boolean"
+          },
+          "engine_mission": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -140,7 +145,8 @@
           "max_reward",
           "unit_price",
           "requires_pass",
-          "initially_available"
+          "initially_available",
+          "engine_mission"
         ],
         "additionalProperties": false
       },
@@ -155,7 +161,7 @@
     "prospect_actions": {
       "type": "object",
       "properties": {
-        "profiler": {
+        "prospect_profile": {
           "type": "object",
           "properties": {
             "cost": {
@@ -190,9 +196,19 @@
             "counts_in_final_spend": {
               "type": "boolean",
               "const": false
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "scout",
+                "triage",
+                "replier",
+                "ads"
+              ]
             }
           },
           "required": [
+            "role",
             "cost",
             "quota_per_target",
             "quota_key",
@@ -202,7 +218,7 @@
           ],
           "additionalProperties": false
         },
-        "outreach": {
+        "prospect_message": {
           "type": "object",
           "properties": {
             "cost": {
@@ -237,9 +253,19 @@
             "counts_in_final_spend": {
               "type": "boolean",
               "const": false
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "scout",
+                "triage",
+                "replier",
+                "ads"
+              ]
             }
           },
           "required": [
+            "role",
             "cost",
             "quota_per_target",
             "quota_key",
@@ -249,7 +275,7 @@
           ],
           "additionalProperties": false
         },
-        "triage": {
+        "conversation_triage": {
           "type": "object",
           "properties": {
             "cost": {
@@ -284,9 +310,19 @@
             "counts_in_final_spend": {
               "type": "boolean",
               "const": false
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "scout",
+                "triage",
+                "replier",
+                "ads"
+              ]
             }
           },
           "required": [
+            "role",
             "cost",
             "quota_per_target",
             "quota_key",
@@ -296,7 +332,7 @@
           ],
           "additionalProperties": false
         },
-        "replier": {
+        "conversation_reply": {
           "type": "object",
           "properties": {
             "cost": {
@@ -331,9 +367,19 @@
             "counts_in_final_spend": {
               "type": "boolean",
               "const": false
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "scout",
+                "triage",
+                "replier",
+                "ads"
+              ]
             }
           },
           "required": [
+            "role",
             "cost",
             "quota_per_target",
             "quota_key",
@@ -343,7 +389,7 @@
           ],
           "additionalProperties": false
         },
-        "ads": {
+        "ad_campaign": {
           "type": "object",
           "properties": {
             "cost": {
@@ -378,9 +424,19 @@
             "counts_in_final_spend": {
               "type": "boolean",
               "const": false
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "scout",
+                "triage",
+                "replier",
+                "ads"
+              ]
             }
           },
           "required": [
+            "role",
             "cost",
             "quota_per_target",
             "quota_key",
@@ -392,11 +448,11 @@
         }
       },
       "required": [
-        "profiler",
-        "outreach",
-        "triage",
-        "replier",
-        "ads"
+        "prospect_profile",
+        "prospect_message",
+        "conversation_triage",
+        "conversation_reply",
+        "ad_campaign"
       ],
       "additionalProperties": false
     },

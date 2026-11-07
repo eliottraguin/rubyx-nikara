@@ -22,6 +22,7 @@ from app.models import (
     ActionRun,
     AgentOwnership,
     AppliedEvent,
+    TargetActionUse,
     ArtifactShare,
     ArtifactVersion,
     Base,
@@ -73,6 +74,7 @@ def populate(db, sid: str, tag: str = "a") -> None:
     db.add(NotebookEntry(session_id=sid, title="t", prompt="p", role="writer"))
     db.add(ArtifactShare(attempt_id=att.id, artifact_version_id=parent.id, role="writer", action_id=act.id))
     db.add(AppliedEvent(attempt_id=att.id, event_id="e1", brief_version=1))
+    db.add(TargetActionUse(session_id=sid, kind="prospect", target_id="pro_1", key="prospect_profile", used=1, reserved=0))
     db.commit()
 
 

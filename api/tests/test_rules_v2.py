@@ -25,11 +25,13 @@ def test_rules_v2_file_is_valid_against_its_json_schema():
 def test_typed_access_to_every_section():
     r = load_rules_v2(DATA)
     assert r.version == "rules_v2" and r.initial_capital == 30
-    assert r.agent_prices == {"scout": 0, "qualifier": 30, "profiler": 40, "outreach": 45, "triage": 35, "replier": 45, "ads": 50}
-    assert len(r.agents) == 7
+    assert r.agent_prices == {"scout": 0, "triage": 35, "replier": 45, "ads": 50}
+    assert len(r.agents) == 4
     assert r.scoring.pass_score == 50 and r.scoring.final_pass_score == 60
-    assert r.prospect_actions["profiler"].cost == 3 and r.prospect_actions["profiler"].quota_per_target == 5
-    assert r.prospect_actions["ads"].cost == 4 and all(a.gain == 0 for a in r.prospect_actions.values())
+    pa = r.prospect_actions
+    assert pa["prospect_profile"].cost == 3 and pa["prospect_profile"].quota_per_target == 5
+    assert pa["prospect_message"].cost == 2 and pa["prospect_message"].role == "replier"
+    assert pa["ad_campaign"].cost == 4 and all(a.gain == 0 for a in r.prospect_actions.values())
     assert r.limits.prospects_max == 500 and r.limits.notes_max_chars == 2000
     assert r.messaging.send_per_day == 20
     assert (r.retention_days, r.retention_notice_days, r.followup_days) == (180, 30, 7)

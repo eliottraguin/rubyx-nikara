@@ -29,7 +29,7 @@ from ..schemas.state import (
     SessionInfo,
 )
 from .. import CONTRACTS_VERSION
-from . import building, campaign, profile
+from . import building, campaign, hangar, profile
 from .purchases import REUSED_KEY, request_hash
 
 
@@ -187,6 +187,7 @@ def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSessio
             )
             for a in rules.agents
         ],
+        hangar=hangar.hangar_view(db, rules_v2, game.mode, owned, attempts),
         missions=campaign.build_missions(db, rules, attempts),
         attempts=[campaign.summarize_attempt(db, rules, a) for a in attempts],
         progress=campaign.build_progress(db, rules, game, attempts, bal.available),

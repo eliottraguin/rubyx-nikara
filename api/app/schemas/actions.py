@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .common import Role
+from .common import HangarRole, Role
 from .entities import MessageOut, ReservationOut
 from .state import Balance
 
@@ -15,12 +15,12 @@ from .state import Balance
 class PurchaseIn(BaseModel):
     model_config = ConfigDict(extra="forbid")  # aucun prix ni solde choisi par le navigateur
 
-    role: Role
+    role: HangarRole | Role  # hangar du cap prospection (`scout`, `triage`, `replier`, `ads`) ; rôles M1–M6 historiques tant que le moteur les utilise
 
 
 class PurchaseOut(BaseModel):
     action_id: str
-    role: Role
+    role: HangarRole | Role
     price_paid: int
     purchased_at: datetime
     balance: Balance

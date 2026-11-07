@@ -1,6 +1,6 @@
 """Chargement de `data/rules/rules_v2.json` (cap prospection), en plus de rules_v1 (moteur livré).
 
-Aucune valeur n'est en dur : prix des 7 rôles, coûts et quotas des actions sur prospect, seuils de réussite,
+Aucune valeur n'est en dur : prix des 4 rôles du hangar, coûts et quotas des actions sur prospect, seuils de réussite,
 limites, messagerie, rétention et niveaux de l'immeuble viennent du fichier. Le fichier est validé par ses
 modèles stricts (`extra="forbid"`) ; un test le valide aussi par `data/schemas/rules_v2.schema.json`."""
 
@@ -11,17 +11,20 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .schemas.common import HangarRole
+
 
 class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 class AgentRuleV2(_Strict):
-    id: str
+    id: HangarRole
     label: str
     section: str
     price: int = Field(ge=0)
     unlock_planet: str | None
+    unlock_min_score: int | None = Field(ge=0, le=100)  # Tutoriel : meilleur score exigé sur le lieu ; levé en Réel
 
 
 class PlanetRule(_Strict):
@@ -31,6 +34,7 @@ class PlanetRule(_Strict):
     unit_price: int = Field(ge=0)
     requires_pass: str | None
     initially_available: bool
+    engine_mission: str  # mission du moteur livré (rules_v1) qui porte ce lieu tant que le contenu M1–M6 n'est pas remplacé
 
 
 class QuotasV2(_Strict):
@@ -51,6 +55,7 @@ class ScoringV2(_Strict):
 
 
 class ProspectActionRule(_Strict):
+    role: HangarRole  # rôle qui porte l'action (doit être possédé)
     cost: int = Field(ge=0)
     quota_per_target: int = Field(ge=1)
     quota_key: list[str]
@@ -109,9 +114,9 @@ class RulesV2(_Strict):
     source: str
     supersedes: str
     initial_capital: int = Field(ge=0)
-    initial_agents: list[str]
+    initial_agents: list[HangarRole]
     agents: list[AgentRuleV2]
-    real_mode_waives_score_unlock: list[str]
+    real_mode_waives_score_unlock: list[HangarRole]
     planets: list[PlanetRule]
     quotas: QuotasV2
     scoring: ScoringV2
@@ -131,16 +136,27 @@ class RulesV2(_Strict):
             raise ValueError("rôle dupliqué dans rules_v2")
         if not set(self.initial_agents) <= set(ids):
             raise ValueError("agent initial inconnu")
-        if not set(self.prospect_actions) <= set(ids):
-            raise ValueError("action sur prospect pour un rôle inconnu")
+        for name, act in self.prospect_actions.items():
+            if act.role not in ids:
+                raise ValueError(f"action {name} : rôle inconnu")
+            expected = ("target", "action") if act.target == "prospect" else ("target", "role")
+            if tuple(act.quota_key) != expected:
+                raise ValueError(f"action {name} : clé de quota attendue {expected}")
+        if not set(self.real_mode_waives_score_unlock) <= {a.id for a in self.agents if a.unlock_planet is not None}:
+            raise ValueError("déblocage levé en Réel pour un rôle sans condition de score")
         planet_ids = {p.id for p in self.planets}
         for a in self.agents:
             if a.unlock_planet is not None and a.unlock_planet not in planet_ids:
                 raise ValueError(f"planète de déblocage inconnue pour {a.id}")
+            if (a.unlock_planet is None) != (a.unlock_min_score is None):
+                raise ValueError(f"{a.id} : planète et score de déblocage vont ensemble")
         return self
 
     def agent(self, role: str) -> AgentRuleV2:
         return next(a for a in self.agents if a.id == role)
+
+    def planet(self, planet_id: str) -> PlanetRule:
+        return next(p for p in self.planets if p.id == planet_id)
 
     @property
     def agent_prices(self) -> dict[str, int]:

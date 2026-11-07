@@ -67,6 +67,52 @@
       "unlocked": false
     }
   ],
+  "hangar": [
+    {
+      "role": "scout",
+      "label": "Éclaireur",
+      "section": "prospection",
+      "price": 0,
+      "owned": true,
+      "unlock_planet": null,
+      "unlock_min_score": null,
+      "score_condition_waived": false,
+      "unlocked": true
+    },
+    {
+      "role": "triage",
+      "label": "Trieur de boîte",
+      "section": "clients",
+      "price": 35,
+      "owned": false,
+      "unlock_planet": "registre",
+      "unlock_min_score": 50,
+      "score_condition_waived": false,
+      "unlocked": false
+    },
+    {
+      "role": "replier",
+      "label": "Rédacteur (fiche client, premier message, réponses)",
+      "section": "clients",
+      "price": 45,
+      "owned": false,
+      "unlock_planet": "carte-locale",
+      "unlock_min_score": 50,
+      "score_condition_waived": false,
+      "unlocked": false
+    },
+    {
+      "role": "ads",
+      "label": "Directeur de campagne",
+      "section": "pub",
+      "price": 50,
+      "owned": false,
+      "unlock_planet": "linkedin",
+      "unlock_min_score": 50,
+      "score_condition_waived": false,
+      "unlocked": false
+    }
+  ],
   "missions": [
     {
       "id": "m1",

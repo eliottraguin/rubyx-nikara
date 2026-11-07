@@ -1,7 +1,7 @@
 {
   "id": "prospect_fiche_v1",
   "action": "prospect_profile",
-  "role": "profiler",
+  "role": "replier",
   "version": 1,
   "title": "Fiche client d'un prospect",
   "language": "fr",

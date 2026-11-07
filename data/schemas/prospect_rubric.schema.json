@@ -21,8 +21,6 @@
     "role": {
       "type": "string",
       "enum": [
-        "profiler",
-        "outreach",
         "triage",
         "replier",
         "ads"

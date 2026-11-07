@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Request, Response
 
 from ..deps import IdempotencyKey
 from ..schemas.actions import PurchaseIn, PurchaseOut
@@ -17,10 +17,10 @@ router = APIRouter(tags=["économie"])
     status_code=201,
     responses={401: ERRORS[401], 409: ERRORS[409], 422: ERRORS[422]},
 )
-def purchase(payload: PurchaseIn, response: Response, eng: Engine, session_id: SessionId, key: IdempotencyKey) -> PurchaseOut:
+def purchase(payload: PurchaseIn, request: Request, response: Response, eng: Engine, session_id: SessionId, key: IdempotencyKey) -> PurchaseOut:
     """Achète un rôle débloqué (réussite de la mission requise) si le solde disponible le permet.
     Le prix vient des règles serveur. Même `Idempotency-Key` : même résultat, aucun second débit (200)."""
-    result, replay = purchase_agent(eng.sf, eng.rules, session_id, key, payload.role.value)
+    result, replay = purchase_agent(eng.sf, eng.rules, session_id, key, payload.role.value, request.app.state.rules_v2)
     if replay:
         response.status_code = 200
     return result

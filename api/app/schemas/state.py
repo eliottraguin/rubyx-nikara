@@ -8,7 +8,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .campaign import AttemptSummary, MissionStatus, Progress
-from .common import Mode, Role
+from .common import HangarRole, Mode, Role
 from .profile import TargetProfileOut
 
 
@@ -41,6 +41,20 @@ class AgentView(BaseModel):
     owned: bool
     unlock_mission: str | None
     unlocked: bool = False  # mission de déblocage réussie (BE02) ; l'achat reste contrôlé par le serveur
+
+
+class HangarAgentView(BaseModel):
+    """Rôle du hangar du cap prospection (`scout` / `triage` / `replier` / `ads`), prix et déblocage décidés par le serveur."""
+
+    role: HangarRole
+    label: str
+    section: Literal["prospection", "clients", "pub"]
+    price: int
+    owned: bool
+    unlock_planet: str | None  # lieu dont le score débloque le rôle en Tutoriel ; null = disponible
+    unlock_min_score: int | None
+    score_condition_waived: bool  # vrai en mode Réel : seule la condition de prix reste
+    unlocked: bool  # condition de score remplie (ou levée) ; l'achat reste contrôlé par le serveur
 
 
 class MissionView(BaseModel):
@@ -90,7 +104,8 @@ class BuildingOut(BaseModel):
 class GameState(BaseModel):
     session: SessionInfo
     balance: Balance
-    agents: list[AgentView]
+    agents: list[AgentView]  # moteur d'expédition livré (M1–M6, rôles historiques) ; remplacé quand le contenu change
+    hangar: list[HangarAgentView] = []  # hangar du cap prospection : scout, triage, replier, ads
     missions: list[MissionView]
     attempts: list[AttemptSummary] = []
     progress: Progress | None = None
