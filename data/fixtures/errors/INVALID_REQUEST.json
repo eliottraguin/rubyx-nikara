@@ -1,0 +1,9 @@
+{
+  "http_status": 422,
+  "body": {
+    "error": {
+      "code": "INVALID_REQUEST",
+      "message": "Requête invalide."
+    }
+  }
+}

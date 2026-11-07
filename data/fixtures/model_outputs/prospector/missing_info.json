@@ -1,0 +1,37 @@
+{
+  "case_id": "prospector/missing_info",
+  "role": "prospector",
+  "scenario": "missing_info",
+  "description": "L'offre de l'entreprise n'a pas été transmise : l'agent ne force pas un choix.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "prospector",
+    "context_summary": "M2 ; catalogue partagé, offre non partagée.",
+    "allowed_tools": [
+      "search_catalog",
+      "draft_message"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"status\": \"needs_info\", \"deliverable_text\": \"\", \"facts_used\": [{\"fact\": \"Le catalogue contient 8 fiches\", \"source\": \"m2_cat\"}], \"assumptions\": [], \"missing_info\": [{\"question\": \"Quelle est l'offre de l'entreprise ?\", \"why\": \"Sans elle, je ne peux pas écarter les fiches hors offre.\"}]}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_prospector_missing",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": ""
+  }
+}

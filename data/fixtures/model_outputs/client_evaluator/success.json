@@ -1,0 +1,35 @@
+{
+  "case_id": "client_evaluator/success",
+  "role": "client_evaluator",
+  "scenario": "success",
+  "description": "Évaluation valide d'un livrable acceptable (M1).",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "client_evaluator",
+    "context_summary": "Grille m1_v1 ; livrable ann_m1_acceptable.",
+    "allowed_tools": [],
+    "expected_schema": "evaluator_output",
+    "max_output_tokens": 1200
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"submission_id\": \"sub_fixture_001\", \"rubric_version\": \"m1_v1\", \"out_of_scope\": false, \"criteria\": [{\"id\": \"price\", \"rating\": 1.0, \"evidence\": \"9,90 €\", \"comment\": \"Prix exact.\"}, {\"id\": \"hours\", \"rating\": 1.0, \"evidence\": \"du lundi au vendredi de 12 h à 14 h\", \"comment\": \"Jours et horaires exacts.\"}, {\"id\": \"delivery\", \"rating\": 0.3, \"evidence\": \"Formule déjeuner à 9,90 € pour les étudiants\", \"comment\": \"L'adresse et la boisson incluse manquent ; la limite de 80 mots est respectée.\"}, {\"id\": \"target\", \"rating\": 0.5, \"evidence\": \"pour les étudiants\", \"comment\": \"Les étudiants sont nommés mais le ton reste générique.\"}, {\"id\": \"clarity\", \"rating\": 1.0, \"evidence\": \"Venez nombreux !\", \"comment\": \"Texte lisible.\"}, {\"id\": \"coherence\", \"rating\": 1.0, \"evidence\": \"Formule déjeuner à 9,90 €\", \"comment\": \"Aucun fait inventé.\"}], \"client_feedback\": \"Prix et horaires corrects. Ajoutez l'adresse et précisez que la boisson est incluse.\", \"next_action\": \"Ajouter l'adresse et la boisson incluse, puis adapter le ton aux étudiants.\"}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_eval_success",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": "Le serveur recalcule les contrôles déterministes et le score ; le modèle ne fournit aucune récompense."
+  },
+  "evaluates_annotated_id": "ann_m1_acceptable"
+}

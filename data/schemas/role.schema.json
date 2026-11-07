@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "role",
+  "title": "Fichier d'instructions d'un rôle (gabarit cahier §15)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "enum": [
+        "writer",
+        "prospector",
+        "researcher",
+        "analyst",
+        "qa",
+        "lead",
+        "client_evaluator",
+        "client_clarifier",
+        "coach"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "business",
+        "system"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "accessible_information": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "allowed_formats": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "missing_info_behavior": {
+      "type": "string",
+      "minLength": 1
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "clarification_requests": {
+      "type": "object",
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        },
+        "max_questions_per_reply": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "format": {
+          "type": "string"
+        },
+        "example": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "allowed",
+        "max_questions_per_reply",
+        "format",
+        "example"
+      ]
+    },
+    "output_schema": {
+      "type": "string",
+      "enum": [
+        "agent_response",
+        "lead_plan",
+        "evaluator_output",
+        "free_text"
+      ]
+    },
+    "max_output_tokens_key": {
+      "type": "string",
+      "enum": [
+        "business_agent_max_output_tokens",
+        "client_or_lead_max_output_tokens"
+      ]
+    },
+    "system_instructions": {
+      "type": "string",
+      "minLength": 200
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "kind",
+    "version",
+    "label",
+    "identity",
+    "objective",
+    "capabilities",
+    "accessible_information",
+    "limits",
+    "allowed_formats",
+    "missing_info_behavior",
+    "allowed_tools",
+    "clarification_requests",
+    "output_schema",
+    "max_output_tokens_key",
+    "system_instructions"
+  ]
+}

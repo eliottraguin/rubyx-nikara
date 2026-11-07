@@ -1,0 +1,82 @@
+{
+  "mission_id": "m4",
+  "version": 1,
+  "documents": [
+    {
+      "id": "m4_doc_offre_v1",
+      "title": "Offre commerciale — Pack Visibilité (version 1)",
+      "kind": "document",
+      "date": "2025-09-01",
+      "authority": "Direction commerciale",
+      "status": "superseded",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Pack Visibilité, version 1. Tarif : 120 € par mois. Contenu : 4 emails et 8 publications par mois. Valable à partir du 1er septembre 2025."
+    },
+    {
+      "id": "m4_doc_offre_v2",
+      "title": "Offre commerciale — Pack Visibilité (version 2)",
+      "kind": "document",
+      "date": "2026-02-02",
+      "authority": "Direction commerciale",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Pack Visibilité, version 2. Annule et remplace la version 1 du 1er septembre 2025. Tarif : 150 € par mois. Contenu : 4 emails et 8 publications par mois. Valable à partir du 2 février 2026."
+    },
+    {
+      "id": "m4_doc_note_client",
+      "title": "Note du client — Fil & Lune",
+      "kind": "document",
+      "date": "2026-03-05",
+      "authority": "Client (boutique Fil & Lune)",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Notre objectif : obtenir plus d'inscriptions à la lettre d'information, au meilleur coût. Budget marketing mensuel : 1 800 €, inchangé. Merci de recommander une action pour le mois prochain."
+    },
+    {
+      "id": "m4_tbl_resultats",
+      "title": "Tableau de résultats de campagne",
+      "kind": "table",
+      "date": "2026-03-10",
+      "authority": "Boutique Fil & Lune (export)",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Résultats de campagne (mars 2026), par canal.\nCanal | Visiteurs | Inscriptions | Dépense (€)\nEmail | 1800 | 90 | 360\nRéseau social | 6400 | 128 | 960\nAffichage local | 1200 | 12 | 480",
+      "data": {
+        "columns": [
+          "Canal",
+          "Visiteurs",
+          "Inscriptions",
+          "Dépense (€)"
+        ],
+        "rows": [
+          [
+            "Email",
+            1800,
+            90,
+            360
+          ],
+          [
+            "Réseau social",
+            6400,
+            128,
+            960
+          ],
+          [
+            "Affichage local",
+            1200,
+            12,
+            480
+          ]
+        ],
+        "definitions": {
+          "taux_de_conversion": "inscriptions / visiteurs × 100",
+          "cout_par_acquisition": "dépense / inscriptions"
+        }
+      }
+    }
+  ]
+}

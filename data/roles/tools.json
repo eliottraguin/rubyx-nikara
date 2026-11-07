@@ -1,0 +1,290 @@
+{
+  "version": 1,
+  "tools": [
+    {
+      "id": "create_deliverable_version",
+      "description": "Crée une version de livrable (immuable) rattachée à la tentative, auteur = agent.",
+      "roles": [
+        "writer"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "id de version"
+    },
+    {
+      "id": "search_catalog",
+      "description": "Filtre le catalogue fictif de la mission (lecture seule).",
+      "roles": [
+        "prospector"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": false,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sector": {
+            "type": "string"
+          },
+          "need_keyword": {
+            "type": "string"
+          },
+          "contact_preference": {
+            "type": "string"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "returns": "liste de fiches (id, nom, secteur, besoins, préférence de contact)"
+    },
+    {
+      "id": "draft_message",
+      "description": "Enregistre un brouillon d'approche (jamais envoyé).",
+      "roles": [
+        "prospector"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "entry_id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "entry_id",
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "id de brouillon"
+    },
+    {
+      "id": "search_corpus",
+      "description": "Recherche par mots-clés dans le corpus de la mission (lecture seule).",
+      "roles": [
+        "researcher"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": false,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "liste de passages (doc_id, date, statut, extrait)"
+    },
+    {
+      "id": "compute_metrics",
+      "description": "Calculs déterministes côté serveur sur des valeurs du tableau de la mission. Opérations : ratio_percent (num/den×100), cost_per (total/unités), multiply, divide. Arrondi demi-supérieur.",
+      "roles": [
+        "analyst"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": false,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": [
+              "ratio_percent",
+              "cost_per",
+              "multiply",
+              "divide"
+            ]
+          },
+          "a": {
+            "type": "number"
+          },
+          "b": {
+            "type": "number"
+          },
+          "decimals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          }
+        },
+        "required": [
+          "op",
+          "a",
+          "b",
+          "decimals"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "{value, decimals, op}",
+      "test_vectors": [
+        {
+          "input": {
+            "op": "ratio_percent",
+            "a": 90,
+            "b": 1800,
+            "decimals": 2
+          },
+          "expected": 5.0
+        },
+        {
+          "input": {
+            "op": "cost_per",
+            "a": 360,
+            "b": 90,
+            "decimals": 2
+          },
+          "expected": 4.0
+        },
+        {
+          "input": {
+            "op": "ratio_percent",
+            "a": 128,
+            "b": 6400,
+            "decimals": 2
+          },
+          "expected": 2.0
+        },
+        {
+          "input": {
+            "op": "cost_per",
+            "a": 960,
+            "b": 128,
+            "decimals": 2
+          },
+          "expected": 7.5
+        },
+        {
+          "input": {
+            "op": "ratio_percent",
+            "a": 230,
+            "b": 9400,
+            "decimals": 2
+          },
+          "expected": 2.45
+        },
+        {
+          "input": {
+            "op": "cost_per",
+            "a": 1800,
+            "b": 230,
+            "decimals": 2
+          },
+          "expected": 7.83
+        },
+        {
+          "input": {
+            "op": "divide",
+            "a": 600,
+            "b": 5,
+            "decimals": 0
+          },
+          "expected": 120.0
+        },
+        {
+          "input": {
+            "op": "multiply",
+            "a": 3,
+            "b": 1.5,
+            "decimals": 1
+          },
+          "expected": 4.5
+        }
+      ]
+    },
+    {
+      "id": "read_shared_versions",
+      "description": "Lit les versions de livrable partagées avec le rôle (lecture seule, journalisée).",
+      "roles": [
+        "qa"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": false,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "version_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "version_ids"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "textes des versions partagées"
+    },
+    {
+      "id": "read_public_rubric",
+      "description": "Lit la grille publique de la mission : libellés, poids, contraintes de format. Jamais les réponses privées du client.",
+      "roles": [
+        "qa"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": false,
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "returns": "grille publique"
+    },
+    {
+      "id": "delegate",
+      "description": "Soumet un plan au serveur pour validation et confirmation du joueur ; n'exécute rien tant que le joueur n'a pas confirmé. Au plus 2 étapes, jamais `lead`.",
+      "roles": [
+        "lead"
+      ],
+      "server_side": true,
+      "deterministic": true,
+      "writes_state": true,
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "plan"
+        ],
+        "additionalProperties": false
+      },
+      "returns": "plan validé + surcoût maximal"
+    }
+  ]
+}

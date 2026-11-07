@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluator_output",
+  "title": "Sortie du client évaluateur (docs/CONTRACTS.md v0.1)",
+  "description": "Le schéma accepte (extra autorisé) les champs inconnus, ignorés par le serveur : toute récompense suggérée par le modèle est écartée. La complétude vis-à-vis de la grille et la validité des preuves sont contrôlées par le serveur (voir docs/ai/03-evaluateur.md).",
+  "type": "object",
+  "properties": {
+    "submission_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rubric_version": {
+      "type": "string",
+      "pattern": "^(m[1-6]|rescue)_v[0-9]+$"
+    },
+    "out_of_scope": {
+      "type": "boolean"
+    },
+    "criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "rating",
+          "evidence",
+          "comment"
+        ]
+      },
+      "minItems": 1
+    },
+    "client_feedback": {
+      "type": "string",
+      "minLength": 1
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true,
+  "required": [
+    "submission_id",
+    "rubric_version",
+    "out_of_scope",
+    "criteria",
+    "client_feedback",
+    "next_action"
+  ]
+}

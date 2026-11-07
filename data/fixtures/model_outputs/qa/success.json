@@ -1,0 +1,73 @@
+{
+  "case_id": "qa/success",
+  "role": "qa",
+  "scenario": "success",
+  "description": "Le responsable qualité relit une version avec le brief et la grille publiques.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "qa",
+    "context_summary": "M1 ; version v2 partagée.",
+    "allowed_tools": [
+      "read_shared_versions",
+      "read_public_rubric"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "name": "read_shared_versions",
+            "arguments": {
+              "version_ids": [
+                "ver_002"
+              ]
+            }
+          },
+          {
+            "id": "call_2",
+            "name": "read_public_rubric",
+            "arguments": {}
+          }
+        ],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_qa_1",
+        "status": "ok",
+        "error_code": null
+      },
+      "tool_results": [
+        {
+          "tool_call_id": "call_1",
+          "result": "texte de la version"
+        },
+        {
+          "tool_call_id": "call_2",
+          "result": "grille publique"
+        }
+      ]
+    },
+    {
+      "response": {
+        "content": "{\"status\": \"ok\", \"deliverable_text\": \"Deux corrections proposées.\", \"facts_used\": [{\"fact\": \"Limite de 80 mots dans le brief public\", \"source\": \"brief public\"}], \"assumptions\": [], \"missing_info\": [], \"corrections\": [{\"criterion_id\": \"hours\", \"problem\": \"Les jours ne sont pas indiqués.\", \"fix\": \"Ajouter les jours d'ouverture de la formule.\"}, {\"criterion_id\": \"delivery\", \"problem\": \"L'adresse est absente.\", \"fix\": \"Ajouter l'adresse fictive du brief.\"}]}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_qa_2",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": ""
+  }
+}

@@ -1,0 +1,203 @@
+{
+  "session": {
+    "id": "ses_exemple0000000001",
+    "mode": "expert",
+    "company": {
+      "name": "Atelier Exemple",
+      "profile": null
+    },
+    "state": "ACTIVE",
+    "stage": "m1",
+    "seed": 12345,
+    "rules_version": "rules_v1",
+    "created_at": "2026-01-01T09:00:00Z"
+  },
+  "balance": {
+    "booked": 30,
+    "reserved": 0,
+    "available": 30
+  },
+  "agents": [
+    {
+      "role": "writer",
+      "label": "Rédacteur",
+      "price": 0,
+      "owned": true,
+      "unlock_mission": null,
+      "unlocked": true
+    },
+    {
+      "role": "prospector",
+      "label": "Prospecteur",
+      "price": 20,
+      "owned": false,
+      "unlock_mission": "m1",
+      "unlocked": false
+    },
+    {
+      "role": "researcher",
+      "label": "Chargé de veille",
+      "price": 35,
+      "owned": false,
+      "unlock_mission": "m2",
+      "unlocked": false
+    },
+    {
+      "role": "qa",
+      "label": "Responsable qualité",
+      "price": 30,
+      "owned": false,
+      "unlock_mission": "m2",
+      "unlocked": false
+    },
+    {
+      "role": "analyst",
+      "label": "Analyste",
+      "price": 45,
+      "owned": false,
+      "unlock_mission": "m3",
+      "unlocked": false
+    },
+    {
+      "role": "lead",
+      "label": "Chef d'équipe",
+      "price": 80,
+      "owned": false,
+      "unlock_mission": "m5",
+      "unlocked": false
+    }
+  ],
+  "missions": [
+    {
+      "id": "m1",
+      "label": "Mission 1",
+      "max_reward": 20,
+      "unit_price": 0,
+      "status": "AVAILABLE",
+      "requires": null,
+      "unlocks": [
+        "prospector"
+      ],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": true,
+      "can_retry": false
+    },
+    {
+      "id": "m2",
+      "label": "Mission 2",
+      "max_reward": 30,
+      "unit_price": 1,
+      "status": "LOCKED",
+      "requires": "m1",
+      "unlocks": [
+        "researcher",
+        "qa"
+      ],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": false,
+      "can_retry": false
+    },
+    {
+      "id": "m3",
+      "label": "Mission 3",
+      "max_reward": 40,
+      "unit_price": 1,
+      "status": "LOCKED",
+      "requires": "m2",
+      "unlocks": [
+        "analyst"
+      ],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": false,
+      "can_retry": false
+    },
+    {
+      "id": "m4",
+      "label": "Mission 4",
+      "max_reward": 60,
+      "unit_price": 2,
+      "status": "LOCKED",
+      "requires": "m3",
+      "unlocks": [],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": false,
+      "can_retry": false
+    },
+    {
+      "id": "m5",
+      "label": "Mission 5",
+      "max_reward": 90,
+      "unit_price": 2,
+      "status": "LOCKED",
+      "requires": "m4",
+      "unlocks": [
+        "lead"
+      ],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": false,
+      "can_retry": false
+    },
+    {
+      "id": "m6",
+      "label": "Mission 6",
+      "max_reward": 150,
+      "unit_price": 3,
+      "status": "LOCKED",
+      "requires": "m5",
+      "unlocks": [],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": false,
+      "can_retry": false
+    },
+    {
+      "id": "rescue",
+      "label": "Mission de secours",
+      "max_reward": 10,
+      "unit_price": 0,
+      "status": "AVAILABLE",
+      "requires": null,
+      "unlocks": [],
+      "attempts_count": 0,
+      "best_score": null,
+      "active_attempt_id": null,
+      "can_start": true,
+      "can_retry": false
+    }
+  ],
+  "attempts": [],
+  "progress": {
+    "completed_missions": [],
+    "total_missions": 6,
+    "reputation": null,
+    "victory": false,
+    "stage": "m1",
+    "next_action": {
+      "type": "start_mission",
+      "mission_id": "m1",
+      "attempt_id": null,
+      "message": "Acceptez la prochaine commande."
+    }
+  },
+  "active_actions": [],
+  "quotas": {
+    "messages_per_agent_per_attempt": 5,
+    "clarifications_per_attempt": 2
+  },
+  "llm": {
+    "provider": "mock",
+    "simulated": true
+  },
+  "contracts_version": "0.1"
+}

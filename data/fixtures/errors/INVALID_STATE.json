@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "INVALID_STATE",
+      "message": "Cette opération n'est pas possible dans l'état actuel."
+    }
+  }
+}

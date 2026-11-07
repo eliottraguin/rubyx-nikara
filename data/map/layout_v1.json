@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "comment": "Positions COSMÉTIQUES de la carte (grille isométrique 2:1, tuile 64x32). Ce ne sont pas des règles : états, prix, gains et déblocages viennent du serveur.",
+  "tile": {
+    "w": 64,
+    "h": 32
+  },
+  "base": {
+    "grid": {
+      "x": 0,
+      "y": 0
+    },
+    "size": 7
+  },
+  "planets": [
+    {
+      "id": "annuaire",
+      "grid": {
+        "x": -13.9,
+        "y": -8
+      }
+    },
+    {
+      "id": "registre",
+      "grid": {
+        "x": 0,
+        "y": -16
+      }
+    },
+    {
+      "id": "carte-locale",
+      "grid": {
+        "x": 13.9,
+        "y": -8
+      }
+    },
+    {
+      "id": "linkedin",
+      "grid": {
+        "x": 13.9,
+        "y": 8
+      }
+    },
+    {
+      "id": "glassdoor",
+      "grid": {
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "id": "constellation",
+      "grid": {
+        "x": -13.9,
+        "y": 8
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "case_id": "lead/failure",
+  "role": "lead",
+  "scenario": "failure",
+  "description": "Le fournisseur est indisponible (panne simulée).",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "lead",
+    "context_summary": "Panne simulée du fournisseur, aucune réponse exploitable.",
+    "allowed_tools": [
+      "delegate"
+    ],
+    "expected_schema": "lead_plan",
+    "max_output_tokens": 1200
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": null,
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": null,
+        "status": "error",
+        "error_code": "LLM_UNAVAILABLE"
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": false,
+    "billable": false,
+    "message_consumed": false,
+    "error_code": "LLM_UNAVAILABLE",
+    "notes": "Aucun débit, aucun message consommé, réservation libérée ; une seule nouvelle tentative technique (timeout 45 s)."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "ann_m1_acceptable",
+  "mission_id": "m1",
+  "variant": "expert",
+  "rubric_id": "m1_v1",
+  "split": "tuning",
+  "quality_level": "acceptable",
+  "tags": [],
+  "provisional": true,
+  "author": "ia_provisional",
+  "human_validation": "pending",
+  "deliverable_text": "Formule déjeuner à 9,90 € pour les étudiants, du lundi au vendredi de 12 h à 14 h. Venez nombreux !",
+  "trace": {},
+  "injection": {
+    "present": false,
+    "attack": "",
+    "expected_handling": "Sans objet."
+  },
+  "expected": {
+    "out_of_scope": false,
+    "criteria": {
+      "price": {
+        "rating": 1
+      },
+      "hours": {
+        "rating": 1
+      },
+      "delivery": {
+        "rating": 0.3
+      },
+      "target": {
+        "rating": 0.5
+      },
+      "clarity": {
+        "rating": 1
+      },
+      "coherence": {
+        "rating": 1
+      }
+    },
+    "essential_failures": [],
+    "score_indicative": 76,
+    "outcome": "success"
+  },
+  "rationale": "PROVISOIRE (IA, à valider par un humain). Essentiels présents mais ni adresse ni boisson ; texte générique."
+}

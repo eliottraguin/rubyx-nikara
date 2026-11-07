@@ -1,0 +1,485 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mission_variant",
+  "title": "Variante de mission (beginner ou expert), versionnée séparément",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(m[1-6]|rescue)_(beginner|expert)_v[0-9]+$"
+    },
+    "mission_id": {
+      "type": "string",
+      "enum": [
+        "m1",
+        "m2",
+        "m3",
+        "m4",
+        "m5",
+        "m6",
+        "rescue"
+      ]
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "expert"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "company_context": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rubric_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "economy": {
+      "type": "object",
+      "properties": {
+        "max_reward": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "unit_price": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unlocks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "writer",
+              "prospector",
+              "researcher",
+              "analyst",
+              "qa",
+              "lead"
+            ]
+          }
+        },
+        "spend_cap": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "min_contributing_roles": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "max_reward",
+        "unit_price",
+        "unlocks",
+        "spend_cap",
+        "min_contributing_roles"
+      ]
+    },
+    "roles_usable": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "writer",
+          "prospector",
+          "researcher",
+          "analyst",
+          "qa",
+          "lead"
+        ]
+      },
+      "minItems": 1
+    },
+    "message_quota": {
+      "type": "integer",
+      "const": 5
+    },
+    "brief": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "integer",
+          "const": 1
+        },
+        "client_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objective": {
+          "type": "string",
+          "minLength": 1
+        },
+        "facts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "essential": {
+                "type": "boolean"
+              },
+              "source": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "label",
+              "value",
+              "essential",
+              "source"
+            ]
+          }
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "deliverable_format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "missing_on_purpose": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "client_name",
+        "summary",
+        "objective",
+        "facts",
+        "constraints",
+        "deliverable_format",
+        "missing_on_purpose"
+      ]
+    },
+    "corpus_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "client": {
+      "type": "object",
+      "properties": {
+        "persona": {
+          "type": "string",
+          "minLength": 1
+        },
+        "private_facts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "answer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "trigger_keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              },
+              "creates_brief_version": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "brief_diff": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "before": {
+                      "type": "string"
+                    },
+                    "after": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "field",
+                    "before",
+                    "after"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "answer",
+              "trigger_keywords",
+              "creates_brief_version",
+              "brief_diff"
+            ]
+          }
+        },
+        "default_answer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_questions": {
+          "type": "integer",
+          "const": 2
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "persona",
+        "private_facts",
+        "default_answer",
+        "max_questions"
+      ]
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "target_change",
+              "contradictory_sources",
+              "budget_reduced",
+              "incomplete_context"
+            ]
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "mission_start",
+              "before_first_action",
+              "after_first_proposal"
+            ]
+          },
+          "normal_play": {
+            "type": "boolean"
+          },
+          "demo_selectable": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "creates_brief_version": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "brief_diff": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "before": {
+                  "type": "string"
+                },
+                "after": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "field",
+                "before",
+                "after"
+              ]
+            },
+            "minItems": 1
+          },
+          "added_documents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "fairness_rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correction_credit": {
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type",
+          "trigger",
+          "normal_play",
+          "demo_selectable",
+          "description",
+          "creates_brief_version",
+          "brief_diff",
+          "added_documents",
+          "fairness_rule",
+          "correction_credit"
+        ]
+      }
+    },
+    "tutorial": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "hints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2
+          },
+          "text": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 240
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "text"
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "hint_forbidden_terms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "reference_solution": {
+      "type": "object",
+      "properties": {
+        "deliverable": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roles_used": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "writer",
+              "prospector",
+              "researcher",
+              "analyst",
+              "qa",
+              "lead"
+            ]
+          }
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_trace": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "deliverable",
+        "roles_used",
+        "notes",
+        "expected_trace"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "mission_id",
+    "mode",
+    "version",
+    "title",
+    "company_context",
+    "rubric_id",
+    "economy",
+    "roles_usable",
+    "message_quota",
+    "brief",
+    "corpus_refs",
+    "client",
+    "events",
+    "tutorial",
+    "hints",
+    "hint_forbidden_terms",
+    "reference_solution"
+  ]
+}

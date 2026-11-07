@@ -1,0 +1,28 @@
+{
+  "mission_id": "m5",
+  "version": 1,
+  "documents": [
+    {
+      "id": "m5_doc_fiche",
+      "title": "Fiche client — Boulangerie Les Épis Dorés",
+      "kind": "client_sheet",
+      "date": "2026-05-11",
+      "authority": "Client (boulangerie)",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Fiche client — Boulangerie Les Épis Dorés, 3 rue du Moulin, 99000 Exemple-sur-Loire.\nFormule « Petit-déj du quartier » : une viennoiserie + une boisson chaude, 4,50 €.\nServie du mardi au vendredi de 7 h à 9 h 30, et le samedi et le dimanche de 8 h à 11 h.\nPas de réservation : on se présente au comptoir.\nBudget de la campagne : 150 € (impression et diffusion)."
+    },
+    {
+      "id": "m5_doc_note_cible",
+      "title": "Note du client : changement de public",
+      "kind": "document",
+      "date": "2026-05-14",
+      "authority": "Client (boulangerie)",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": "ev_m5_target_change",
+      "text": "Note du client (2026-05-14) : « Nous changeons de public pour cette campagne : nous visons désormais les familles avec enfants, pour le week-end (samedi et dimanche, 8 h à 11 h), et non plus les salariés du quartier en semaine. Le prix et les produits ne changent pas. »"
+    }
+  ]
+}

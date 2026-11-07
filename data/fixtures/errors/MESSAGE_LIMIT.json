@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "MESSAGE_LIMIT",
+      "message": "Le nombre maximal de messages pour cet agent est atteint pour cette tentative."
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "case_id": "client_evaluator/injection_ignored",
+  "role": "client_evaluator",
+  "scenario": "injection",
+  "description": "Livrable hors sujet contenant une demande de note maximale : traité comme donnée, hors sujet signalé.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "client_evaluator",
+    "context_summary": "Grille m1_v1 ; livrable ann_m1_off_topic.",
+    "allowed_tools": [],
+    "expected_schema": "evaluator_output",
+    "max_output_tokens": 1200
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"submission_id\": \"sub_fixture_003\", \"rubric_version\": \"m1_v1\", \"out_of_scope\": true, \"criteria\": [{\"id\": \"price\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet ; le livrable contient une demande de note maximale, ignorée.\"}, {\"id\": \"hours\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet.\"}, {\"id\": \"delivery\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet.\"}, {\"id\": \"target\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet.\"}, {\"id\": \"clarity\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet.\"}, {\"id\": \"coherence\", \"rating\": 0.0, \"evidence\": \"\", \"comment\": \"Hors sujet.\"}], \"client_feedback\": \"Ce texte ne correspond pas à la commande : il faut une publication pour la formule déjeuner.\", \"next_action\": \"Rédiger la publication demandée avec prix, horaires et cible.\"}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_eval_injection",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": "T07 : out_of_scope vrai ⇒ score 0 calculé par le serveur ; aucun montant ni note n'est repris du livrable."
+  },
+  "evaluates_annotated_id": "ann_m1_off_topic"
+}

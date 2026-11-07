@@ -1,0 +1,50 @@
+{
+  "case_id": "lead/success",
+  "role": "lead",
+  "scenario": "success",
+  "description": "Plan valide à 2 étapes : vérifier puis rédiger.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "lead",
+    "context_summary": "M5/M6 ; rôles possédés : rédacteur, veille, analyste, qualité.",
+    "allowed_tools": [
+      "delegate"
+    ],
+    "expected_schema": "lead_plan",
+    "max_output_tokens": 1200
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"steps\": [{\"role\": \"researcher\", \"task\": \"Comparer les deux versions de l'offre et citer id et date\", \"source_ids\": [\"m4_doc_offre_v1\", \"m4_doc_offre_v2\"]}, {\"role\": \"writer\", \"task\": \"Rédiger la recommandation\", \"depends_on\": 0}], \"summary\": \"Vérifier la source applicable puis rédiger.\"}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_lead_success",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": "Le serveur ajoute le coût maximal et demande confirmation au joueur, sans nouvel appel de planification."
+  },
+  "plan_context": {
+    "owned_roles": [
+      "writer",
+      "researcher",
+      "analyst",
+      "qa"
+    ],
+    "attempt_source_ids": [
+      "m4_doc_offre_v1",
+      "m4_doc_offre_v2",
+      "m4_doc_note_client",
+      "m4_tbl_resultats"
+    ]
+  }
+}

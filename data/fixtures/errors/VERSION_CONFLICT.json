@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "VERSION_CONFLICT",
+      "message": "Le brief ou la version utilisée est périmé ; rechargez l'état."
+    }
+  }
+}

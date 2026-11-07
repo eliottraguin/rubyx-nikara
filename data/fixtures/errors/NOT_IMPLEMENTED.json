@@ -1,0 +1,9 @@
+{
+  "http_status": 501,
+  "body": {
+    "error": {
+      "code": "NOT_IMPLEMENTED",
+      "message": "Cette fonctionnalité n'est pas encore implémentée."
+    }
+  }
+}

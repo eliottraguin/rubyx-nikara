@@ -1,0 +1,37 @@
+{
+  "case_id": "qa/missing_info",
+  "role": "qa",
+  "scenario": "missing_info",
+  "description": "Aucune version n'a été partagée avec le responsable qualité.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "qa",
+    "context_summary": "M1 ; aucun partage.",
+    "allowed_tools": [
+      "read_shared_versions",
+      "read_public_rubric"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"status\": \"needs_info\", \"deliverable_text\": \"Je n'ai aucune version à contrôler.\", \"facts_used\": [], \"assumptions\": [], \"missing_info\": [{\"question\": \"Quelle version dois-je relire ?\", \"why\": \"Aucune version n'est partagée avec moi.\"}]}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_qa_missing",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": ""
+  }
+}

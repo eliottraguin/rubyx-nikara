@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lead_plan",
+  "title": "Plan du chef d'équipe (≤ 2 étapes, sans récursion ni client)",
+  "description": "Les contrôles de cycle (depends_on < index), de rôles possédés et de pièces appartenant à la tentative sont sémantiques et faits par le serveur ; voir docs/ai/05-chef-equipe.md.",
+  "type": "object",
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "writer",
+              "prospector",
+              "researcher",
+              "analyst",
+              "qa"
+            ]
+          },
+          "task": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "depends_on": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "role",
+          "task"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 2
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "steps",
+    "summary"
+  ]
+}

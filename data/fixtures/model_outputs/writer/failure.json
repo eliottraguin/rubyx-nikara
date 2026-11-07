@@ -1,0 +1,36 @@
+{
+  "case_id": "writer/failure",
+  "role": "writer",
+  "scenario": "failure",
+  "description": "Le fournisseur est indisponible (panne simulée).",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "writer",
+    "context_summary": "Panne simulée du fournisseur, aucune réponse exploitable.",
+    "allowed_tools": [
+      "create_deliverable_version"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": null,
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": null,
+        "status": "error",
+        "error_code": "LLM_UNAVAILABLE"
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": false,
+    "billable": false,
+    "message_consumed": false,
+    "error_code": "LLM_UNAVAILABLE",
+    "notes": "Aucun débit, aucun message consommé, réservation libérée ; une seule nouvelle tentative technique (timeout 45 s)."
+  }
+}

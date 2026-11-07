@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "note": "Parties seedées prêtes à rejouer (AI08). Les notes `assumed_score` sont des hypothèses de planification issues de RULES.md §9, pas des résultats mesurés. La graine pilote seulement le choix reproductible des variantes ; elle ne détermine ni prix, ni gains.",
+  "games": [
+    {
+      "id": "seed_beginner_typical",
+      "mode": "beginner",
+      "seed": 20260601,
+      "reaches_m6": true,
+      "description": "Parcours type de RULES.md §9 (scores 80/70/70/70/70) avec veille et chef. Notes supposées : planification, pas des résultats mesurés.",
+      "steps": [
+        {
+          "type": "mission",
+          "mission_id": "m1",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 2
+          },
+          "assumed_score": 80
+        },
+        {
+          "type": "mission",
+          "mission_id": "m2",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 3
+          },
+          "assumed_score": 70
+        },
+        {
+          "type": "purchase",
+          "role": "researcher"
+        },
+        {
+          "type": "mission",
+          "mission_id": "m3",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 2
+          },
+          "assumed_score": 70
+        },
+        {
+          "type": "mission",
+          "mission_id": "m4",
+          "roles_used": [
+            "researcher",
+            "writer"
+          ],
+          "calls": {
+            "researcher": 2,
+            "writer": 2
+          },
+          "assumed_score": 70
+        },
+        {
+          "type": "mission",
+          "mission_id": "m5",
+          "roles_used": [
+            "writer",
+            "researcher"
+          ],
+          "calls": {
+            "writer": 3,
+            "researcher": 1
+          },
+          "assumed_score": 70,
+          "free_calls": 1
+        },
+        {
+          "type": "purchase",
+          "role": "lead"
+        },
+        {
+          "type": "mission",
+          "mission_id": "m6",
+          "roles_used": [
+            "lead",
+            "researcher",
+            "writer"
+          ],
+          "calls": {
+            "lead": 1,
+            "researcher": 1,
+            "writer": 1
+          },
+          "assumed_score": 70
+        }
+      ],
+      "expected_final_cash": 162
+    },
+    {
+      "id": "seed_expert_analyst_path",
+      "mode": "expert",
+      "seed": 20260602,
+      "reaches_m6": true,
+      "description": "Second parcours (T12) : seulement l'analyste est acheté ; ni chef, ni prospecteur, ni veille, ni qualité.",
+      "steps": [
+        {
+          "type": "mission",
+          "mission_id": "m1",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 2
+          },
+          "assumed_score": 75
+        },
+        {
+          "type": "mission",
+          "mission_id": "m2",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 3
+          },
+          "assumed_score": 70
+        },
+        {
+          "type": "mission",
+          "mission_id": "m3",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 2
+          },
+          "assumed_score": 70
+        },
+        {
+          "type": "purchase",
+          "role": "analyst"
+        },
+        {
+          "type": "mission",
+          "mission_id": "m4",
+          "roles_used": [
+            "analyst",
+            "writer"
+          ],
+          "calls": {
+            "analyst": 2,
+            "writer": 2
+          },
+          "assumed_score": 65
+        },
+        {
+          "type": "mission",
+          "mission_id": "m5",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 4
+          },
+          "assumed_score": 65,
+          "free_calls": 1
+        },
+        {
+          "type": "mission",
+          "mission_id": "m6",
+          "roles_used": [
+            "writer",
+            "analyst"
+          ],
+          "calls": {
+            "writer": 3,
+            "analyst": 2
+          },
+          "assumed_score": 70
+        }
+      ],
+      "expected_final_cash": 217
+    },
+    {
+      "id": "seed_rescue_replay",
+      "mode": "beginner",
+      "seed": 20260603,
+      "reaches_m6": false,
+      "description": "Mission de secours rejouée (T11) : aucun achat, aucun coût.",
+      "steps": [
+        {
+          "type": "mission",
+          "mission_id": "rescue",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 3
+          },
+          "assumed_score": 60
+        },
+        {
+          "type": "mission",
+          "mission_id": "rescue",
+          "roles_used": [
+            "writer"
+          ],
+          "calls": {
+            "writer": 2
+          },
+          "assumed_score": 80
+        }
+      ],
+      "expected_final_cash": 44
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "case_id": "writer/missing_info",
+  "role": "writer",
+  "scenario": "missing_info",
+  "description": "Le joueur a omis les horaires : l'agent ne les invente pas et pose une question utile.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "writer",
+    "context_summary": "M1 ; message du joueur sans horaires ; fiche non partagée.",
+    "allowed_tools": [
+      "create_deliverable_version"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"status\": \"needs_info\", \"deliverable_text\": \"Formule déjeuner étudiants au Petit Comptoir : plat du jour + boisson incluse pour 9,90 €. [Horaires à confirmer avant publication.]\", \"facts_used\": [{\"fact\": \"Prix 9,90 €\", \"source\": \"message du joueur\"}], \"assumptions\": [\"Cible : étudiants (indiquée par le joueur).\"], \"missing_info\": [{\"question\": \"Quels sont les jours et horaires de la formule ?\", \"why\": \"Ils ne figurent ni dans votre message ni dans les pièces partagées.\"}]}",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "name": "create_deliverable_version",
+            "arguments": {
+              "text": "Formule déjeuner étudiants au Petit Comptoir : plat du jour + boisson incluse pour 9,90 €. [Horaires à confirmer avant publication.]"
+            }
+          }
+        ],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_writer_missing",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": "Réponse exploitable : facturée et comptée."
+  }
+}

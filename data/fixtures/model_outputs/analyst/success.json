@@ -1,0 +1,78 @@
+{
+  "case_id": "analyst/success",
+  "role": "analyst",
+  "scenario": "success",
+  "description": "L'analyste fait calculer taux et coût par l'outil serveur puis explique.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "analyst",
+    "context_summary": "M4 ; tableau partagé.",
+    "allowed_tools": [
+      "compute_metrics"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "name": "compute_metrics",
+            "arguments": {
+              "op": "ratio_percent",
+              "a": 90,
+              "b": 1800,
+              "decimals": 2
+            }
+          },
+          {
+            "id": "call_2",
+            "name": "compute_metrics",
+            "arguments": {
+              "op": "cost_per",
+              "a": 360,
+              "b": 90,
+              "decimals": 2
+            }
+          }
+        ],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_analyst_1",
+        "status": "ok",
+        "error_code": null
+      },
+      "tool_results": [
+        {
+          "tool_call_id": "call_1",
+          "value": 5.0
+        },
+        {
+          "tool_call_id": "call_2",
+          "value": 4.0
+        }
+      ]
+    },
+    {
+      "response": {
+        "content": "{\"status\": \"ok\", \"deliverable_text\": \"Pour l'email, le taux de conversion est de 5,00 % et le coût par acquisition de 4,00 € (résultats de l'outil de calcul).\", \"facts_used\": [{\"fact\": \"Email : 1 800 visiteurs, 90 inscriptions, 360 € de dépense\", \"source\": \"m4_tbl_resultats\"}], \"assumptions\": [\"Le coût par acquisition resterait stable avec plus de volume : hypothèse à vérifier.\"], \"missing_info\": [], \"computations\": [{\"tool_call_id\": \"call_1\", \"label\": \"Taux de conversion email (%)\", \"value\": 5.0}, {\"tool_call_id\": \"call_2\", \"label\": \"Coût par acquisition email (€)\", \"value\": 4.0}]}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_analyst_2",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": ""
+  }
+}

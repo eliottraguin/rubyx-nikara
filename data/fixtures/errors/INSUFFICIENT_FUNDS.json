@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "INSUFFICIENT_FUNDS",
+      "message": "Solde disponible insuffisant pour cette action."
+    }
+  }
+}

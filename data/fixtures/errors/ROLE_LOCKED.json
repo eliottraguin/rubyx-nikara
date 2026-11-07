@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "ROLE_LOCKED",
+      "message": "Cet agent n'est pas encore débloqué ou n'est pas possédé."
+    }
+  }
+}

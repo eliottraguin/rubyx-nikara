@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model_output_case",
+  "title": "Cas de sortie de référence d'un rôle (interface adaptateur, CONTRACTS.md)",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "writer",
+        "prospector",
+        "researcher",
+        "analyst",
+        "qa",
+        "lead",
+        "client_evaluator"
+      ]
+    },
+    "evaluates_annotated_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plan_context": {
+      "type": "object"
+    },
+    "scenario": {
+      "type": "string",
+      "enum": [
+        "success",
+        "missing_info",
+        "failure",
+        "invalid_output",
+        "injection"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fixture_status": {
+      "type": "string",
+      "enum": [
+        "reference_mock"
+      ]
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "allowed_tools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "expected_schema": {
+          "type": "string",
+          "minLength": 1
+        },
+        "max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "context_summary",
+        "allowed_tools",
+        "expected_schema",
+        "max_output_tokens"
+      ]
+    },
+    "exchange": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "tool_calls": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "arguments": {
+                      "type": "object"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "id",
+                    "name",
+                    "arguments"
+                  ]
+                }
+              },
+              "usage": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "duration_ms": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "provider_call_id": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "invalid_output",
+                  "error",
+                  "timeout"
+                ]
+              },
+              "error_code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "content",
+              "tool_calls",
+              "usage",
+              "duration_ms",
+              "provider_call_id",
+              "status"
+            ]
+          },
+          "tool_results": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "response"
+        ]
+      },
+      "minItems": 1
+    },
+    "expected_server_behavior": {
+      "type": "object",
+      "properties": {
+        "output_valid": {
+          "type": "boolean"
+        },
+        "billable": {
+          "type": "boolean"
+        },
+        "message_consumed": {
+          "type": "boolean"
+        },
+        "error_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "output_valid",
+        "billable",
+        "message_consumed",
+        "notes"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "case_id",
+    "role",
+    "scenario",
+    "description",
+    "fixture_status",
+    "request",
+    "exchange",
+    "expected_server_behavior"
+  ]
+}

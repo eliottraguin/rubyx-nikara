@@ -1,0 +1,36 @@
+{
+  "case_id": "analyst/missing_info",
+  "role": "analyst",
+  "scenario": "missing_info",
+  "description": "Le tableau partagé ne contient pas la colonne de dépenses.",
+  "fixture_status": "reference_mock",
+  "request": {
+    "role": "analyst",
+    "context_summary": "M4 ; tableau partagé sans colonne Dépense.",
+    "allowed_tools": [
+      "compute_metrics"
+    ],
+    "expected_schema": "agent_response",
+    "max_output_tokens": 800
+  },
+  "exchange": [
+    {
+      "response": {
+        "content": "{\"status\": \"needs_info\", \"deliverable_text\": \"Je ne peux pas calculer le coût par acquisition sans les dépenses.\", \"facts_used\": [], \"assumptions\": [], \"missing_info\": [{\"question\": \"Quelle colonne indique les dépenses par canal ?\", \"why\": \"Je ne la trouve pas dans le tableau partagé.\"}]}",
+        "tool_calls": [],
+        "usage": null,
+        "duration_ms": null,
+        "provider_call_id": "mock_analyst_missing",
+        "status": "ok",
+        "error_code": null
+      }
+    }
+  ],
+  "expected_server_behavior": {
+    "output_valid": true,
+    "billable": true,
+    "message_consumed": true,
+    "error_code": null,
+    "notes": ""
+  }
+}

@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "annotated",
+  "title": "Livrable annoté pour la calibration (PROVISOIRE, rédigé par IA, à valider par un humain)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mission_id": {
+      "type": "string",
+      "enum": [
+        "m1",
+        "m2",
+        "m3",
+        "m4",
+        "m5",
+        "m6",
+        "rescue"
+      ]
+    },
+    "variant": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "expert"
+      ]
+    },
+    "rubric_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split": {
+      "type": "string",
+      "enum": [
+        "tuning",
+        "reserved"
+      ]
+    },
+    "quality_level": {
+      "type": "string",
+      "enum": [
+        "off_topic",
+        "incomplete",
+        "acceptable",
+        "complete"
+      ]
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "injection",
+          "essential_failure",
+          "invented_fact",
+          "wrong_source",
+          "calc_error",
+          "reserved_blind"
+        ]
+      }
+    },
+    "provisional": {
+      "type": "boolean",
+      "const": true
+    },
+    "author": {
+      "type": "string",
+      "enum": [
+        "ia_provisional"
+      ]
+    },
+    "human_validation": {
+      "type": "string",
+      "enum": [
+        "pending"
+      ]
+    },
+    "deliverable_text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trace": {
+      "type": "object"
+    },
+    "injection": {
+      "type": "object",
+      "properties": {
+        "present": {
+          "type": "boolean"
+        },
+        "attack": {
+          "type": "string"
+        },
+        "expected_handling": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "present",
+        "attack",
+        "expected_handling"
+      ]
+    },
+    "expected": {
+      "type": "object",
+      "properties": {
+        "out_of_scope": {
+          "type": "boolean"
+        },
+        "criteria": {
+          "type": "object"
+        },
+        "essential_failures": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "score_indicative": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failure"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "out_of_scope",
+        "criteria",
+        "essential_failures",
+        "score_indicative",
+        "outcome"
+      ]
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "mission_id",
+    "variant",
+    "rubric_id",
+    "split",
+    "quality_level",
+    "tags",
+    "provisional",
+    "author",
+    "human_validation",
+    "deliverable_text",
+    "trace",
+    "injection",
+    "expected",
+    "rationale"
+  ]
+}

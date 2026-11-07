@@ -1,0 +1,9 @@
+{
+  "http_status": 429,
+  "body": {
+    "error": {
+      "code": "RATE_LIMITED",
+      "message": "Trop de demandes en cours ; réessayez dans un instant."
+    }
+  }
+}

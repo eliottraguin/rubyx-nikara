@@ -1,0 +1,109 @@
+{
+  "id": "rescue_beginner_v1",
+  "mission_id": "rescue",
+  "mode": "beginner",
+  "version": 1,
+  "title": "Mission de secours : un petit message",
+  "company_context": "Une petite commande d'entraînement, avec 5 messages gratuits au rédacteur, pour reprendre confiance et financer la suite.",
+  "rubric_id": "rescue_v1",
+  "economy": {
+    "max_reward": 10,
+    "unit_price": 0,
+    "unlocks": [],
+    "spend_cap": null,
+    "min_contributing_roles": 0
+  },
+  "roles_usable": [
+    "writer"
+  ],
+  "message_quota": 5,
+  "brief": {
+    "version": 1,
+    "client_name": "Café La Bobine",
+    "summary": "Le Café La Bobine ferme exceptionnellement un jour et veut prévenir ses habitués.",
+    "objective": "Obtenir du rédacteur un message de 40 mots maximum avec la fermeture et la réouverture.",
+    "facts": [
+      {
+        "id": "closure",
+        "label": "Fermeture",
+        "value": "lundi 25 mai 2026",
+        "essential": true,
+        "source": "rescue_doc_fiche"
+      },
+      {
+        "id": "reopening",
+        "label": "Réouverture",
+        "value": "mardi 26 mai à 8 h",
+        "essential": true,
+        "source": "rescue_doc_fiche"
+      },
+      {
+        "id": "limit",
+        "label": "Longueur",
+        "value": "40 mots maximum",
+        "essential": false,
+        "source": "rescue_doc_fiche"
+      }
+    ],
+    "constraints": [
+      "40 mots maximum",
+      "Citer le nom du café"
+    ],
+    "deliverable_format": "Un message court.",
+    "missing_on_purpose": []
+  },
+  "corpus_refs": [
+    "rescue_doc_fiche"
+  ],
+  "client": {
+    "persona": "Gérant du café, simple et direct.",
+    "private_facts": [],
+    "default_answer": "Tout est dans la fiche.",
+    "max_questions": 2
+  },
+  "events": [],
+  "tutorial": {
+    "enabled": true,
+    "framing_questions": [
+      "Qui lira ce message ?",
+      "Quelles dates faut-il donner ?"
+    ],
+    "steps": [
+      {
+        "id": "t1",
+        "text": "Lisez la fiche du café."
+      },
+      {
+        "id": "t2",
+        "text": "Demandez le message au rédacteur en donnant les dates."
+      },
+      {
+        "id": "t3",
+        "text": "Relisez, comparez avec la fiche, puis livrez."
+      }
+    ]
+  },
+  "hints": [
+    {
+      "level": 1,
+      "text": "Qu'est-ce que vos habitués doivent absolument savoir pour ne pas venir pour rien ?"
+    },
+    {
+      "level": 2,
+      "text": "Demandez-vous : votre demande contient-elle les deux dates et l'heure ?"
+    }
+  ],
+  "hint_forbidden_terms": [
+    "25 mai",
+    "26 mai",
+    "8 h"
+  ],
+  "reference_solution": {
+    "deliverable": "Le Café La Bobine sera exceptionnellement fermé le lundi 25 mai pour inventaire. Nous vous retrouvons dès le mardi 26 mai à 8 h, avec un café bien chaud. À très vite !",
+    "roles_used": [
+      "writer"
+    ],
+    "notes": "Solution de référence : tous les contrôles déterministes passent ; la note sémantique reste à établir par le client évaluateur.",
+    "expected_trace": {}
+  }
+}

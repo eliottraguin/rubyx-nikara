@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "coach_debrief",
+  "title": "Règles du coach, des indices et du bilan fondé sur les traces",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "integer"
+    },
+    "trace_signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "description",
+          "source"
+        ]
+      },
+      "minItems": 1
+    },
+    "competencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requires_signals": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "min_observations": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "statement_template": {
+            "type": "string",
+            "minLength": 1
+          },
+          "not_demonstrated_template": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "label",
+          "requires_signals",
+          "min_observations",
+          "statement_template",
+          "not_demonstrated_template"
+        ]
+      },
+      "minItems": 1
+    },
+    "coach_rules": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "token_tracking": {
+      "type": "object",
+      "properties": {
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1
+        },
+        "estimation_flag": {
+          "type": "string",
+          "minLength": 1
+        },
+        "thresholds_source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "on_threshold": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "fields",
+        "estimation_flag",
+        "thresholds_source",
+        "on_threshold"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "trace_signals",
+    "competencies",
+    "coach_rules",
+    "forbidden_claims",
+    "token_tracking"
+  ]
+}

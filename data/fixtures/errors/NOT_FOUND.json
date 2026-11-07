@@ -1,0 +1,9 @@
+{
+  "http_status": 404,
+  "body": {
+    "error": {
+      "code": "NOT_FOUND",
+      "message": "Ressource introuvable."
+    }
+  }
+}

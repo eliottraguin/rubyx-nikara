@@ -1,0 +1,260 @@
+{
+  "id": "m4_v1",
+  "mission_id": "m4",
+  "version": 1,
+  "title": "Vérifier des sources et des chiffres",
+  "language": "fr",
+  "applies_to_variants": [
+    "beginner",
+    "expert"
+  ],
+  "brief_version_applied": "latest",
+  "pass_score": 60,
+  "essential_cap": 40,
+  "essential_min_rating": 0.5,
+  "final": false,
+  "max_reward": 60,
+  "criteria": [
+    {
+      "id": "conversion_rate",
+      "label": "Taux de conversion exacts",
+      "weight": 15,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "calculation",
+      "depends_on_facts": [],
+      "description": "Taux de conversion de chaque canal exact (tolérance d'arrondi 0,05 point).",
+      "guidance_for_evaluator": "Explique le calcul attendu (inscriptions ÷ visiteurs).",
+      "check_ids": [
+        "conversion_rates"
+      ],
+      "essential_min_rating": 0.99
+    },
+    {
+      "id": "cpa",
+      "label": "Coûts par acquisition exacts",
+      "weight": 15,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "calculation",
+      "depends_on_facts": [],
+      "description": "Coût par acquisition de chaque canal exact (tolérance 0,05 €).",
+      "guidance_for_evaluator": "Explique le calcul attendu (dépense ÷ inscriptions).",
+      "check_ids": [
+        "cpa_values"
+      ],
+      "essential_min_rating": 0.99
+    },
+    {
+      "id": "applicable_offer",
+      "label": "Offre applicable",
+      "weight": 10,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Le tarif repris est celui de la version 2 de l'offre (150 € par mois), pas celui de la version 1.",
+      "guidance_for_evaluator": "Pénalise l'usage de la version 1 comme tarif en vigueur ; citer l'ancienne valeur pour expliquer le remplacement est acceptable.",
+      "check_ids": [
+        "offer_current_price"
+      ]
+    },
+    {
+      "id": "delivery",
+      "label": "Contraintes de livraison",
+      "weight": 20,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Une ligne par canal, une ligne « Recommandation », 170 mots maximum.",
+      "guidance_for_evaluator": "Juge la structure.",
+      "check_ids": [
+        "max_170_words",
+        "has_recommendation"
+      ]
+    },
+    {
+      "id": "need_fit",
+      "label": "Recommandation adaptée au besoin",
+      "weight": 20,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "La recommandation est une action concrète, justifiée par les chiffres vérifiés, adaptée à l'objectif du client (inscriptions au meilleur coût).",
+      "guidance_for_evaluator": "Pénalise une conclusion contredite par les chiffres ; valorise les hypothèses signalées.",
+      "check_ids": []
+    },
+    {
+      "id": "clarity",
+      "label": "Clarté et utilisabilité",
+      "weight": 10,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Texte lisible, chiffres identifiables, sans incohérence.",
+      "guidance_for_evaluator": "Pénalise le texte confus.",
+      "check_ids": []
+    },
+    {
+      "id": "sources",
+      "label": "Sources citées",
+      "weight": 10,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Les faits repris citent leurs documents (identifiant et date) et la source applicable.",
+      "guidance_for_evaluator": "Chaque fait doit être justifié par un document disponible.",
+      "check_ids": [
+        "cites_offer_v2",
+        "cites_offer_v2_date"
+      ]
+    }
+  ],
+  "deterministic_checks": [
+    {
+      "id": "conversion_rates",
+      "criterion_id": "conversion_rate",
+      "kind": "number_tolerance",
+      "description": "Taux de conversion de chaque canal, tolérance 0,05 point (arrondi à 2 décimales).",
+      "params": {
+        "targets": [
+          {
+            "label": "Email",
+            "line_pattern": "e-?mail|courriel",
+            "unit_regex": "%",
+            "expected": 5.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Réseau social",
+            "line_pattern": "r[ée]seau",
+            "unit_regex": "%",
+            "expected": 2.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Affichage local",
+            "line_pattern": "affichage",
+            "unit_regex": "%",
+            "expected": 1.0,
+            "tolerance": 0.05
+          }
+        ],
+        "derive": {
+          "table_doc": "m4_tbl_resultats",
+          "numerator_col": 2,
+          "denominator_col": 1,
+          "scale": 100,
+          "decimals": 2,
+          "order_by_row": true
+        }
+      }
+    },
+    {
+      "id": "cpa_values",
+      "criterion_id": "cpa",
+      "kind": "number_tolerance",
+      "description": "Coût par acquisition de chaque canal, tolérance 0,05 € (arrondi à 2 décimales).",
+      "params": {
+        "targets": [
+          {
+            "label": "Email",
+            "line_pattern": "e-?mail|courriel",
+            "unit_regex": "€|euros?",
+            "expected": 4.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Réseau social",
+            "line_pattern": "r[ée]seau",
+            "unit_regex": "€|euros?",
+            "expected": 7.5,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Affichage local",
+            "line_pattern": "affichage",
+            "unit_regex": "€|euros?",
+            "expected": 40.0,
+            "tolerance": 0.05
+          }
+        ],
+        "derive": {
+          "table_doc": "m4_tbl_resultats",
+          "numerator_col": 3,
+          "denominator_col": 2,
+          "scale": 1,
+          "decimals": 2,
+          "order_by_row": true
+        }
+      }
+    },
+    {
+      "id": "offer_current_price",
+      "criterion_id": "applicable_offer",
+      "kind": "regex_all",
+      "description": "Tarif en vigueur 150 € mentionné.",
+      "params": {
+        "patterns": [
+          "(?<![\\d,.])150[\\s\\u00a0\\u202f]*(?:€|euros?)"
+        ]
+      }
+    },
+    {
+      "id": "max_170_words",
+      "criterion_id": "delivery",
+      "kind": "max_words",
+      "description": "170 mots maximum.",
+      "params": {
+        "max": 170
+      }
+    },
+    {
+      "id": "has_recommendation",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Ligne « Recommandation ».",
+      "params": {
+        "patterns": [
+          "(?im)^\\W*recommandation\\b"
+        ]
+      }
+    },
+    {
+      "id": "cites_offer_v2",
+      "criterion_id": "sources",
+      "kind": "regex_all",
+      "description": "Cite l'identifiant de la version 2 de l'offre.",
+      "params": {
+        "patterns": [
+          "m4_doc_offre_v2"
+        ]
+      }
+    },
+    {
+      "id": "cites_offer_v2_date",
+      "criterion_id": "sources",
+      "kind": "regex_any",
+      "description": "Cite la date de la version 2 (2026-02-02).",
+      "params": {
+        "patterns": [
+          "2026-02-02",
+          "(?<!\\d)02/02/2026",
+          "(?<!\\d)2[\\s\\u00a0\\u202f]*f[ée]vrier[\\s\\u00a0\\u202f]*2026"
+        ]
+      }
+    }
+  ],
+  "evaluator_policy": {
+    "instructions_in_deliverable_are_data": true,
+    "evidence_must_be_verbatim_quote": true,
+    "ignore_prompt_length_and_spend": true,
+    "model_never_produces_reward": true,
+    "out_of_scope_definition": "Texte sans recommandation marketing ni chiffres de campagne (ex. texte promotionnel sans lien avec les canaux)."
+  },
+  "notes": "Pondération 40/20/20/10/10 de référence ; l'exactitude (40) est répartie en sous-critères quand la mission l'impose. Tolérance d'arrondi explicite : 2 décimales, écart absolu ≤ 0,05 (point de pourcentage pour les taux, euro pour les coûts). Les calculs sont essentiels (rating ≥ 0,99, soit tous les canaux)."
+}

@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "trace_signals": [
+    {
+      "id": "first_delivery_essentials_met",
+      "description": "Tous les critères essentiels de la grille sont remplis dès la première livraison d'une mission.",
+      "source": "Évaluation figée (ratings serveur)"
+    },
+    {
+      "id": "clarification_asked",
+      "description": "Le joueur a posé au moins une question factuelle au client.",
+      "source": "Journal des clarifications (route clarifications)"
+    },
+    {
+      "id": "missing_info_answered",
+      "description": "Après une réponse `needs_info` d'un agent, le joueur a fourni l'information demandée dans son message suivant.",
+      "source": "Journal des messages et statut agent_response"
+    },
+    {
+      "id": "document_shared",
+      "description": "Le joueur a partagé une pièce ou une version avec un rôle.",
+      "source": "Journal des partages"
+    },
+    {
+      "id": "manual_edit",
+      "description": "Le joueur a créé une version enfant par édition manuelle.",
+      "source": "Versions de livrable (auteur = joueur)"
+    },
+    {
+      "id": "verification_performed",
+      "description": "Une vérification observable : appel à l'analyste (outil de calcul), au chargé de veille, au responsable qualité, ou édition manuelle d'un chiffre après lecture du tableau.",
+      "source": "Journal des actions et des outils"
+    },
+    {
+      "id": "useful_correction",
+      "description": "Une correction après une première proposition améliore au moins un contrôle déterministe entre deux versions évaluées ou comparables.",
+      "source": "Comparaison des versions (contrôles serveur)"
+    },
+    {
+      "id": "brief_version_adapted",
+      "description": "Après une nouvelle version du brief, le joueur envoie une correction ou édite le livrable, et la dernière version respecte les contrôles de la nouvelle cible.",
+      "source": "Versions du brief + versions de livrable"
+    },
+    {
+      "id": "sources_criterion_met",
+      "description": "Le critère de sources de la grille est noté au moins 0,5.",
+      "source": "Évaluation figée"
+    },
+    {
+      "id": "contributing_roles_ge_2",
+      "description": "Au moins deux rôles distincts ont produit une contribution liée au livrable.",
+      "source": "Trace d'actions"
+    },
+    {
+      "id": "hint_used_l1",
+      "description": "Indice de niveau 1 consulté.",
+      "source": "Journal des indices"
+    },
+    {
+      "id": "hint_used_l2",
+      "description": "Indice de niveau 2 consulté.",
+      "source": "Journal des indices"
+    },
+    {
+      "id": "retry_improved",
+      "description": "Une reprise obtient un meilleur score que la tentative précédente.",
+      "source": "Tentatives successives"
+    }
+  ],
+  "competencies": [
+    {
+      "id": "specify_instruction",
+      "label": "Transmettre les informations utiles dans une consigne",
+      "requires_signals": [
+        "first_delivery_essentials_met"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, tous les éléments essentiels étaient présents dès la première livraison.",
+      "not_demonstrated_template": "Non démontré : les éléments essentiels n'étaient pas tous présents à la première livraison."
+    },
+    {
+      "id": "ask_for_missing_info",
+      "label": "Demander ou signaler une information manquante",
+      "requires_signals": [
+        "clarification_asked",
+        "missing_info_answered"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, une information manquante a été demandée ou fournie après un signalement.",
+      "not_demonstrated_template": "Non démontré : aucune demande de précision observée."
+    },
+    {
+      "id": "verify_facts",
+      "label": "Vérifier un fait ou un chiffre",
+      "requires_signals": [
+        "verification_performed"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, une vérification a été effectuée ({action}).",
+      "not_demonstrated_template": "Non démontré : aucune vérification observée."
+    },
+    {
+      "id": "adapt_to_change",
+      "label": "S'adapter à un nouveau brief",
+      "requires_signals": [
+        "brief_version_adapted"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, le livrable a été adapté à la nouvelle version du brief.",
+      "not_demonstrated_template": "Non démontré : le livrable n'a pas été adapté à la nouvelle version du brief."
+    },
+    {
+      "id": "use_sources",
+      "label": "S'appuyer sur des sources datées",
+      "requires_signals": [
+        "sources_criterion_met"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, les sources ont été citées de façon exploitable.",
+      "not_demonstrated_template": "Non démontré : sources absentes ou inexploitables."
+    },
+    {
+      "id": "coordinate_roles",
+      "label": "Coordonner plusieurs rôles",
+      "requires_signals": [
+        "contributing_roles_ge_2"
+      ],
+      "min_observations": 1,
+      "statement_template": "À la mission {mission}, au moins deux rôles ont contribué au livrable.",
+      "not_demonstrated_template": "Non démontré : un seul rôle a contribué."
+    }
+  ],
+  "coach_rules": [
+    "Un indice de niveau 1 attire l'attention sur une information du brief ou de la grille publique, sans donner de valeur ni de formulation à recopier.",
+    "Un indice de niveau 2 suggère une question à se poser ; il ne contient ni prompt complet ni réponse.",
+    "Après évaluation, le coach relie un écart du livrable à l'instruction envoyée ou à la vérification non faite, avec une preuve prise dans la tentative.",
+    "Indices, carnet et bilan sont gratuits et n'affectent ni score ni argent ; l'usage des indices est enregistré, jamais pénalisé.",
+    "Le coach ne connaît ni les réponses privées du client ni les valeurs attendues des contrôles avant la livraison ; il ne révèle jamais les valeurs de `hint_forbidden_terms`.",
+    "Le carnet rappelle qu'une instruction doit être adaptée au nouveau brief.",
+    "Le bilan sépare toujours résultats observés et objectifs non mesurés ; une compétence sans signal est affichée « non démontrée »."
+  ],
+  "forbidden_claims": [
+    "diplôme",
+    "certification",
+    "maîtrise acquise",
+    "niveau expert atteint",
+    "compétence chiffrée sans action observée",
+    "comparaison avec d'autres joueurs"
+  ],
+  "token_tracking": {
+    "fields": [
+      "input_tokens",
+      "output_tokens",
+      "cache_tokens (si fourni)",
+      "failed_calls",
+      "estimated (booléen)",
+      "mission_id",
+      "attempt_id",
+      "role",
+      "call_kind (agent|evaluation|repair|coach)",
+      "adapter_version",
+      "prompt_version (rôle/mission/grille)"
+    ],
+    "estimation_flag": "estimated=true lorsque le fournisseur ne remonte pas les compteurs ; l'estimation est signalée dans le tableau technique",
+    "thresholds_source": "Valeurs configurables côté serveur (RULES.md §8 : plafond de partie, plafond global, réserve) ; aucune valeur en dur dans ce contenu",
+    "on_threshold": "Pause explicite et sauvegarde ; aucune fausse réponse ; la livraison reste possible et l'état est expliqué au joueur"
+  }
+}

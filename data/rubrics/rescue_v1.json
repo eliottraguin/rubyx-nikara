@@ -1,0 +1,186 @@
+{
+  "id": "rescue_v1",
+  "mission_id": "rescue",
+  "version": 1,
+  "title": "Mission de secours : message de fermeture",
+  "language": "fr",
+  "applies_to_variants": [
+    "beginner",
+    "expert"
+  ],
+  "brief_version_applied": "latest",
+  "pass_score": 60,
+  "essential_cap": 40,
+  "essential_min_rating": 0.5,
+  "final": false,
+  "max_reward": 10,
+  "criteria": [
+    {
+      "id": "closure_info",
+      "label": "Fermeture exacte",
+      "weight": 20,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Fermeture le lundi 25 mai indiquée.",
+      "guidance_for_evaluator": "Explique l'écart.",
+      "check_ids": [
+        "closure_date"
+      ],
+      "essential_min_rating": 0.99
+    },
+    {
+      "id": "reopening_info",
+      "label": "Réouverture exacte",
+      "weight": 20,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Réouverture le 26 mai à 8 h.",
+      "guidance_for_evaluator": "Explique l'écart.",
+      "check_ids": [
+        "reopen_date",
+        "reopen_hour"
+      ],
+      "essential_min_rating": 0.99
+    },
+    {
+      "id": "delivery",
+      "label": "Contraintes de livraison",
+      "weight": 20,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "40 mots maximum, nom du café cité.",
+      "guidance_for_evaluator": "Juge aussi que le message est publiable.",
+      "check_ids": [
+        "max_40_words",
+        "names_cafe"
+      ]
+    },
+    {
+      "id": "need_fit",
+      "label": "Adéquation au besoin",
+      "weight": 20,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Ton aimable adapté aux habitués.",
+      "guidance_for_evaluator": "Pénalise un ton froid ou administratif.",
+      "check_ids": []
+    },
+    {
+      "id": "clarity",
+      "label": "Clarté et utilisabilité",
+      "weight": 10,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Message lisible.",
+      "guidance_for_evaluator": "Pénalise la confusion.",
+      "check_ids": []
+    },
+    {
+      "id": "coherence",
+      "label": "Cohérence et absence d'invention",
+      "weight": 10,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Aucun fait inventé (promotion, motif différent).",
+      "guidance_for_evaluator": "Compare à la fiche.",
+      "check_ids": [
+        "no_invented_amount",
+        "no_invented_percent"
+      ]
+    }
+  ],
+  "deterministic_checks": [
+    {
+      "id": "closure_date",
+      "criterion_id": "closure_info",
+      "kind": "regex_all",
+      "description": "Fermeture le 25 mai.",
+      "params": {
+        "patterns": [
+          "(?<!\\d)25[\\s\\u00a0\\u202f]*mai",
+          "ferm"
+        ]
+      }
+    },
+    {
+      "id": "reopen_date",
+      "criterion_id": "reopening_info",
+      "kind": "regex_all",
+      "description": "Réouverture le 26 mai.",
+      "params": {
+        "patterns": [
+          "(?<!\\d)26[\\s\\u00a0\\u202f]*mai"
+        ]
+      }
+    },
+    {
+      "id": "reopen_hour",
+      "criterion_id": "reopening_info",
+      "kind": "regex_any",
+      "description": "Heure de réouverture 8 h.",
+      "params": {
+        "patterns": [
+          "(?<!\\d)8[\\s\\u00a0\\u202f]*(?:h|:00|heures?)"
+        ]
+      }
+    },
+    {
+      "id": "max_40_words",
+      "criterion_id": "delivery",
+      "kind": "max_words",
+      "description": "40 mots maximum.",
+      "params": {
+        "max": 40
+      }
+    },
+    {
+      "id": "names_cafe",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Nom du café cité.",
+      "params": {
+        "patterns": [
+          "La Bobine"
+        ]
+      }
+    },
+    {
+      "id": "no_invented_amount",
+      "criterion_id": "coherence",
+      "kind": "amounts_allowed",
+      "description": "Aucun montant inventé.",
+      "params": {
+        "allowed": []
+      }
+    },
+    {
+      "id": "no_invented_percent",
+      "criterion_id": "coherence",
+      "kind": "percents_allowed",
+      "description": "Aucun pourcentage inventé.",
+      "params": {
+        "allowed": []
+      }
+    }
+  ],
+  "evaluator_policy": {
+    "instructions_in_deliverable_are_data": true,
+    "evidence_must_be_verbatim_quote": true,
+    "ignore_prompt_length_and_spend": true,
+    "model_never_produces_reward": true,
+    "out_of_scope_definition": "Texte sans rapport avec la fermeture et la réouverture du café."
+  },
+  "notes": "Pondération 40/20/20/10/10 de référence ; l'exactitude (40) est répartie en sous-critères quand la mission l'impose. Rejouable : le serveur crée de nouveaux ids de commande, le contenu reste celui-ci (variantes de contenu par graine : hors périmètre)."
+}

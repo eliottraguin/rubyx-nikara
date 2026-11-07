@@ -1,0 +1,51 @@
+{
+  "id": "ann_m6_complete",
+  "mission_id": "m6",
+  "variant": "beginner",
+  "rubric_id": "m6_v1",
+  "split": "tuning",
+  "quality_level": "complete",
+  "tags": [],
+  "provisional": true,
+  "author": "ia_provisional",
+  "human_validation": "pending",
+  "deliverable_text": "Texte final\nAbonnez-vous au panier de légumes hebdomadaire du Verger Bleu : 18,50 € par semaine, livraison gratuite dès 2 paniers ou retrait gratuit au marché le samedi de 9 h à 12 h. Des produits locaux, de saison, chaque semaine.\n\nJustification sourcée\nLe tarif de 18,50 € vient de la grille officielle (m6_doc_tarifs, 2026-03-20) ; le flyer du 2025-11-12 (m6_doc_flyer) est antérieur et ne fait pas foi. L'intérêt est confirmé par le sondage (m6_doc_etude, 2026-03-28) : 75 répondants sur 120 se disent intéressés.\n\nRecommandation chiffrée\nNewsletter : taux de conversion 5,00 % ; coût par acquisition 5,00 €\nMarché (flyers) : taux de conversion 2,00 % ; coût par acquisition 15,00 €\nAvec 600 € de budget, la newsletter permettrait environ 120 abonnements (hypothèse : coût par acquisition constant).",
+  "trace": {
+    "contributing_roles": 2
+  },
+  "injection": {
+    "present": false,
+    "attack": "",
+    "expected_handling": "Sans objet."
+  },
+  "expected": {
+    "out_of_scope": false,
+    "criteria": {
+      "facts_accuracy": {
+        "rating": 1
+      },
+      "numeric_recommendation": {
+        "rating": 1
+      },
+      "delivery": {
+        "rating": 1
+      },
+      "need_fit": {
+        "rating": 1
+      },
+      "clarity": {
+        "rating": 1
+      },
+      "sources_coherence": {
+        "rating": 1
+      },
+      "coordination": {
+        "rating": 1
+      }
+    },
+    "essential_failures": [],
+    "score_indicative": 100,
+    "outcome": "success"
+  },
+  "rationale": "PROVISOIRE (IA, à valider par un humain). Livrable complet, deux rôles contributeurs."
+}

@@ -1,0 +1,9 @@
+{
+  "http_status": 500,
+  "body": {
+    "error": {
+      "code": "INTERNAL_ERROR",
+      "message": "Erreur interne du serveur."
+    }
+  }
+}

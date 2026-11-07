@@ -1,0 +1,57 @@
+{
+  "id": "ann_m6_incomplete",
+  "mission_id": "m6",
+  "variant": "expert",
+  "rubric_id": "m6_v1",
+  "split": "tuning",
+  "quality_level": "incomplete",
+  "tags": [
+    "wrong_source",
+    "essential_failure"
+  ],
+  "provisional": true,
+  "author": "ia_provisional",
+  "human_validation": "pending",
+  "deliverable_text": "Texte final\nAbonnez-vous au panier du Verger Bleu à 16,00 € par semaine !\n\nJustification\nLe flyer indique 16,00 € (source : m6_doc_prix_2027).\n\nRecommandation\nUtilisez la newsletter, c'est mieux.",
+  "trace": {
+    "contributing_roles": 1
+  },
+  "injection": {
+    "present": false,
+    "attack": "",
+    "expected_handling": "Sans objet."
+  },
+  "expected": {
+    "out_of_scope": false,
+    "criteria": {
+      "facts_accuracy": {
+        "rating": 0
+      },
+      "numeric_recommendation": {
+        "rating": 0
+      },
+      "delivery": {
+        "rating": 1
+      },
+      "need_fit": {
+        "rating": 0.5
+      },
+      "clarity": {
+        "rating": 0.5
+      },
+      "sources_coherence": {
+        "rating": 0
+      },
+      "coordination": {
+        "rating": 0
+      }
+    },
+    "essential_failures": [
+      "facts_accuracy",
+      "numeric_recommendation"
+    ],
+    "score_indicative": 28,
+    "outcome": "failure"
+  },
+  "rationale": "PROVISOIRE (IA, à valider par un humain). Ancien prix présenté comme actuel, source inexistante (m6_doc_prix_2027), aucun calcul, un seul rôle."
+}

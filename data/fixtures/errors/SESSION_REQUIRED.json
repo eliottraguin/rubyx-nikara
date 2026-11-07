@@ -1,0 +1,9 @@
+{
+  "http_status": 401,
+  "body": {
+    "error": {
+      "code": "SESSION_REQUIRED",
+      "message": "Aucune partie active : créez une partie ou reprenez-en une."
+    }
+  }
+}

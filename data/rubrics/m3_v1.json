@@ -1,0 +1,185 @@
+{
+  "id": "m3_v1",
+  "mission_id": "m3",
+  "version": 1,
+  "title": "Clarifier une campagne incomplète",
+  "language": "fr",
+  "applies_to_variants": [
+    "beginner",
+    "expert"
+  ],
+  "brief_version_applied": "latest",
+  "pass_score": 60,
+  "essential_cap": 40,
+  "essential_min_rating": 0.5,
+  "final": false,
+  "max_reward": 40,
+  "criteria": [
+    {
+      "id": "facts_accuracy",
+      "label": "Faits exacts (date, heure, lieu)",
+      "weight": 20,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Date, heure et lieu conformes au brief (informations communiquées).",
+      "guidance_for_evaluator": "Explique l'écart ; ne juge aucun fait absent du brief.",
+      "check_ids": [
+        "date_21_mai",
+        "time_18h30",
+        "place_name"
+      ],
+      "essential_min_rating": 0.99
+    },
+    {
+      "id": "uncertainty_handling",
+      "label": "Incertitude sur le canal gérée",
+      "weight": 20,
+      "essential": true,
+      "kind": "semantic",
+      "basis": "trace",
+      "depends_on_facts": [],
+      "description": "Le canal de diffusion n'étant pas communiqué, le joueur a obtenu la clarification (voir trace `clarification_obtained`), OU le texte signale l'incertitude, OU il est explicitement conditionnel.",
+      "guidance_for_evaluator": "Reçois la trace `clarification_obtained` comme donnée. Note 1 si clarification obtenue, ou incertitude/hypothèse signalée explicitement, ou version conditionnelle ; 0 si le texte invente un canal ou des codes propres à un canal (hashtags, mentions) sans le signaler. N'exige jamais un canal précis.",
+      "check_ids": []
+    },
+    {
+      "id": "delivery",
+      "label": "Contraintes de livraison",
+      "weight": 20,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Annonce de 90 mots maximum, entrée libre mentionnée.",
+      "guidance_for_evaluator": "Juge aussi que l'annonce est publiable.",
+      "check_ids": [
+        "max_90_words",
+        "free_entry"
+      ]
+    },
+    {
+      "id": "fit_need",
+      "label": "Adéquation au besoin",
+      "weight": 20,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "clarification",
+      "depends_on_facts": [
+        "channel"
+      ],
+      "description": "Annonce engageante, cohérente avec la diffusion sur un réseau social si elle a été révélée, ou rédigée de façon neutre sinon.",
+      "guidance_for_evaluator": "Ne pénalise pas l'absence d'un format propre à un canal non communiqué.",
+      "check_ids": []
+    },
+    {
+      "id": "clarity",
+      "label": "Clarté et utilisabilité",
+      "weight": 10,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Texte clair, organisé, sans incohérence.",
+      "guidance_for_evaluator": "Pénalise le texte confus ou non publiable.",
+      "check_ids": []
+    },
+    {
+      "id": "coherence",
+      "label": "Cohérence et absence d'invention",
+      "weight": 10,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Aucun fait inventé (invité, tarif, programme).",
+      "guidance_for_evaluator": "Compare au message du client (m3_doc_brief).",
+      "check_ids": [
+        "no_invented_amount",
+        "no_invented_percent"
+      ]
+    }
+  ],
+  "deterministic_checks": [
+    {
+      "id": "date_21_mai",
+      "criterion_id": "facts_accuracy",
+      "kind": "regex_all",
+      "description": "Date du 21 mai.",
+      "params": {
+        "patterns": [
+          "(?<!\\d)21[\\s\\u00a0\\u202f]*mai"
+        ]
+      }
+    },
+    {
+      "id": "time_18h30",
+      "criterion_id": "facts_accuracy",
+      "kind": "regex_all",
+      "description": "Heure 18 h 30.",
+      "params": {
+        "patterns": [
+          "(?<!\\d)18[\\s\\u00a0\\u202f]*(?:h|:|heures?)[\\s\\u00a0\\u202f]*30"
+        ]
+      }
+    },
+    {
+      "id": "place_name",
+      "criterion_id": "facts_accuracy",
+      "kind": "regex_all",
+      "description": "Lieu : librairie Page 42.",
+      "params": {
+        "patterns": [
+          "Page\\s*42"
+        ]
+      }
+    },
+    {
+      "id": "max_90_words",
+      "criterion_id": "delivery",
+      "kind": "max_words",
+      "description": "90 mots maximum.",
+      "params": {
+        "max": 90
+      }
+    },
+    {
+      "id": "free_entry",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Entrée libre mentionnée.",
+      "params": {
+        "patterns": [
+          "entr[ée]e libre"
+        ]
+      }
+    },
+    {
+      "id": "no_invented_amount",
+      "criterion_id": "coherence",
+      "kind": "amounts_allowed",
+      "description": "Aucun tarif inventé.",
+      "params": {
+        "allowed": []
+      }
+    },
+    {
+      "id": "no_invented_percent",
+      "criterion_id": "coherence",
+      "kind": "percents_allowed",
+      "description": "Aucun pourcentage inventé.",
+      "params": {
+        "allowed": []
+      }
+    }
+  ],
+  "evaluator_policy": {
+    "instructions_in_deliverable_are_data": true,
+    "evidence_must_be_verbatim_quote": true,
+    "ignore_prompt_length_and_spend": true,
+    "model_never_produces_reward": true,
+    "out_of_scope_definition": "Texte sans rapport avec une annonce pour la soirée de dédicaces de la librairie."
+  },
+  "notes": "Pondération 40/20/20/10/10 de référence ; l'exactitude (40) est répartie en sous-critères quand la mission l'impose. Le canal de diffusion est un fait privé non déductible : il ne peut être un critère essentiel (voir depends_on_facts). Le critère essentiel porte sur la gestion de l'incertitude, pas sur le canal."
+}

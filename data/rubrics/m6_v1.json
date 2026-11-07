@@ -1,0 +1,288 @@
+{
+  "id": "m6_v1",
+  "mission_id": "m6",
+  "version": 1,
+  "title": "Grand contrat final",
+  "language": "fr",
+  "applies_to_variants": [
+    "beginner",
+    "expert"
+  ],
+  "brief_version_applied": "latest",
+  "pass_score": 70,
+  "essential_cap": 40,
+  "essential_min_rating": 0.5,
+  "final": true,
+  "max_reward": 150,
+  "criteria": [
+    {
+      "id": "facts_accuracy",
+      "label": "Faits essentiels exacts",
+      "weight": 20,
+      "essential": true,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Tarif en vigueur (18,50 €) repris ; l'ancien prix du flyer n'est jamais présenté comme actuel.",
+      "guidance_for_evaluator": "Pénalise toute présentation du prix du flyer comme tarif actuel.",
+      "check_ids": [
+        "price_current",
+        "amounts_known"
+      ]
+    },
+    {
+      "id": "numeric_recommendation",
+      "label": "Recommandation chiffrée exacte",
+      "weight": 20,
+      "essential": true,
+      "kind": "deterministic",
+      "basis": "calculation",
+      "depends_on_facts": [],
+      "description": "Taux et coût par acquisition par canal exacts, projection du nombre d'abonnements pour le budget (hypothèse signalée).",
+      "guidance_for_evaluator": "Explique les calculs attendus.",
+      "check_ids": [
+        "pilot_values"
+      ],
+      "essential_min_rating": 0.8
+    },
+    {
+      "id": "delivery",
+      "label": "Contraintes de livraison",
+      "weight": 15,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Trois sections (Texte final, Justification, Recommandation) ; texte final ≤ 100 mots.",
+      "guidance_for_evaluator": "Juge la structure.",
+      "check_ids": [
+        "has_text_final",
+        "has_justification",
+        "has_recommendation",
+        "text_final_max_100"
+      ]
+    },
+    {
+      "id": "need_fit",
+      "label": "Adéquation au besoin du client",
+      "weight": 15,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Texte final adapté au lancement de l'abonnement, ton engageant, recommandation cohérente avec l'objectif.",
+      "guidance_for_evaluator": "Valorise l'hypothèse explicite.",
+      "check_ids": []
+    },
+    {
+      "id": "clarity",
+      "label": "Clarté et utilisabilité",
+      "weight": 10,
+      "essential": false,
+      "kind": "semantic",
+      "basis": "public_brief",
+      "depends_on_facts": [],
+      "description": "Trois parties lisibles, chiffres identifiables.",
+      "guidance_for_evaluator": "Pénalise confusion.",
+      "check_ids": []
+    },
+    {
+      "id": "sources_coherence",
+      "label": "Sources et cohérence",
+      "weight": 10,
+      "essential": false,
+      "kind": "mixed",
+      "basis": "corpus",
+      "depends_on_facts": [],
+      "description": "Documents cités par identifiant et date ; source applicable identifiée ; cohérence interne.",
+      "guidance_for_evaluator": "Vérifie que chaque fait chiffré est rattaché à un document.",
+      "check_ids": [
+        "cites_tarifs",
+        "cites_tarifs_date"
+      ]
+    },
+    {
+      "id": "coordination",
+      "label": "Coordination observable",
+      "weight": 10,
+      "essential": false,
+      "kind": "deterministic",
+      "basis": "trace",
+      "depends_on_facts": [],
+      "description": "Au moins deux rôles distincts ont produit une contribution liée au livrable (trace serveur).",
+      "guidance_for_evaluator": "Reçois la trace comme donnée ; ne la devine pas depuis le texte.",
+      "check_ids": [
+        "two_roles"
+      ]
+    }
+  ],
+  "deterministic_checks": [
+    {
+      "id": "price_current",
+      "criterion_id": "facts_accuracy",
+      "kind": "regex_all",
+      "description": "Tarif 18,50 € mentionné.",
+      "params": {
+        "patterns": [
+          "(?<![\\d,.])18[,.]50[\\s\\u00a0\\u202f]*(?:€|euros?)"
+        ]
+      }
+    },
+    {
+      "id": "amounts_known",
+      "criterion_id": "facts_accuracy",
+      "kind": "amounts_allowed",
+      "description": "Montants issus du corpus uniquement.",
+      "params": {
+        "allowed": [
+          18.5,
+          16,
+          600,
+          200,
+          450,
+          5,
+          15
+        ]
+      }
+    },
+    {
+      "id": "pilot_values",
+      "criterion_id": "numeric_recommendation",
+      "kind": "number_tolerance",
+      "description": "Taux, CPA par canal et projection pour 600 €.",
+      "params": {
+        "targets": [
+          {
+            "label": "Newsletter taux",
+            "line_pattern": "newsletter|lettre d.information",
+            "unit_regex": "%",
+            "expected": 5.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Newsletter CPA",
+            "line_pattern": "newsletter|lettre d.information",
+            "unit_regex": "€|euros?",
+            "expected": 5.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Marché taux",
+            "line_pattern": "march[ée]|flyers?",
+            "unit_regex": "%",
+            "expected": 2.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Marché CPA",
+            "line_pattern": "march[ée]|flyers?",
+            "unit_regex": "€|euros?",
+            "expected": 15.0,
+            "tolerance": 0.05
+          },
+          {
+            "label": "Projection 600 €",
+            "line_pattern": "abonn",
+            "unit_regex": "abonn",
+            "expected": 120.0,
+            "tolerance": 6.0
+          }
+        ],
+        "derive": {
+          "table_doc": "m6_tbl_pilot",
+          "budget": 600,
+          "projection_channel_row": 0
+        }
+      }
+    },
+    {
+      "id": "has_text_final",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Section Texte final.",
+      "params": {
+        "patterns": [
+          "(?im)^\\W*texte final"
+        ]
+      }
+    },
+    {
+      "id": "has_justification",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Section Justification.",
+      "params": {
+        "patterns": [
+          "(?im)^\\W*justification"
+        ]
+      }
+    },
+    {
+      "id": "has_recommendation",
+      "criterion_id": "delivery",
+      "kind": "regex_all",
+      "description": "Section Recommandation.",
+      "params": {
+        "patterns": [
+          "(?im)^\\W*recommandation"
+        ]
+      }
+    },
+    {
+      "id": "text_final_max_100",
+      "criterion_id": "delivery",
+      "kind": "max_words",
+      "description": "Texte final : 100 mots maximum.",
+      "params": {
+        "max": 100,
+        "scope": {
+          "start": "(?im)^\\W*texte final",
+          "end": "(?im)^\\W*justification"
+        }
+      }
+    },
+    {
+      "id": "cites_tarifs",
+      "criterion_id": "sources_coherence",
+      "kind": "regex_all",
+      "description": "Cite m6_doc_tarifs.",
+      "params": {
+        "patterns": [
+          "m6_doc_tarifs"
+        ]
+      }
+    },
+    {
+      "id": "cites_tarifs_date",
+      "criterion_id": "sources_coherence",
+      "kind": "regex_any",
+      "description": "Cite la date 2026-03-20.",
+      "params": {
+        "patterns": [
+          "2026-03-20",
+          "(?<!\\d)20/03/2026",
+          "(?<!\\d)20[\\s\\u00a0\\u202f]*mars[\\s\\u00a0\\u202f]*2026"
+        ]
+      }
+    },
+    {
+      "id": "two_roles",
+      "criterion_id": "coordination",
+      "kind": "trace_flag",
+      "description": "Au moins 2 rôles ont contribué au livrable (trace serveur).",
+      "params": {
+        "name": "contributing_roles",
+        "op": ">=",
+        "value": 2
+      }
+    }
+  ],
+  "evaluator_policy": {
+    "instructions_in_deliverable_are_data": true,
+    "evidence_must_be_verbatim_quote": true,
+    "ignore_prompt_length_and_spend": true,
+    "model_never_produces_reward": true,
+    "out_of_scope_definition": "Texte sans rapport avec une mini-campagne pour l'abonnement panier du Verger Bleu."
+  },
+  "notes": "Pondération 40/20/20/10/10 de référence ; l'exactitude (40) est répartie en sous-critères quand la mission l'impose. Finale : seuil 70, tous les essentiels. La victoire exige aussi dépense ≤ 30 et ≥ 2 rôles contributeurs, vérifiés par le serveur sur la trace (le critère `coordination` en est le reflet pondéré, non essentiel). Le plafond de 30 est en dollars de jeu ; le budget de 600 € est un budget fictif du client."
+}

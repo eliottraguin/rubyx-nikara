@@ -1,0 +1,97 @@
+{
+  "id": "m2_expert_v1",
+  "mission_id": "m2",
+  "mode": "expert",
+  "version": 1,
+  "title": "Prospection : un commerce, un besoin, une action",
+  "company_context": "Votre agence enrichit son portefeuille de commerces de proximité.",
+  "rubric_id": "m2_v1",
+  "economy": {
+    "max_reward": 30,
+    "unit_price": 1,
+    "unlocks": [
+      "researcher",
+      "qa"
+    ],
+    "spend_cap": null,
+    "min_contributing_roles": 0
+  },
+  "roles_usable": [
+    "writer",
+    "prospector"
+  ],
+  "message_quota": 5,
+  "brief": {
+    "version": 1,
+    "client_name": "Prospects du catalogue fictif",
+    "summary": "Sélectionnez le prospect le plus pertinent du catalogue et préparez une approche courte, argumentée par la fiche.",
+    "objective": "Livrer un email de prospection motivé, sans envoi réel.",
+    "facts": [
+      {
+        "id": "offer",
+        "label": "Offre de l'entreprise",
+        "value": "Publications, annonces et emails pour commerces de proximité",
+        "essential": true,
+        "source": "m2_doc_offre"
+      },
+      {
+        "id": "catalog",
+        "label": "Catalogue",
+        "value": "8 fiches, certaines hors offre",
+        "essential": true,
+        "source": "m2_cat"
+      },
+      {
+        "id": "format",
+        "label": "Format",
+        "value": "Email court, ligne « Fiche : Pxx » en tête, aucun envoi",
+        "essential": false,
+        "source": "m2_doc_offre"
+      }
+    ],
+    "constraints": [
+      "Première ligne : « Fiche : » suivie de l'identifiant retenu",
+      "Ligne « Objet : »",
+      "120 mots maximum hors première ligne",
+      "Une action réaliste proposée"
+    ],
+    "deliverable_format": "Email : ligne Fiche, ligne Objet, corps.",
+    "missing_on_purpose": []
+  },
+  "corpus_refs": [
+    "m2_doc_offre",
+    "m2_cat"
+  ],
+  "client": {
+    "persona": "Directeur commercial, exigeant sur la justification.",
+    "private_facts": [],
+    "default_answer": "Aucune information en dehors du catalogue et de l'offre.",
+    "max_questions": 2
+  },
+  "events": [],
+  "tutorial": null,
+  "hints": [
+    {
+      "level": 1,
+      "text": "L'offre de l'agence couvre-t-elle tous les besoins listés dans le catalogue ?"
+    },
+    {
+      "level": 2,
+      "text": "Qu'est-ce qui, dans la fiche choisie, justifie votre accroche ?"
+    }
+  ],
+  "hint_forbidden_terms": [
+    "P03",
+    "P01",
+    "P05",
+    "P07"
+  ],
+  "reference_solution": {
+    "deliverable": "Fiche : P03\nObjet : Votre soirée de dédicaces, bien annoncée\nBonjour, vous souhaitez annoncer une soirée de dédicaces à la librairie Page 42. Nous rédigeons pour les commerces de proximité des publications et des emails clairs, prêts à diffuser. Seriez-vous disponible pour un échange de 15 minutes cette semaine ? Je vous présenterais ensuite un exemple de publication pour votre soirée. Cordialement.",
+    "roles_used": [
+      "writer"
+    ],
+    "notes": "Le prospecteur n'est pas obligatoire : le rédacteur seul peut analyser le catalogue. Les propositions retenues ouvrent la commande M3 (client P03 du catalogue scénarisé).",
+    "expected_trace": {}
+  }
+}

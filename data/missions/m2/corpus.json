@@ -1,0 +1,128 @@
+{
+  "mission_id": "m2",
+  "version": 1,
+  "documents": [
+    {
+      "id": "m2_doc_offre",
+      "title": "Offre de l'entreprise",
+      "kind": "document",
+      "date": "2026-05-08",
+      "authority": "Entreprise du joueur",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Offre de l'entreprise : rédaction de publications, d'annonces et d'emails de communication pour les commerces de proximité.\nHors offre : recrutement, logiciels, achats de pièces, logistique et transport."
+    },
+    {
+      "id": "m2_cat",
+      "title": "Catalogue fictif de prospects",
+      "kind": "catalog",
+      "date": "2026-05-08",
+      "authority": "Catalogue scénarisé",
+      "status": "current",
+      "visibility": "public",
+      "added_by_event": null,
+      "text": "Catalogue fictif de prospects (8 fiches).\nP01 — Boulangerie Les Épis Dorés (Boulangerie). Besoin déclaré : Faire connaître sa nouvelle formule petit-déjeuner. Préférence de contact : email.\nP02 — Garage Durand Auto (Garage automobile). Besoin déclaré : Trouver des pièces détachées à prix négociés. Préférence de contact : téléphone.\nP03 — Librairie Page 42 (Librairie). Besoin déclaré : Annoncer une soirée de dédicaces. Préférence de contact : email.\nP04 — Cabinet Lemaire Comptabilité (Expert-comptable). Besoin déclaré : Choisir un logiciel de facturation. Préférence de contact : courrier.\nP05 — Fleuriste Pétale & Co (Fleuriste). Besoin déclaré : Promouvoir ses bouquets de la fête des mères. Préférence de contact : email.\nP06 — Salle de sport Énergie+ (Salle de sport). Besoin déclaré : Recruter deux coachs sportifs. Préférence de contact : téléphone.\nP07 — Café associatif La Bobine (Café associatif). Besoin déclaré : Relancer ses abonnés avec une lettre d'information mensuelle. Préférence de contact : email.\nP08 — Rapido Fret (Transport de marchandises). Besoin déclaré : Optimiser ses tournées de livraison. Préférence de contact : téléphone.",
+      "data": {
+        "entries": [
+          {
+            "id": "P01",
+            "name": "Boulangerie Les Épis Dorés",
+            "sector": "Boulangerie",
+            "needs": [
+              "Faire connaître sa nouvelle formule petit-déjeuner"
+            ],
+            "contact_preference": "email",
+            "server_only": {
+              "in_offer": true
+            }
+          },
+          {
+            "id": "P02",
+            "name": "Garage Durand Auto",
+            "sector": "Garage automobile",
+            "needs": [
+              "Trouver des pièces détachées à prix négociés"
+            ],
+            "contact_preference": "téléphone",
+            "server_only": {
+              "in_offer": false
+            }
+          },
+          {
+            "id": "P03",
+            "name": "Librairie Page 42",
+            "sector": "Librairie",
+            "needs": [
+              "Annoncer une soirée de dédicaces"
+            ],
+            "contact_preference": "email",
+            "server_only": {
+              "in_offer": true
+            }
+          },
+          {
+            "id": "P04",
+            "name": "Cabinet Lemaire Comptabilité",
+            "sector": "Expert-comptable",
+            "needs": [
+              "Choisir un logiciel de facturation"
+            ],
+            "contact_preference": "courrier",
+            "server_only": {
+              "in_offer": false
+            }
+          },
+          {
+            "id": "P05",
+            "name": "Fleuriste Pétale & Co",
+            "sector": "Fleuriste",
+            "needs": [
+              "Promouvoir ses bouquets de la fête des mères"
+            ],
+            "contact_preference": "email",
+            "server_only": {
+              "in_offer": true
+            }
+          },
+          {
+            "id": "P06",
+            "name": "Salle de sport Énergie+",
+            "sector": "Salle de sport",
+            "needs": [
+              "Recruter deux coachs sportifs"
+            ],
+            "contact_preference": "téléphone",
+            "server_only": {
+              "in_offer": false
+            }
+          },
+          {
+            "id": "P07",
+            "name": "Café associatif La Bobine",
+            "sector": "Café associatif",
+            "needs": [
+              "Relancer ses abonnés avec une lettre d'information mensuelle"
+            ],
+            "contact_preference": "email",
+            "server_only": {
+              "in_offer": true
+            }
+          },
+          {
+            "id": "P08",
+            "name": "Rapido Fret",
+            "sector": "Transport de marchandises",
+            "needs": [
+              "Optimiser ses tournées de livraison"
+            ],
+            "contact_preference": "téléphone",
+            "server_only": {
+              "in_offer": false
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

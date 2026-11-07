@@ -1,0 +1,9 @@
+{
+  "http_status": 422,
+  "body": {
+    "error": {
+      "code": "INVALID_OUTPUT",
+      "message": "La réponse du modèle est inexploitable, même après réparation. Rien n'a été débité."
+    }
+  }
+}

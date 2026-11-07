@@ -1,0 +1,169 @@
+{
+  "id": "m3_expert_v1",
+  "mission_id": "m3",
+  "mode": "expert",
+  "version": 1,
+  "title": "Annonce : brief lacunaire",
+  "company_context": "Votre agence reçoit un brief par email, sans cahier des charges.",
+  "rubric_id": "m3_v1",
+  "economy": {
+    "max_reward": 40,
+    "unit_price": 1,
+    "unlocks": [
+      "analyst"
+    ],
+    "spend_cap": null,
+    "min_contributing_roles": 0
+  },
+  "roles_usable": [
+    "writer",
+    "prospector",
+    "researcher",
+    "qa"
+  ],
+  "message_quota": 5,
+  "brief": {
+    "version": 1,
+    "client_name": "Librairie Page 42",
+    "summary": "Le client demande « une annonce pour jeudi » ; le message ne précise pas la diffusion.",
+    "objective": "Livrer une annonce fidèle aux faits connus. Les zones d'ombre doivent être levées auprès du client (2 questions) ou signalées.",
+    "facts": [
+      {
+        "id": "date",
+        "label": "Date",
+        "value": "jeudi 21 mai 2026",
+        "essential": true,
+        "source": "m3_doc_brief"
+      },
+      {
+        "id": "time",
+        "label": "Heure",
+        "value": "18 h 30",
+        "essential": true,
+        "source": "m3_doc_brief"
+      },
+      {
+        "id": "place",
+        "label": "Lieu",
+        "value": "Librairie Page 42, 8 place du Marché",
+        "essential": true,
+        "source": "m3_doc_brief"
+      },
+      {
+        "id": "free",
+        "label": "Entrée",
+        "value": "libre",
+        "essential": false,
+        "source": "m3_doc_brief"
+      },
+      {
+        "id": "guest",
+        "label": "Invitée",
+        "value": "Claire Vasseur, « Les Lueurs de Marée »",
+        "essential": false,
+        "source": "m3_doc_brief"
+      }
+    ],
+    "constraints": [
+      "90 mots maximum",
+      "Entrée libre à mentionner",
+      "Aucune invention"
+    ],
+    "deliverable_format": "Annonce prête à publier, avec hypothèses explicites le cas échéant.",
+    "missing_on_purpose": [
+      "Canal de diffusion"
+    ]
+  },
+  "corpus_refs": [
+    "m3_doc_brief",
+    "m3_doc_fiche"
+  ],
+  "client": {
+    "persona": "Libraire occupée, répond brièvement.",
+    "private_facts": [
+      {
+        "id": "channel",
+        "answer": "L'annonce sera diffusée sur un réseau social, sous forme de publication courte.",
+        "trigger_keywords": [
+          "canal",
+          "diffus",
+          "plateforme",
+          "réseau",
+          "support",
+          "publier",
+          "publiée",
+          "où"
+        ],
+        "creates_brief_version": 3,
+        "brief_diff": [
+          {
+            "field": "Canal de diffusion",
+            "before": "non précisé — à clarifier avec le client ou à signaler comme hypothèse",
+            "after": "réseau social (publication courte)"
+          }
+        ]
+      },
+      {
+        "id": "tone",
+        "answer": "Un ton chaleureux et simple, sans jargon.",
+        "trigger_keywords": [
+          "ton",
+          "style",
+          "registre"
+        ],
+        "creates_brief_version": null,
+        "brief_diff": []
+      }
+    ],
+    "default_answer": "Je ne peux pas vous en dire plus.",
+    "max_questions": 2
+  },
+  "events": [
+    {
+      "id": "ev_m3_context_incomplete",
+      "type": "incomplete_context",
+      "trigger": "mission_start",
+      "normal_play": true,
+      "demo_selectable": true,
+      "description": "Le brief ne précise pas le canal de diffusion ; le client le connaît.",
+      "creates_brief_version": 2,
+      "brief_diff": [
+        {
+          "field": "Canal de diffusion",
+          "before": "(absent)",
+          "after": "non communiqué — à clarifier avec le client ou à signaler comme hypothèse"
+        }
+      ],
+      "added_documents": [],
+      "fairness_rule": "Le joueur peut partager la pièce ou poser jusqu'à 2 questions au client ; l'information n'est jamais un critère essentiel caché.",
+      "correction_credit": null
+    }
+  ],
+  "tutorial": null,
+  "hints": [
+    {
+      "level": 1,
+      "text": "Quels éléments du message du client restent flous pour un rédacteur ?"
+    },
+    {
+      "level": 2,
+      "text": "Quelle question en une phrase lèverait le plus grand doute ?"
+    }
+  ],
+  "hint_forbidden_terms": [
+    "réseau social",
+    "Instagram",
+    "21 mai",
+    "18 h 30"
+  ],
+  "reference_solution": {
+    "deliverable": "Soirée dédicaces à la librairie Page 42 ! Rencontrez Claire Vasseur, autrice de « Les Lueurs de Marée », le jeudi 21 mai à 18 h 30, au 8 place du Marché. Entrée libre. (Texte à adapter une fois le canal de diffusion confirmé.)",
+    "roles_used": [
+      "writer"
+    ],
+    "notes": "Solution de référence : tous les contrôles déterministes passent ; la note sémantique reste à établir par le client évaluateur.",
+    "expected_trace": {
+      "clarification_obtained": true
+    }
+  }
+}
