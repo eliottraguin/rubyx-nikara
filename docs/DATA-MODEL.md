@@ -12,7 +12,7 @@
 | `Message` | `id`, `attempt_id`, `role`, `author` (joueur/agent), texte, pièces liées, `status`, `action_id` |
 | `ArtifactVersion` | `id`, `attempt_id`, `type`, contenu, `parent_id`, `author` (agent/joueur), sources, contributions liées — **immuable** |
 | `Submission` | `id`, `artifact_version_id`, `brief_version`, empreinte (hash), grille figée, `status` |
-| `Evaluation` | `submission_id` **unique**, modèle, `judge_version`, critères, `score` calculé, preuves, `status` |
+| `Evaluation` | `submission_id` **unique**, modèle, `judge_version`, critères, `score` calculé, preuves, `status`, `report` (retour client, réussite, paiement ; BE06) |
 | `LedgerEntry` | `id`, `session_id`, montant entier signé, catégorie, `source_action` **unique**, `state` |
 | `ActionRun` | `id`, `idempotency_key` **unique**, type, réservation, `status`, étapes, erreur |
 | `LLMCall` | `action_id`, rôle, modèle, usage (mesuré/estimé), durée, tentatives, coût réel si connu |
