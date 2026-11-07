@@ -15,6 +15,7 @@ _LABELS = {
     "analyst": "analyste",
     "qa": "responsable qualité",
     "lead": "chef d'équipe",
+    "ads": "directeur de campagne",
 }
 
 _DELIVERABLE = re.compile(r"<<<LIVRABLE nonce=(\w+)>>>\n(.*?)\n<<<FIN nonce=\1>>>", re.S)
@@ -31,6 +32,10 @@ class MockLLMAdapter(LLMAdapter):
             return self._plan(request, digest)
         if title == "EvaluatorOutput":
             return self._evaluation(request, digest)
+        if title == "AdKit":  # kit de campagne simulé (rôle `ads`) : uniquement des éléments de la fiche entreprise
+            from .mock_ads import build_kit_json
+
+            return self._response(request, build_kit_json(request.metadata["ads"]), digest)
         content = f"[Réponse simulée du {_LABELS[request.role.value]}] Référence {digest[:8]}."
         return self._response(request, content, digest)
 

@@ -86,6 +86,17 @@ def populate(db, sid: str, tag: str = "a") -> None:
         )
     )
     db.add(ProspectIdempotency(session_id=sid, key_hash=f"h-{tag}", request_hash="r", status_code=200))
+    from app.models_pub import Campaign, CampaignRequest, CampaignVersion
+
+    db.add(TargetActionUse(session_id=sid, kind="campaign", target_id="cmp_x", key="ads", used=1, reserved=0))
+    camp = Campaign(session_id=sid, nom="n", objectif="leads", plateforme="linkedin", audience="a")
+    db.add(camp)
+    db.flush()
+    kit_v1 = CampaignVersion(campaign_id=camp.id, numero=1, auteur="ads", kit={}, checks=[], simule=True, action_id=act.id)
+    db.add(kit_v1)
+    db.flush()
+    db.add(CampaignVersion(campaign_id=camp.id, numero=2, parent_id=kit_v1.id, auteur="joueur", kit={}, checks=[], simule=True))
+    db.add(CampaignRequest(session_id=sid, key_hash=f"h-{tag}", request_hash="r", status_code=201))
     db.commit()
 
 

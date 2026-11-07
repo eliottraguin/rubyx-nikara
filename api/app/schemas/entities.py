@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from .common import Mode, Role
+from .common import HangarRole, Mode, Role
 
 
 class _Entity(BaseModel):
@@ -160,7 +160,7 @@ class ReservationOut(_Entity):
     session_id: str
     action_id: str
     amount: int
-    role: Role | None
+    role: Role | HangarRole | None  # rôles du hangar (`ads`…) : réservations hors expédition
     attempt_id: str | None
     quota: int
     status: str

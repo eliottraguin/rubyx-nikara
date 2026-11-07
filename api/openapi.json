@@ -1,6 +1,28 @@
 {
   "components": {
     "schemas": {
+      "Accroche": {
+        "additionalProperties": false,
+        "properties": {
+          "fiche": {
+            "description": "Champ de la fiche entreprise auquel l'accroche se rattache (ex. `offre`)",
+            "maxLength": 64,
+            "title": "Fiche",
+            "type": "string"
+          },
+          "texte": {
+            "maxLength": 4000,
+            "title": "Texte",
+            "type": "string"
+          }
+        },
+        "required": [
+          "texte",
+          "fiche"
+        ],
+        "title": "Accroche",
+        "type": "object"
+      },
       "ActionOut": {
         "properties": {
           "answer": {
@@ -292,6 +314,131 @@
           "updated_at"
         ],
         "title": "ActiveActionView",
+        "type": "object"
+      },
+      "AdKit": {
+        "additionalProperties": false,
+        "description": "Sortie de l'agent `ads` (JSON `ad_kit`).",
+        "properties": {
+          "a_verifier": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "A Verifier",
+            "type": "array"
+          },
+          "accroches": {
+            "items": {
+              "$ref": "#/components/schemas/Accroche"
+            },
+            "maxItems": 50,
+            "title": "Accroches",
+            "type": "array"
+          },
+          "audience_resume": {
+            "maxLength": 4000,
+            "title": "Audience Resume",
+            "type": "string"
+          },
+          "brief_visuel": {
+            "$ref": "#/components/schemas/BriefVisuel"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistRef"
+            },
+            "maxItems": 50,
+            "title": "Checklist",
+            "type": "array"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanKit"
+          },
+          "positionnement": {
+            "maxLength": 4000,
+            "title": "Positionnement",
+            "type": "string"
+          },
+          "textes": {
+            "items": {
+              "$ref": "#/components/schemas/TexteFormat"
+            },
+            "maxItems": 50,
+            "title": "Textes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "positionnement",
+          "audience_resume",
+          "accroches",
+          "textes",
+          "brief_visuel",
+          "plan",
+          "checklist",
+          "a_verifier"
+        ],
+        "title": "AdKit",
+        "type": "object"
+      },
+      "AdKitOut": {
+        "description": "Kit tel que stocké et rendu : la checklist porte le libellé issu des données.",
+        "properties": {
+          "a_verifier": {
+            "items": {
+              "type": "string"
+            },
+            "title": "A Verifier",
+            "type": "array"
+          },
+          "accroches": {
+            "items": {
+              "$ref": "#/components/schemas/Accroche"
+            },
+            "title": "Accroches",
+            "type": "array"
+          },
+          "audience_resume": {
+            "title": "Audience Resume",
+            "type": "string"
+          },
+          "brief_visuel": {
+            "$ref": "#/components/schemas/BriefVisuel"
+          },
+          "checklist": {
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemOut"
+            },
+            "title": "Checklist",
+            "type": "array"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanKit"
+          },
+          "positionnement": {
+            "title": "Positionnement",
+            "type": "string"
+          },
+          "textes": {
+            "items": {
+              "$ref": "#/components/schemas/TexteFormat"
+            },
+            "title": "Textes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "positionnement",
+          "audience_resume",
+          "accroches",
+          "textes",
+          "brief_visuel",
+          "plan",
+          "checklist",
+          "a_verifier"
+        ],
+        "title": "AdKitOut",
         "type": "object"
       },
       "AgentView": {
@@ -920,6 +1067,46 @@
         "title": "BriefView",
         "type": "object"
       },
+      "BriefVisuel": {
+        "additionalProperties": false,
+        "properties": {
+          "format_dimensions": {
+            "maxLength": 4000,
+            "title": "Format Dimensions",
+            "type": "string"
+          },
+          "prompt": {
+            "description": "Prompt prêt à coller dans un outil d'image (aucune image n'est générée)",
+            "maxLength": 4000,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "style": {
+            "maxLength": 4000,
+            "title": "Style",
+            "type": "string"
+          },
+          "sujet": {
+            "maxLength": 4000,
+            "title": "Sujet",
+            "type": "string"
+          },
+          "texte_image": {
+            "maxLength": 4000,
+            "title": "Texte Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sujet",
+          "style",
+          "texte_image",
+          "format_dimensions",
+          "prompt"
+        ],
+        "title": "BriefVisuel",
+        "type": "object"
+      },
       "BuildingOut": {
         "description": "Immeuble du joueur, calculé par le serveur (total des paiements d'expédition ; ne baisse jamais).",
         "properties": {
@@ -951,6 +1138,447 @@
         "title": "BuildingOut",
         "type": "object"
       },
+      "CampaignIn": {
+        "additionalProperties": false,
+        "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dérivée de la fiche cible si absente (≤ 300)",
+            "title": "Audience"
+          },
+          "budget_indicatif": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Texte indicatif : ne touche jamais la monnaie du jeu",
+            "title": "Budget Indicatif"
+          },
+          "consigne": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consigne"
+          },
+          "nom": {
+            "maxLength": 4000,
+            "title": "Nom",
+            "type": "string"
+          },
+          "objectif": {
+            "description": "notoriete | leads | evenement | offre (data/ads/formats.json)",
+            "maxLength": 64,
+            "title": "Objectif",
+            "type": "string"
+          },
+          "plateforme": {
+            "description": "linkedin | meta | google_search | local | email (choix des formats seulement)",
+            "maxLength": 64,
+            "title": "Plateforme",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nom",
+          "objectif",
+          "plateforme"
+        ],
+        "title": "CampaignIn",
+        "type": "object"
+      },
+      "CampaignListOut": {
+        "properties": {
+          "generation_cost": {
+            "title": "Generation Cost",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignSummaryOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "max": {
+            "description": "Nombre maximal de campagnes par partie (`limits.campaigns_max`)",
+            "title": "Max",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "max",
+          "generation_cost"
+        ],
+        "title": "CampaignListOut",
+        "type": "object"
+      },
+      "CampaignOut": {
+        "properties": {
+          "audience": {
+            "title": "Audience",
+            "type": "string"
+          },
+          "budget_indicatif": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Indicatif"
+          },
+          "consigne": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consigne"
+          },
+          "cree_le": {
+            "format": "date-time",
+            "title": "Cree Le",
+            "type": "string"
+          },
+          "generation_cost": {
+            "description": "Coût d'une génération (règles serveur)",
+            "title": "Generation Cost",
+            "type": "integer"
+          },
+          "generations_remaining": {
+            "description": "Générations de kit restantes (quota 5 par campagne, jamais 6)",
+            "title": "Generations Remaining",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "modifie_le": {
+            "format": "date-time",
+            "title": "Modifie Le",
+            "type": "string"
+          },
+          "nom": {
+            "title": "Nom",
+            "type": "string"
+          },
+          "objectif": {
+            "title": "Objectif",
+            "type": "string"
+          },
+          "plateforme": {
+            "title": "Plateforme",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/CampaignVersionOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "nom",
+          "objectif",
+          "plateforme",
+          "audience",
+          "budget_indicatif",
+          "consigne",
+          "version",
+          "versions",
+          "generations_remaining",
+          "generation_cost",
+          "cree_le",
+          "modifie_le"
+        ],
+        "title": "CampaignOut",
+        "type": "object"
+      },
+      "CampaignPatch": {
+        "additionalProperties": false,
+        "description": "Seuls ces champs sont modifiables par le joueur ; `version` = compteur de concurrence lu au dernier GET.",
+        "properties": {
+          "audience": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chaîne vide : audience re-dérivée de la fiche",
+            "title": "Audience"
+          },
+          "budget_indicatif": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chaîne vide : efface",
+            "title": "Budget Indicatif"
+          },
+          "consigne": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chaîne vide : efface",
+            "title": "Consigne"
+          },
+          "nom": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nom"
+          },
+          "objectif": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objectif"
+          },
+          "plateforme": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plateforme"
+          },
+          "version": {
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "CampaignPatch",
+        "type": "object"
+      },
+      "CampaignSummaryOut": {
+        "properties": {
+          "derniere_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Derniere Version"
+          },
+          "generations_remaining": {
+            "title": "Generations Remaining",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "modifie_le": {
+            "format": "date-time",
+            "title": "Modifie Le",
+            "type": "string"
+          },
+          "nom": {
+            "title": "Nom",
+            "type": "string"
+          },
+          "objectif": {
+            "title": "Objectif",
+            "type": "string"
+          },
+          "plateforme": {
+            "title": "Plateforme",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "versions_count": {
+            "title": "Versions Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "nom",
+          "objectif",
+          "plateforme",
+          "version",
+          "versions_count",
+          "derniere_version",
+          "generations_remaining",
+          "modifie_le"
+        ],
+        "title": "CampaignSummaryOut",
+        "type": "object"
+      },
+      "CampaignVersionOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "auteur": {
+            "description": "`ads` (agent) ou `joueur` (copie éditée)",
+            "title": "Auteur",
+            "type": "string"
+          },
+          "consigne": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consigne"
+          },
+          "controles": {
+            "items": {
+              "$ref": "#/components/schemas/CheckResultOut"
+            },
+            "title": "Controles",
+            "type": "array"
+          },
+          "cree_le": {
+            "format": "date-time",
+            "title": "Cree Le",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kit": {
+            "$ref": "#/components/schemas/AdKitOut"
+          },
+          "numero": {
+            "title": "Numero",
+            "type": "integer"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "profile_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Version"
+          },
+          "simule": {
+            "description": "Vrai en Tutoriel ou avec le fournisseur simulé : badge obligatoire",
+            "title": "Simule",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "numero",
+          "parent_id",
+          "auteur",
+          "kit",
+          "controles",
+          "consigne",
+          "profile_version",
+          "simule",
+          "action_id",
+          "cree_le"
+        ],
+        "title": "CampaignVersionOut",
+        "type": "object"
+      },
       "CanalOut": {
         "properties": {
           "type": {
@@ -974,6 +1602,85 @@
           "valeur"
         ],
         "title": "CanalOut",
+        "type": "object"
+      },
+      "CheckResultOut": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Raison courte de l'échec (jamais d'adresse ni de contenu sensible)",
+            "title": "Detail"
+          },
+          "essential": {
+            "title": "Essential",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "essential",
+          "passed"
+        ],
+        "title": "CheckResultOut",
+        "type": "object"
+      },
+      "ChecklistItemOut": {
+        "properties": {
+          "essential": {
+            "title": "Essential",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "essential"
+        ],
+        "title": "ChecklistItemOut",
+        "type": "object"
+      },
+      "ChecklistRef": {
+        "description": "Référence à un point de checklist : seul `id` compte (libellé et caractère essentiel viennent des données ; les\nautres clés, par exemple celles d'un kit relu tel que rendu, sont ignorées).",
+        "properties": {
+          "id": {
+            "description": "Identifiant d'un point de `data/ads/checklist.json`",
+            "maxLength": 64,
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "ChecklistRef",
         "type": "object"
       },
       "ClarificationIn": {
@@ -1339,6 +2046,26 @@
           "contracts_version"
         ],
         "title": "GameState",
+        "type": "object"
+      },
+      "GenerateIn": {
+        "additionalProperties": false,
+        "properties": {
+          "consigne": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Consigne facultative pour cette génération (≤ 500) ; sans elle, celle de la campagne",
+            "title": "Consigne"
+          }
+        },
+        "title": "GenerateIn",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1737,6 +2464,43 @@
           "message"
         ],
         "title": "NextAction",
+        "type": "object"
+      },
+      "PlanKit": {
+        "additionalProperties": false,
+        "properties": {
+          "calendrier": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Calendrier",
+            "type": "array"
+          },
+          "indicateurs": {
+            "description": "Indicateurs de suivi, sans valeur promise",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Indicateurs",
+            "type": "array"
+          },
+          "repartition_budget": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Repartition Budget",
+            "type": "array"
+          }
+        },
+        "required": [
+          "calendrier",
+          "repartition_budget",
+          "indicateurs"
+        ],
+        "title": "PlanKit",
         "type": "object"
       },
       "ProfileIn": {
@@ -2557,9 +3321,13 @@
                 "$ref": "#/components/schemas/Role"
               },
               {
+                "$ref": "#/components/schemas/HangarRole"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Role"
           },
           "session_id": {
             "title": "Session Id",
@@ -2984,6 +3752,34 @@
         "title": "TargetSize",
         "type": "object"
       },
+      "TexteFormat": {
+        "additionalProperties": false,
+        "properties": {
+          "champs": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "Un ou plusieurs textes par champ du format (titres multiples pour Google)",
+            "title": "Champs",
+            "type": "object"
+          },
+          "format": {
+            "description": "Identifiant d'un format de la plateforme (data/ads/formats.json)",
+            "maxLength": 64,
+            "title": "Format",
+            "type": "string"
+          }
+        },
+        "required": [
+          "format",
+          "champs"
+        ],
+        "title": "TexteFormat",
+        "type": "object"
+      },
       "ValidationError": {
         "properties": {
           "ctx": {
@@ -3022,6 +3818,27 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VersionEditIn": {
+        "additionalProperties": false,
+        "description": "Copie éditée d'un kit : le kit complet, que le joueur a modifié (nouvelle version enfant, auteur `joueur`).",
+        "properties": {
+          "kit": {
+            "$ref": "#/components/schemas/AdKit"
+          },
+          "version": {
+            "description": "Compteur de concurrence de la campagne lu au dernier GET",
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "kit"
+        ],
+        "title": "VersionEditIn",
         "type": "object"
       }
     }
@@ -3894,6 +4711,671 @@
         "summary": "Submit",
         "tags": [
           "tentatives et livrables"
+        ]
+      }
+    },
+    "/api/campaigns": {
+      "get": {
+        "description": "Liste des campagnes de la partie (gratuit, jamais conditionné par l'argent ni le score).",
+        "operationId": "list_campaigns_api_campaigns_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "List Campaigns",
+        "tags": [
+          "pub"
+        ]
+      },
+      "post": {
+        "description": "Crée une campagne (gratuit). `audience` dérivée de la fiche cible si absente. Au plus `limits.campaigns_max` par partie\n(409 `INVALID_STATE` au-delà). `budget_indicatif` est un texte de plan : il ne touche jamais la monnaie du jeu. Rejeu : 200.",
+        "operationId": "create_campaign_api_campaigns_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Create Campaign",
+        "tags": [
+          "pub"
+        ]
+      }
+    },
+    "/api/campaigns/{campaign_id}": {
+      "delete": {
+        "description": "Supprime la campagne et ses versions (gratuit, jamais refusé pour manque de fonds). Rejouable par clé.",
+        "operationId": "delete_campaign_api_campaigns__campaign_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete Campaign",
+        "tags": [
+          "pub"
+        ]
+      },
+      "get": {
+        "description": "Détail et versions de kit (immuables, numérotées). Une campagne d'une autre partie : 404.",
+        "operationId": "get_campaign_api_campaigns__campaign_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Campaign",
+        "tags": [
+          "pub"
+        ]
+      },
+      "patch": {
+        "description": "Modifie `nom`, `objectif`, `plateforme`, `audience`, `budget_indicatif`, `consigne` ; `version` périmée : `VERSION_CONFLICT`.",
+        "operationId": "patch_campaign_api_campaigns__campaign_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CampaignPatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Patch Campaign",
+        "tags": [
+          "pub"
+        ]
+      }
+    },
+    "/api/campaigns/{campaign_id}/export.md": {
+      "get": {
+        "description": "Export Markdown d'une version, produit par le serveur (texte inerte : aucun lien ni HTML injectable). Gratuit.",
+        "operationId": "export_markdown_api_campaigns__campaign_id__export_md_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Numéro ou identifiant de version ; dernière par défaut",
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Numéro ou identifiant de version ; dernière par défaut",
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/markdown": {}
+            },
+            "description": "Kit au format Markdown (pièce jointe)"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export Markdown",
+        "tags": [
+          "pub"
+        ]
+      }
+    },
+    "/api/campaigns/{campaign_id}/generate": {
+      "post": {
+        "description": "Action `ad_campaign` (agent `ads`, coût lu dans les règles, jamais de gain) : crée une version de kit, contrôlée par code.\nQuota 5 par campagne (`MESSAGE_LIMIT` ensuite). Contrôle essentiel en échec après une réparation : `INVALID_OUTPUT`, sans débit.\nLa version créée est dans `steps[0].artifact_version_id`. Même clé : aucun nouvel appel ni débit. Rien n'est publié ni dépensé.",
+        "operationId": "generate_api_campaigns__campaign_id__generate_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateIn",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Generate",
+        "tags": [
+          "pub"
+        ]
+      }
+    },
+    "/api/campaigns/{campaign_id}/versions/{version_id}": {
+      "patch": {
+        "description": "Copie éditée d'un kit : nouvelle version enfant (auteur `joueur`) ; l'originale reste immuable. Gratuit. Rejeu : 200.",
+        "operationId": "edit_version_api_campaigns__campaign_id__versions__version_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "campaign_id",
+            "required": true,
+            "schema": {
+              "title": "Campaign Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "title": "Version Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VersionEditIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CampaignVersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Edit Version",
+        "tags": [
+          "pub"
         ]
       }
     },

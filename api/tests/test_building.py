@@ -123,7 +123,7 @@ def test_real_evaluation_pays_and_raises_the_building_once(tmp_path):
     from .test_evaluation import _ann
 
     data = tmp_path / "data"
-    for sub in ("rules", "rubrics", "missions", "roles", "profile"):
+    for sub in ("rules", "rubrics", "missions", "roles", "profile", "ads"):
         shutil.copytree(REPO_DIR / "data" / sub, data / sub)
     application = create_app(Settings(db_path=tmp_path / "e2e.db", data_dir=data, auto_evaluate=True))
     with TestClient(application):

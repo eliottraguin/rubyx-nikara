@@ -117,7 +117,7 @@ def test_injection_in_offre_changes_neither_score_nor_rights_nor_price(tmp_path)
     from .test_evaluation import _ann
 
     data = tmp_path / "data"
-    for sub in ("rules", "rubrics", "missions", "roles", "profile"):
+    for sub in ("rules", "rubrics", "missions", "roles", "profile", "ads"):
         shutil.copytree(REPO_DIR / "data" / sub, data / sub)
     app = create_app(Settings(db_path=tmp_path / "inj.db", data_dir=data, auto_evaluate=True))
     with TestClient(app):

@@ -105,6 +105,9 @@ def make_settings(tmp_path: Path, *, content: bool = True, demo_secret: str | No
     shutil.copy(REPO_DIR / "data" / "rules" / "rules_v1.json", data / "rules" / "rules_v1.json")
     shutil.copy(REPO_DIR / "data" / "rules" / "rules_v2.json", data / "rules" / "rules_v2.json")
     shutil.copytree(REPO_DIR / "data" / "profile", data / "profile", dirs_exist_ok=True)
+    shutil.copytree(REPO_DIR / "data" / "ads", data / "ads", dirs_exist_ok=True)  # section Pub : formats, checklist, réglages du kit
+    (data / "rubrics").mkdir(parents=True, exist_ok=True)
+    shutil.copy(REPO_DIR / "data" / "rubrics" / "ad_kit_v1.json", data / "rubrics" / "ad_kit_v1.json")
     if content:
         write_content(data)
     return Settings(db_path=tmp_path / name, data_dir=data, demo_secret=demo_secret, auto_evaluate=auto_evaluate)

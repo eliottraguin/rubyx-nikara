@@ -15,11 +15,14 @@ from .db import make_engine, make_session_factory, run_migrations
 from .errors import install_error_handlers
 from .llm import get_adapter
 from .logging_config import configure_logging, request_log_middleware
-from .routes import actions, agents, attempts, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
+from .routes import actions, agents, attempts, campaigns, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
 from .profile_spec import load_profile_spec
 from .rules import load_rules
 from .rules_v2 import load_rules_v2
+from .ads_spec import load_ads_spec
 from .sources_spec import load_sources_spec
+from .services.ad_actions import reconcile_ads
+from .services.campaigns import PubEngine
 from .services.actions import ActionEngine
 from .services.evaluation import evaluate_submission, recover_pending
 from .services.actions_reconcile import reconcile
@@ -32,6 +35,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     rules = load_rules(settings.data_dir, settings.rules_version)
     rules_v2 = load_rules_v2(settings.data_dir)  # cap prospection : prix des 4 rôles du hangar, building, limites, rétention
     profile_spec = load_profile_spec(settings.data_dir)  # bornes de la fiche entreprise et cible
+    ads_spec = load_ads_spec(settings.data_dir)  # section Pub : formats, limites, checklist, grille du kit
     sources_spec = load_sources_spec(settings.data_dir)  # listes blanches de champs par source (data/sources/)
     llm = get_adapter(settings.llm_provider)
 
@@ -43,6 +47,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.session_factory = make_session_factory(engine)
         app.state.actions = ActionEngine(app.state.session_factory, app.state.rules, app.state.llm, profile_spec=app.state.profile_spec)
         reconcile(app.state.actions)  # RUNNING interrompus et réservations expirées (BE04)
+        app.state.pub = PubEngine(app.state.actions, rules_v2, ads_spec, profile_spec)
+        reconcile_ads(app.state.pub)  # générations de kit restées réservées après une interruption
         if settings.auto_evaluate:  # BE06 : évaluateur serveur + reprise des livraisons restées EVALUATING
             eng = app.state.actions
             app.state.evaluator = lambda submission_id: evaluate_submission(eng, settings.data_dir, submission_id)
@@ -64,6 +70,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.rules_v2 = rules_v2
     app.state.profile_spec = profile_spec
     app.state.sources_spec = sources_spec
+    app.state.ads_spec = ads_spec
     app.state.llm = llm
 
     if settings.cors_origins:
@@ -81,6 +88,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(agents.router)
     app.include_router(profile.router)
     app.include_router(prospects.router)
+    app.include_router(campaigns.router)
     app.include_router(messages.router)
     app.include_router(actions.router)
     app.include_router(missions.router)

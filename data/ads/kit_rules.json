@@ -1,0 +1,53 @@
+{
+  "id": "ads_kit_rules",
+  "version": 1,
+  "language": "fr",
+  "notes": "Réglages des contrôles par code du kit de campagne (api/app/services/ad_kit.py). Les listes de termes sont en minuscules ; un terme n'est toléré que s'il figure déjà dans la fiche entreprise. Le produit ne publie rien.",
+  "versions_max": 40,
+  "budget_max_chars": 60,
+  "text_bounds": {
+    "audience_max": 300,
+    "positionnement_hard_max": 400,
+    "audience_resume_max": 500,
+    "accroche_max": 200,
+    "brief_field_max": 600,
+    "prompt_max": 1200,
+    "plan_item_max": 240,
+    "plan_items_max": 12,
+    "a_verifier_item_max": 240,
+    "a_verifier_items_max": 12,
+    "texts_per_format_max": 3
+  },
+  "claim_terms": [
+    "garanti", "garantie", "garantis", "garanties", "certifié", "certifiée", "certifiés", "certifiées",
+    "label", "labellisé", "labellisée", "primé", "primée", "récompensé", "récompensée",
+    "témoignage", "témoignages", "avis clients", "client satisfait", "clients satisfaits",
+    "n°1", "numéro 1", "numéro un", "leader", "meilleur du marché", "le moins cher",
+    "gratuit", "gratuite", "gratuitement", "satisfait ou remboursé", "selon une étude", "prouvé", "scientifiquement",
+    "janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+    "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"
+  ],
+  "promise_terms": [
+    "résultats garantis", "résultat garanti", "garantit", "garantissons", "vous serez assuré", "100 % de réussite", "sans risque"
+  ],
+  "individual_target_terms": [
+    "particuliers", "grand public", "consommateurs", "ménages", "familles", "retraités", "étudiants"
+  ],
+  "person_title_terms": [
+    "monsieur", "madame", "mademoiselle", "m.", "mme", "mlle", "docteur"
+  ],
+  "required_facts_by_objective": {
+    "notoriete": [],
+    "leads": [],
+    "evenement": ["date"],
+    "offre": ["prix"]
+  },
+  "missing_fact_labels": {
+    "chiffre": "Aucun chiffre (prix, délai, volume) n'est fourni dans la fiche : confirmez ceux que vous voulez annoncer.",
+    "prix": "Aucun prix n'est fourni dans la fiche : confirmez le prix ou la condition de l'offre.",
+    "date": "Aucune date n'est fournie dans la fiche : confirmez la date ou la période de l'événement."
+  },
+  "export": {
+    "banner": "Rien n'a été publié ni dépensé. Ce kit est un texte que vous copiez et publiez vous-même, après vérification de la checklist."
+  }
+}

@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from ..schemas.common import Role
+from ..schemas.common import HangarRole, Role
 
 
 class LLMStatus(StrEnum):
@@ -22,7 +22,7 @@ class LLMStatus(StrEnum):
 
 
 class LLMRequest(BaseModel):
-    role: Role
+    role: Role | HangarRole
     context: str
     allowed_tools: list[str] = Field(default_factory=list)
     expected_schema: dict[str, Any] | None = None
