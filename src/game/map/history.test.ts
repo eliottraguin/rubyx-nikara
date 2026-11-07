@@ -78,7 +78,7 @@ describe("historique d'une planète", () => {
   it("trie de la plus récente à la plus ancienne et résume l'ensemble", () => {
     const ev = (score: number, credited: number) => ({
       id: "s", status: "EVALUATED" as const, artifact_version_id: "a", brief_version: 1,
-      evaluation: { submission_id: "s", rubric_version: "r", out_of_scope: false, criteria: [], client_feedback: "", next_action: "", score, passed: score >= 60, capped_by_essential: false, criteria_labels: {}, payment: { max_reward: 20, target: credited, already_acquired: 0, credited, already_awarded: true }, spent: 0 },
+      evaluation: { submission_id: "s", rubric_version: "r", out_of_scope: false, criteria: [], client_feedback: "", next_action: "", score, passed: score >= 50, capped_by_essential: false, criteria_labels: {}, payment: { max_reward: 20, target: credited, already_acquired: 0, credited, already_awarded: true }, spent: 0 },
     });
     const list = buildPlanetHistory([
       attempt(1, { status: "FAILED", submission: ev(40, 0), messages: [msg("1", "writer", "player", "a")] }),

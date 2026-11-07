@@ -105,14 +105,14 @@ def test_price_is_frozen_at_attempt_opening(app):
 
 def test_ordinary_pass_threshold_and_essential_failure(app):
     p = Player(app)
-    _, out = p.play("m1", 59)
+    _, out = p.play("m1", 49)
     assert not out.passed and out.reasons == ["SCORE_BELOW_THRESHOLD"]
     assert statuses(p)["m1"] == "FAILED" and statuses(p)["m2"] == "LOCKED" and unlocked(p) == {"writer"}
     assert p.state()["progress"]["next_action"]["type"] == "retry_mission"
-    assert p.state()["attempts"][0]["failure_reasons"] == ["SCORE_BELOW_THRESHOLD"] and p.state()["attempts"][0]["score"] == 59
+    assert p.state()["attempts"][0]["failure_reasons"] == ["SCORE_BELOW_THRESHOLD"] and p.state()["attempts"][0]["score"] == 49
     _, out = p.play("m1", 95, essential_failed=True, retry=True)  # échec essentiel : plafonné, jamais réussi
     assert not out.passed and "ESSENTIAL_FAILED" in out.reasons
-    _, out = p.play("m1", 60, retry=True)  # 60 pile réussit
+    _, out = p.play("m1", 50, retry=True)  # 50 pile réussit
     assert out.passed and out.newly_unlocked_roles == [P]
     assert statuses(p)["m1"] == "COMPLETED" and statuses(p)["m2"] == "AVAILABLE" and p.state()["session"]["stage"] == "m2"
 
@@ -132,7 +132,7 @@ def test_published_unlocks_M1_to_M5(app):
 
 def test_retry_keeps_history_and_resets_counters(app):
     p = Player(app)
-    first_id, _ = p.play("m1", 50)
+    first_id, _ = p.play("m1", 40)
     with app.state.session_factory() as db:
         from app.models import MissionAttempt
 
@@ -145,7 +145,7 @@ def test_retry_keeps_history_and_resets_counters(app):
     ids = [a["id"] for a in p.state()["attempts"]]
     assert ids == [first_id, second["id"]]
     old = p.state()["attempts"][0]
-    assert old["status"] == "FAILED" and old["score"] == 50 and old["message_counts"] == {"writer": 3}
+    assert old["status"] == "FAILED" and old["score"] == 40 and old["message_counts"] == {"writer": 3}
     # une reprise n'ouvre jamais une livraison figée : l'ancienne tentative reste fermée
     assert p.artifact(first_id).status_code == 409
     assert p.post("/api/missions/m1/retry").status_code == 409  # déjà une tentative ACTIVE
@@ -192,14 +192,14 @@ def test_final_victory_conditions(app):
     with app.state.session_factory() as db:
         db.get(MissionAttempt, attempt_id).status = "FAILED"
         db.commit()
-    _, out = p.play("m6", 69, roles=(W, P), spend=10, retry=True)
+    _, out = p.play("m6", 59, roles=(W, P), spend=10, retry=True)
     assert out.reasons == ["SCORE_BELOW_THRESHOLD"]
     _, out = p.play("m6", 90, roles=(W, P), spend=31, retry=True)
     assert out.reasons == ["SPEND_CAP_EXCEEDED"] and not out.victory
     _, out = p.play("m6", 90, roles=(W,), spend=10, retry=True)
     assert out.reasons == ["NOT_ENOUGH_CONTRIBUTING_ROLES"]
     assert statuses(p)["m6"] == "FAILED" and p.state()["progress"]["victory"] is False
-    _, out = p.play("m6", 70, roles=(W, P), spend=30, retry=True)
+    _, out = p.play("m6", 60, roles=(W, P), spend=30, retry=True)
     assert out.passed and out.victory and out.contributing_roles == ["prospector", "writer"]
     st = p.state()
     assert st["progress"]["victory"] and st["progress"]["next_action"]["type"] == "campaign_complete"

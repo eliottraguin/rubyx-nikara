@@ -29,8 +29,8 @@
     "max_plan_steps": 2
   },
   "scoring": {
-    "pass_score": 60,
-    "final_pass_score": 70,
+    "pass_score": 50,
+    "final_pass_score": 60,
     "essential_failure_cap": 40,
     "final_mission_id": "m6",
     "final_max_spend": 30,
