@@ -62,6 +62,16 @@ class GameSession(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
 
 
+class AuthUser(Base):
+    """Email/password user account (Epic 1: authentication)."""
+
+    __tablename__ = "auth_users"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("usr"))
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
 class TargetProfileVersion(Base):
     """Une version de la fiche entreprise et cible (docs/PRODUIT-PROSPECTION.md §11). Immuable : trigger SQLite (migration 0005)."""
 

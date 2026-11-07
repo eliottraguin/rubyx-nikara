@@ -15,7 +15,7 @@ from .db import make_engine, make_session_factory, run_migrations
 from .errors import install_error_handlers
 from .llm import get_adapter
 from .logging_config import configure_logging, request_log_middleware
-from .routes import actions, agents, attempts, campaigns, conversations, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
+from .routes import actions, agents, attempts, auth, campaigns, conversations, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
 from .profile_spec import load_profile_spec
 from .rules import load_rules
 from .rules_v2 import load_rules_v2
@@ -90,6 +90,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     request_log_middleware(app)
     install_error_handlers(app)
     app.include_router(health.router)
+    app.include_router(auth.router)
     app.include_router(sessions.router)
     app.include_router(agents.router)
     app.include_router(profile.router)

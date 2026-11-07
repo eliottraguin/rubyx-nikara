@@ -6,6 +6,8 @@
 >
 > Ce que le joueur fait ne change pas : prospecter (`PRODUIT-PROSPECTION.md`), parler aux clients et faire de la pub (`PRODUIT-CLIENTS-PUB.md`). Les valeurs chiffrées vivent dans `data/` ; les points ouverts dans `OPEN-QUESTIONS.md` (section « Ville et bâtiment »).
 
+> **Divergence moteur de rendu, 2026-11-08 (matthieu.coraleau).** La décision Noah (4e) prescrit **Phaser 2D** pour la ville (§12). Après discussion, **matthieu.coraleau a demandé une dérogation : utiliser Three.js pour la ville et les nuages** au lieu de Phaser, à titre de moteur 3D temps réel. Cela s'applique **uniquement au rendu visuel** : **aucune règle serveur ne change**, le contrat d'API reste inchangé, **les paliers et la logique restent dans `RULES.md` et `api/`**. La page de connexion et la transition de zoom utilisent aussi Three.js. La **coupe de l'immeuble** (`BuildingScene`, §7) reste une **scène Phaser**, pour l'instant, sauf décision ultérieure. Cette divergence est documentée ici et tracée (qui, quand, portée, ce qui ne change pas).
+
 ## 1. Vision
 **Style graphique (décision Noah) : « un peu comme Les Sims, en réaliste ».** Une ville et un immeuble **semi-réalistes** : proportions crédibles, matières et éclairage doux, **personnages animés qui vivent leur journée** (ils tapent, lisent le courrier, téléphonent, marchent), et une **coupe d'immeuble à murs ouverts** comme le mode construction des Sims. Ce n'est **ni du pixel art ni du dessin minimaliste**. Conséquence sur les assets : §12.
 
@@ -139,7 +141,7 @@ TOIT        ▲ héliport · atelier des drones          (vue sur la ville)
 | **1 · Archives** | Rangées de classeurs : **un tiroir par statut** (nouveau, contacté, en discussion, gagné, perdu, écarté) avec son **compteur** | Carnet de prospection (liste, tri, filtres, export CSV), fiches prospects, fiche client, brouillon de premier message |
 | **RDC · Accueil et garage** | Réception (la **fiche entreprise** sur le comptoir), **coffre** (trésorerie), garage où attendent les bots, **panneau de niveau** de l'immeuble | Fiche entreprise et cible, hangar et boutique d'agents, « Mes données », carnet de prompts |
 
-- **Scène animée Phaser** (décision Noah) : la coupe est une **scène Phaser** (`BuildingScene`) où les agents et le personnel **vivent** : ils tapent, trient les enveloppes, téléphonent, vont d'un étage à l'autre par l'ascenseur. Les animations sont **cosmétiques** et suivent l'état serveur (un agent « travaille » seulement s'il a une action en cours). Murs ouverts façon Sims ; **rotation de la caméra** par quarts de tour en option (`OPEN-QUESTIONS.md` n° 56).
+- **Scène animée Phaser** (coupe de l'immeuble, pour maintenant) : la coupe est une **scène Phaser** (`BuildingScene`) où les agents et le personnel **vivent** : ils tapent, trient les enveloppes, téléphonent, vont d'un étage à l'autre par l'ascenseur. Les animations sont **cosmétiques** et suivent l'état serveur (un agent « travaille » seulement s'il a une action en cours). Murs ouverts façon Sims ; **rotation de la caméra** par quarts de tour en option (`OPEN-QUESTIONS.md` n° 56). **La ville et la page de connexion utilisent Three.js** (divergence 2026-11-08).
 - Les **agents achetés** sont **visibles à leur poste**. Un agent **non acheté** laisse un **bureau vide** avec une étiquette « À recruter » qui mène à la boutique (message expliquant le prix).
 - **Tous les contenus** (listes, fils de conversation, kits, formulaires) sont des **panneaux React** posés sur la coupe : texte **sélectionnable et copiable**, rendu **texte sans HTML**, accessibles au clavier. La coupe est **l'illustration et la navigation**, jamais le contenu.
 - Mode **Tutoriel** : tampon « SIMULÉ » sur les enveloppes et badge « Mode simulé » permanent. Mode **Réel** : badge « Données réelles ».
@@ -188,10 +190,10 @@ Contrat proposé (à reporter dans `CONTRACTS.md` avant fusion, signalé à l'é
 
 | Garder | Adapter ou remplacer |
 |---|---|
-| `iso.ts`, `route.ts`, `bus.ts`, `dispatch.ts`, `history.ts`, `viewmodel.ts` (logique pure testée) | `art.ts` : textures **de ville** (immeubles, rues, parc, véhicules, drones, façade en coupe) à la place des planètes et nébuleuses |
-| Protocole de trace et file d'animations (`trips.ts`) | `trips.ts` : véhicules (marche, vélo, skate, hélico) et trajets sur graphe de rues |
+| `iso.ts`, `route.ts`, `bus.ts`, `dispatch.ts`, `history.ts`, `viewmodel.ts` (logique pure testée) | `art.ts` → **moteur Three.js** pour la ville, les nuages, les véhicules, les drones, la page de connexion (divergence 2026-11-08) |
+| Protocole de trace et file d'animations (`trips.ts`) | `trips.ts` : véhicules (marche, vélo, skate, hélico) et trajets sur graphe de rues, animés en **Three.js** |
 | Couche DOM accessible, mode liste, `prefers-reduced-motion` | `layout.ts` + `data/map/layout_v1.json` → `city_v1.json` |
-| Tests purs (`*.test.ts`) | `scenes/WorldScene.ts` : décor de ville, immeuble central, caméra plein écran ; **nouvelle** `scenes/BuildingScene.ts` (coupe) |
+| Tests purs (`*.test.ts`) | `scenes/WorldScene.ts` → **Three.js scene** pour ville, immeuble central, caméra plein écran ; **`scenes/BuildingScene.ts`** (coupe) reste **Phaser** pour maintenant |
 
 Les **libellés** de l'interface passent de « planète » à « lieu » ; les **identifiants** de l'API et des données restent. Détails techniques : `CARTE-TECH.md`.
 
@@ -200,7 +202,7 @@ Les **libellés** de l'interface passent de « planète » à « lieu » ; les *
 
 | Sujet | Choix proposé |
 |---|---|
-| Technique | **Sprites isométriques pré-rendus en 3D** (modèles rendus sous quatre angles, éclairage cohérent, ombres douces), assemblés en **atlas** par catégorie (bâtiments par niveau, rues, parc, véhicules, personnages animés, mobilier, façade en coupe, drones). Phaser 2D, pas de moteur 3D temps réel |
+| Technique | **Three.js 3D temps réel** (divergence 2026-11-08) : géométrie low-poly stylisée, éclairage en temps réel, ombres dynamiques, animation GPU où possible. La **page de connexion** et la **transition de zoom** vers la ville sont aussi en Three.js. **Coupe de l'immeuble** (`BuildingScene`) reste Phaser 2D pour maintenant. Performance cible : 60 fps sur ordinateur courant, dégradation en mode « léger » si nécessaire (ombres, décor animé). |
 | Production | **Point ouvert** (`OPEN-QUESTIONS.md` n° 50) : création sur mesure (Blender ou artiste), pack sous licence commerciale, ou génération assistée avec **droits d'usage clairs**. Un pack **CC0 réaliste** complet est **peu probable** |
 | Personnages | Bots **animés** (marche, vélo, skate, hélicoptère, travail au bureau, attente, panne) ; apparence à décider (`OPEN-QUESTIONS.md` n° 55) |
 | Lieux de New York | **Silhouettes génériques évocatrices**, **aucun logo, aucune marque, aucune image sous droits** ; mention « non affilié » |
