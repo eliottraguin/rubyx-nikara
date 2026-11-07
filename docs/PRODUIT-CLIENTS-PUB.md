@@ -51,7 +51,7 @@ Le **hangar** (garage au rez-de-chaussée) reste unique : on y achète tous les 
 
 - Quota : **5 générations par (conversation, rôle)**, jamais 6. **Aucun gain en $** (régénérer ne doit jamais enrichir). Mécanisme du moteur réutilisé : réservation avant l'appel, règlement après, aucun débit sans réponse exploitable, idempotence, coût maximal affiché (`RULES.md` §13).
 - Le joueur peut aussi **écrire sans agent** (zone de texte). Les agents aident ; ils ne sont pas obligatoires pour envoyer.
-- Le premier message d'une conversation vient souvent du **brouillon `outreach`** (`PRODUIT-PROSPECTION.md` §13) : « Utiliser ce brouillon » le copie dans la conversation.
+- Le premier message d'une conversation vient souvent du **brouillon `replier` (premier message)** (`PRODUIT-PROSPECTION.md` §13) : « Utiliser ce brouillon » le copie dans la conversation.
 
 ### Contrôles par code (liste de réussites, sans paiement)
 - **Synthèse** (`triage`) : intention dans l'énumération ; chaque point cité existe dans un message reçu (citation exacte) ; `desinscription` détecté par code **en plus** du modèle (mots-clés de `data/`) : si le code le détecte, il l'emporte.
@@ -106,7 +106,7 @@ Garde-fous **côté serveur** (le navigateur ne choisit rien) :
 | Idempotence | `Idempotency-Key` obligatoire : double clic ou rejeu ⇒ **un seul envoi**. Réservation du créneau avant l'appel fournisseur, règlement après ; jamais de transaction ouverte pendant l'attente réseau (règle 4). Échec fournisseur ⇒ message `NON_ENVOYE`, **rien n'est présenté comme envoyé** ; pas de renvoi automatique. |
 | Traçabilité | Chaque envoi est journalisé **sans contenu** (identifiants, heure, résultat). Le fil conserve le message envoyé et son état (`ENVOYE`, `NON_ENVOYE`). |
 | Gratuité | **Envoyer, recevoir, consulter et exporter sont gratuits** et jamais refusés pour manque de fonds. Seules les **générations** des agents coûtent (§3). |
-| Mentions | Le brouillon `replier` et `outreach` contient les **mentions d'origine et d'opposition** (texte standard de `data/`, `OPEN-QUESTIONS.md` n° 25). |
+| Mentions | Le brouillon `replier` contient les **mentions d'origine et d'opposition** (texte standard de `data/`, `OPEN-QUESTIONS.md` n° 25). |
 
 ### Données personnelles (ajouts à `PRODUIT-PROSPECTION.md` §14)
 - Les messages réels sont des **données personnelles** : minimisation (seulement les conversations de prospects du carnet), **rétention** alignée sur le carnet (180 jours d'inactivité), suppression en cascade avec le prospect, la conversation et la partie, **export JSON** complet de la partie incluant les conversations.
@@ -165,19 +165,16 @@ Le joueur ne modifie que `nom`, `objectif`, `plateforme`, `audience`, `budget_in
 - **Drones** : un drone survole la ville **pendant la génération** d'un kit et le **dépose au Studio** au retour. Il n'indique **jamais** qu'une pub est diffusée (`VILLE-ET-BATIMENT.md` §6).
 
 ## 6. Équipe de rôles d'agents (récapitulatif)
-Le hangar compte désormais **sept rôles** (le chef d'équipe reste reporté en P2). Les prix sont des **valeurs de départ** (`data/rules/rules_v2.json`).
+Le hangar compte **quatre rôles** (5e décision : `qualifier`, `profiler` et `outreach` sont supprimés ou fusionnés dans `replier`) (le chef d'équipe reste reporté en P2). Les prix sont des **valeurs de départ** (`data/rules/rules_v2.json`).
 
 | Section | Rôle | Id | Prix | Par génération |
 |---|---|---|---|---|
 | Prospection | Éclaireur | `scout` | 0 | coût d'instruction |
-| Prospection | Qualificateur | `qualifier` | 30 | coût d'instruction |
-| Prospection | Analyste de fiche client | `profiler` | 40 | 3 $ |
-| Prospection | Rédacteur de premier message | `outreach` | 45 | 2 $ |
 | Clients | Trieur de boîte | `triage` | 35 | 1 $ |
-| Clients | Rédacteur de réponse | `replier` | 45 | 2 $ |
+| Clients | Rédacteur (fiche client 3 $, premier message 2 $, réponse 2 $) | `replier` | 45 | par action |
 | Pub | Directeur de campagne | `ads` | 50 | 4 $ |
 
-Les actions de ces trois derniers rôles **n'entrent pas** dans la dépense de la finale (≤ 30 $ d'expédition), comme `profiler` et `outreach` (`RULES.md` §10).
+Les actions de `triage`, `replier` et `ads` **n'entrent pas** dans la dépense de la finale (≤ 30 $ d'expédition) (`RULES.md` §10).
 
 ## 7. Contrats proposés (à reporter dans `CONTRACTS.md` avant fusion)
 Toute mutation porte une `Idempotency-Key`. Propriété de session vérifiée partout (réponse identique à « introuvable » sinon, règle 6).

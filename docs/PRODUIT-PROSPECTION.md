@@ -80,17 +80,17 @@ Chaque planète est un **contrat de prospection** (données dans `data/planets/`
 - Une **planète de secours** (financement, 5 messages gratuits, rejouable) reste accessible sans argent.
 
 ## 5. Agents et hangar
-Le MVP a **quatre types d'agents** (remplacent les 6 rôles ; le chef d'équipe est reporté en P2). `scout` et `qualifier` travaillent **en expédition** ; `profiler` et `outreach` travaillent **sur un prospect du carnet** (§13) :
+Le MVP a **un seul bot de prospection**, l'**éclaireur** (`scout`, gratuit), qui travaille **en expédition**. **5e décision (2026-11-07)** : plus de `qualifier`, `profiler` ni `outreach`. Le tri des leads (doublons, hors-cible, critères structurés) est fait **par code**. Les autres rôles servent la **communication** et se gèrent **dans l'immeuble** :
 
 | Rôle | Id technique | Fonction | Prix | Déblocage |
 |---|---|---|---|---|
-| **Éclaireur** | `scout` | Va sur une planète, applique le prompt, rapporte des leads bruts | 0 | Au lancement |
-| **Qualificateur** | `qualifier` | Vérifie les leads contre la fiche cible, retire doublons et hors-cible, ajoute un score de fit | 30 | Score ≥ 60 sur la planète 2 |
-| **Analyste de fiche client** | `profiler` | Produit la **fiche client** d'un prospect du carnet : résumé, pourquoi ce prospect, points d'accroche, à vérifier, sources (§13) | 40 | Score ≥ 60 sur la planète 3 |
-| **Rédacteur de premier message** | `outreach` | Rédige un **brouillon** de premier message pour un prospect du carnet (§13) ; **aucun envoi réel** | 45 | Score ≥ 60 sur la planète 4 |
+| **Éclaireur** | `scout` | Va sur un lieu, applique le prompt, rapporte des leads | 0 | Au lancement |
+| **Trieur de boîte** | `triage` | Résume les messages reçus (Salle du courrier) | 35 | Score ≥ 50 sur le lieu 2 (Tutoriel) |
+| **Rédacteur** | `replier` | **Fiche client** et **premier message** d'un prospect du carnet (§13), puis réponses aux conversations ; **aucun envoi réel** | 45 | Score ≥ 50 sur le lieu 3 (Tutoriel) |
+| **Directeur de campagne** | `ads` | Kit de pub (Studio pub) | 50 | Score ≥ 50 sur le lieu 4 (Tutoriel) |
 
 - Achat unique par rôle (contrainte `(session, rôle)` du moteur inchangée). Les prix vivent dans `data/rules/`.
-- En mode **Réel**, la condition de **score** de déblocage est **levée** pour `qualifier`, `profiler` et `outreach` (seul le prix reste) : la valeur réelle ne doit pas attendre la progression du jeu (décision par défaut, voir `OPEN-QUESTIONS.md`).
+- En mode **Réel**, la condition de **score** de déblocage est **levée** pour `triage`, `replier` et `ads` (seul le prix reste) : la valeur réelle ne doit pas attendre la progression du jeu (décision par défaut, voir `OPEN-QUESTIONS.md`).
 - Un agent n'accède qu'à ce qui lui est transmis ou partagé (règle du moteur conservée).
 - Plusieurs agents peuvent être **dehors en même temps**, chacun avec son propre quota de 5 instructions par expédition.
 - Chaque agent a un **prompt propre**, éditable ; il est noté séparément.
@@ -167,7 +167,7 @@ Aucune règle n'est réécrite ; on **renomme et remplit** :
 | `Message` (5 par rôle) | **Instruction / version de prompt** | Aucun |
 | `ArtifactVersion` | **Rapport de leads** (versions immuables) | Schéma de contenu structuré (liste de leads) |
 | `Submission` + `Evaluation` | **Rapport remis** + **note** (prompt + résultats) | Nouvelle grille, nouveaux contrôles dans `checks.py` |
-| `AgentOwnership` + rôles | **Hangar** (4 rôles : `scout`, `qualifier`, `profiler`, `outreach`) | Remplacer l'énumération des rôles |
+| `AgentOwnership` + rôles | **Hangar** (4 rôles : `scout`, `triage`, `replier`, `ads`) | Remplacer l'énumération des rôles |
 | `NotebookEntry` | **Carnet de prompts** (cœur de l'apprentissage ; **distinct** du carnet de prospection, §12) | Livrer `GET/POST /api/notebook` (501 aujourd'hui) |
 | Événements de brief versionnés | **Événements de marché** (« la cible change ») | Contenu à écrire (P1) |
 | Clarifications au client (2 gratuites) | **Briefer le commanditaire** | Contenu à écrire |
@@ -268,16 +268,18 @@ Produit **par le serveur** (jamais construit dans le navigateur), pour garantir 
 
 L'export est **gratuit**, répétable (lecture) et **jamais refusé pour manque de fonds**. Le **JSON complet des données de la partie** (portabilité) est décrit en §14.
 
-## 13. Agents spécialisés après la recherche
-Deux agents travaillent **à partir d'un prospect du carnet** (« atelier du prospect »), pas en expédition. Ils s'achètent au hangar (§5). Ils ne font **aucune requête vers une source** au MVP : ils lisent l'**instantané minimisé** du prospect et la **fiche entreprise et cible** (enrichissement par nouvelle requête de source : P1).
+## 13. Fiche client et premier message (rôle `replier`)
+> **5e décision** : ces deux productions sont faites par **un seul agent, `replier`** ; ci-dessous, « `profiler` » et « `outreach` » désignent désormais les **deux actions** `prospect_profile` et `prospect_message` du même rôle, avec chacune son quota 5 par `(prospect, action)`. Elles se lancent depuis la **fiche prospect aux Archives** de l'immeuble.
+
+Deux productions se font **à partir d'un prospect du carnet** (« atelier du prospect »), pas en expédition. Ils s'achètent au hangar (§5). Ils ne font **aucune requête vers une source** au MVP : ils lisent l'**instantané minimisé** du prospect et la **fiche entreprise et cible** (enrichissement par nouvelle requête de source : P1).
 
 | | **Analyste de fiche client** (`profiler`) | **Rédacteur de premier message** (`outreach`) |
 |---|---|---|
 | Produit | **Fiche client** (versionnée) | **Brouillon** de message (versionné) |
 | Sections / champs | `resume` (≤ 600 caractères) · `pourquoi_ce_prospect` (1 à 5 éléments, chacun relié à un critère de la fiche cible et à un champ de l'instantané) · `points_d_accroche` (1 à 5) · `a_verifier` (0 à 8) · `sources` (références `source_ref` de l'instantané) | `canal_cible` (type seulement) · `objet` (≤ 90 caractères, si pertinent) · `corps` (≤ 800 caractères) · `mentions` (origine des coordonnées et possibilité de refuser de nouveaux messages) |
 | Consigne du joueur | Facultative (≤ 500 caractères, ex. « insiste sur la proximité ») | Facultative (≤ 500 caractères, ex. « angle : gain de temps ») |
-| Prix de départ | 40 $ (achat) · **3 $ par génération** | 45 $ (achat) · **2 $ par génération** |
-| Quota | **5 générations par (prospect, rôle)**, jamais 6 | Idem |
+| Prix de départ | **3 $ par génération** (rôle `replier`, 45 $ à l'achat, une seule fois) | **2 $ par génération** |
+| Quota | **5 générations par (prospect, action)**, jamais 6 | Idem |
 
 **Économie et fiabilité** (mécanismes du moteur réutilisés, `RULES.md` §11) : réservation avant l'appel, règlement après, **aucun débit sans réponse exploitable**, idempotence, coût maximal affiché avant l'envoi, versions immuables (les précédentes restent consultables). **Aucun gain en $** : sinon le joueur pourrait s'enrichir en régénérant. Valeurs dans `rules_v2`.
 
@@ -319,7 +321,7 @@ Chaque prospect porte **sa source, sa date de collecte et sa fiabilité**, visib
 
 ### Aucune action externe automatique
 - Le produit **n'envoie jamais de lui-même** un message, un email, une invitation ou une demande de connexion, et ne se connecte à aucun CRM. **Exception unique (3e décision)** : en mode Réel, la section **Clients** peut se connecter à la boîte mail du joueur et envoyer **un email à la fois, après confirmation explicite du joueur**, avec les garde-fous de `PRODUIT-CLIENTS-PUB.md` §4. Aucun agent ne dispose d'un outil d'envoi.
-- Dans la section Prospection, le brouillon `outreach` reste du **texte à copier** ; « contacté » est **déclaratif**. Le joueur peut aussi l'utiliser comme premier message d'une **conversation** (section Clients).
+- Dans la section Prospection, le brouillon `replier` (premier message) reste du **texte à copier** ; « contacté » est **déclaratif**. Le joueur peut aussi l'utiliser comme premier message d'une **conversation** (section Clients).
 - Les seules sorties vers l'extérieur sont : l'**export** que le joueur télécharge, les **requêtes de sources** pilotées par le serveur (liste blanche) et, en mode Réel, l'**envoi d'email confirmé** de la section Clients.
 
 ### Persistance sans compte

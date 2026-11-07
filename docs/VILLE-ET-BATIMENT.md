@@ -219,4 +219,7 @@ Les **libellés** de l'interface passent de « planète » à « lieu » ; les *
 - Test manuel clavier et lecteur d'écran avant démo (`QA-G1`).
 
 ## 14. Ce qui ne change pas
-Moteur (sessions, ledger, quotas, idempotence, évaluation), règles de fiabilité, carnet de prospection, agents `profiler` et `outreach`, messagerie et pub (`PRODUIT-CLIENTS-PUB.md`), règle 13 (une seule exception : l'envoi confirmé), mode liste de secours, aucune dépendance de règle au décor.
+Moteur (sessions, ledger, quotas, idempotence, évaluation), règles de fiabilité, carnet de prospection, agent `replier` (fiche client, premier message), messagerie et pub (`PRODUIT-CLIENTS-PUB.md`), règle 13 (une seule exception : l'envoi confirmé), mode liste de secours, aucune dépendance de règle au décor.
+
+## 16. Ordre de livraison (5e décision, 2026-11-07)
+L'**intérieur de l'immeuble** (§7 et §8) est livré **avant** le décor de la ville : jalon R de `BACKLOG.md`. Première version : entrée par le clic sur le siège ou « Entrer » (couche DOM), liste des étages, panneaux Clients, Pub et Archives, **sans animation** ; la scène Phaser animée (`BuildingScene`, MAP-Q4) les habille ensuite. Hangar : 4 rôles (`scout`, `triage`, `replier`, `ads`).

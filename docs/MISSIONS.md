@@ -20,15 +20,17 @@ Même moteur, mêmes règles économiques ; **variantes de contenu versionnées 
 | Rôle | Capacité | Outil |
 |---|---|---|
 | `scout` (éclaireur) | Applique le prompt du joueur sur une planète, interroge l'agent de la planète, rapporte des leads | Outil **`planet_search`** (liste blanche) : requête structurée vers la planète courante |
-| `qualifier` (qualificateur) | Compare chaque lead à la fiche cible, retire doublons et hors-cible, ajoute un score de fit | Lecture des rapports partagés ; calculs **déterministes côté serveur** (doublons, critères structurés) |
-| `profiler` (analyste de fiche client) | Travaille **sur un prospect du carnet** : produit sa **fiche client** (résumé, pourquoi ce prospect, points d'accroche, à vérifier, sources) à partir de l'instantané minimisé et de la fiche entreprise et cible | Lecture de l'instantané ; **contrôles par code** (sources ⊂ instantané, sections, bornes) ; aucune requête vers une source au MVP |
-| `outreach` (rédacteur de premier message) | Travaille **sur un prospect du carnet** : rédige un **brouillon** de premier message personnalisé, avec mentions d'origine et d'opposition ; **aucun envoi** | Lecture de l'instantané ; **contrôles par code** (aucun fait ou URL absent des données, longueur, mentions) ; ne reçoit **jamais** la valeur d'un email ou d'un téléphone |
+| `triage` (trieur de boîte) | Résume les messages reçus d'un prospect du carnet et propose la suite | Lecture de la conversation ; **contrôles par code** ; ne reçoit jamais une adresse |
+| `replier` (rédacteur) | Travaille **sur un prospect du carnet** : **fiche client** (résumé, pourquoi ce prospect, accroches, à vérifier, sources), **brouillon de premier message** (mentions d'origine et d'opposition, **aucun envoi**), puis **réponses** dans une conversation | Lecture de l'instantané et de la fiche entreprise ; **contrôles par code** (aucun fait ou URL absent des données, longueur, mentions) ; ne reçoit **jamais** la valeur d'un email ou d'un téléphone |
+| `ads` (directeur de campagne) | Produit le **kit de campagne** (voir `PRODUIT-CLIENTS-PUB.md`) | Lecture de la fiche entreprise ; limites de format vérifiées par code |
+
+**5e décision** : `scout` est le **seul bot de prospection**. L'ancien `qualifier` n'existe plus : doublons, hors-cible et critères structurés sont des **contrôles par code** (`checks.py`). `profiler` et `outreach` sont fusionnés dans `replier`.
 
 Gabarit de rôle : identité, objectif, capacités, informations accessibles, limites, formats autorisés, comportement en cas de manque. Un agent n'accède **qu'au contexte transmis ou partagé** (partages journalisés). L'**agent de la planète** n'est pas un rôle du joueur : il répond uniquement à `planet_search`, sur son corpus (tutoriel) ou sa source (réel).
 
-Les rôles `profiler` et `outreach` traitent l'instantané, les notes et les textes de plateformes comme des **données** (bloc délimité, règle 3) et produisent des **versions immuables** ; quota **5 générations par (prospect, rôle)**, coûts dans `rules_v2` (`RULES.md` §11), **aucun gain**.
+Le rôle `replier` (fiche client et premier message) traite l'instantané, les notes et les textes de plateformes comme des **données** (bloc délimité, règle 3) et produisent des **versions immuables** ; quota **5 générations par (prospect, action)**, coûts dans `rules_v2` (`RULES.md` §11), **aucun gain**.
 
-**Commanditaire** (non achetable ; **mode Réel** : il n'y a pas de commanditaire IA, la fiche cible est celle du joueur et les « clarifications » sont remplacées par l'édition de la fiche entreprise et cible) : précise la fiche cible sur demande (2 questions gratuites par expédition, réponses factuelles), évalue le rapport ; jamais appelé par un agent. **Coach** : indice sans terminer l'expédition. **Qualificateur** n'a pas les réponses privées du commanditaire.
+**Commanditaire** (non achetable ; **mode Réel** : il n'y a pas de commanditaire IA, la fiche cible est celle du joueur et les « clarifications » sont remplacées par l'édition de la fiche entreprise et cible) : précise la fiche cible sur demande (2 questions gratuites par expédition, réponses factuelles), évalue le rapport ; jamais appelé par un agent. **Coach** : indice sans terminer l'expédition. 
 
 ## Planètes (campagne)
 Chaque planète est un fichier de données `data/planets/<id>/` : fiche cible (brief), source (corpus simulé ou adaptateur MCP/API), tarif, gain, déblocage, grille, variantes `beginner` / `expert`. **Une seule fiche cible**, déjà dans un corpus qui contient les bonnes réponses **et** des pièges.
@@ -70,7 +72,7 @@ Mesures à enregistrer : corrections utiles (version suivante mieux notée), cri
 |---|---|
 | `data/planets/<id>/` | Fiche cible, corpus ou configuration de source, variantes `beginner` / `expert`, solutions de référence |
 | `data/map/layout_v1.json` | Positions cosmétiques de la base et des planètes (`CARTE-TECH.md`) |
-| `data/roles/{scout,qualifier,profiler,outreach}.json` | Instructions et outils des 4 rôles |
+| `data/roles/{scout,triage,replier,ads}.json` | Instructions et outils des 4 rôles |
 | `data/profile/target_profile_v1.json` | Champs, bornes et énumérations de la fiche entreprise et cible ; `data/profile/examples/` : fiches d'exemple du Tutoriel |
 | `data/rubrics/prospect_fiche_v1.json`, `prospect_message_v1.json` | Contrôles par code de la fiche client et du brouillon (ids stables) |
 | `data/sources/<source>.json` | **Liste blanche de champs** conservés dans l'instantané d'un prospect, fraîcheur maximale, champs de contact autorisés |

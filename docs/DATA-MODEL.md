@@ -10,7 +10,7 @@
 | Entité | Champs et contraintes |
 |---|---|
 | `GameSession` | `id`, jeton de session opaque (cookie), `mode` (`beginner`/`expert` ; l'interface dit « Tutoriel » / « Réel »), `company` (dont `profile`, texte ≤ 200, **repris comme champ `offre`** de la fiche cible), `state`, `stage`, `seed`, dates, `rules_version`, `creation_key_hash`, `creation_request_hash` (idempotence de création, migration `0004`) |
-| `AgentOwnership` | `session_id`, `role`, `price_paid`, `purchased_at` — **unique (session_id, role)**. L'énumération `Role` livrée compte encore les 6 rôles du cahier ; elle devra passer aux **7 rôles** (voir ci-dessous) |
+| `AgentOwnership` | `session_id`, `role`, `price_paid`, `purchased_at` — **unique (session_id, role)**. L'énumération `Role` livrée compte encore les 6 rôles du cahier ; elle devra passer aux **4 rôles** (5e décision) (voir ci-dessous) |
 | `MissionDefinition` | `id`, `version`, `mode`, brief, corpus, critères (+poids, contrôles), `max_reward`, `unit_price`, événements, prérequis |
 | `MissionAttempt` | `id`, `session_id`, `mission_id`, `brief_version`, `status`, `spend_cap`, compteurs (messages par rôle, clarifications, appels), `attempt_no`, `unit_price` figé |
 | `Message` | `id`, `attempt_id`, `role`, `author` (joueur/agent), texte, pièces liées, `status`, `action_id` |
@@ -40,11 +40,11 @@ Toutes portent un `session_id` (propriété vérifiée, réponse `NOT_FOUND` ide
 | `CampaignVersion` (kit de campagne) | `id`, `campaign_id`, numéro, `parent_id`, `auteur` (agent `ads` / joueur), `positionnement` (≤ 160), `audience_resume`, `accroches` (3 à 5), `textes` (par format, limites de `data/ads/formats.json`), `brief_visuel`, `plan`, `checklist`, `a_verifier`, contrôles par code, `action_id`. **Immuable** ; l'édition crée une version enfant. | §5 |
 | `MailboxConnection` (Réel) | `session_id` **unique** (une boîte par partie), `provider` (liste blanche), jeton d'accès et de rafraîchissement **chiffrés au repos** (jamais renvoyés au navigateur, jamais journalisés), `address_masked` (l'adresse en clair n'est pas exposée au navigateur), état de connexion, compteurs d'envoi (jour, heure), dates. Supprimer la connexion **révoque** le jeton chez le fournisseur et le supprime. | §4 |
 
-**Rôles du hangar (7)** : `scout`, `qualifier`, `profiler`, `outreach`, `triage`, `replier`, `ads` (chef d'équipe reporté en P2). `AgentOwnership` reste unique `(session, rôle)`.
+**Rôles du hangar (4, 5e décision)** : `scout`, `triage`, `replier`, `ads` (chef d'équipe reporté en P2). `AgentOwnership` reste unique `(session, rôle)`.
 
 **Types d'action (`ActionRun.type`) ajoutés** : `prospect_profile`, `prospect_message`, `conversation_triage`, `conversation_reply`, `ad_campaign`. Même cycle de vie que les actions livrées (réservation, règlement, idempotence). Comme `ActionRun.idempotency_key`, la clé reste **unique par session**.
 
-**Clés de quota ajoutées** (compteur indépendant, plafond 5, **jamais 6**, même mécanisme que le quota `(tentative, rôle)` livré) : `(prospect, rôle)` pour `profiler` et `outreach` ; `(conversation, rôle)` pour `triage` et `replier` ; `(campagne, rôle)` pour `ads`. Un quota n'est consommé qu'au règlement d'une réponse exploitable ; aucun gain en $ sur ces actions.
+**Clés de quota ajoutées** (compteur indépendant, plafond 5, **jamais 6**, même mécanisme que le quota `(tentative, rôle)` livré) : `(prospect, action)` pour `profiler` et `outreach` ; `(conversation, rôle)` pour `triage` et `replier` ; `(campagne, rôle)` pour `ads`. Un quota n'est consommé qu'au règlement d'une réponse exploitable ; aucun gain en $ sur ces actions.
 
 **Trace d'expédition** (`CARTE-TECH.md`) : liste ordonnée (`seq` croissant) d'événements (`departed`, `arrived`, `dialogue`, `returned`, `failed`) rattachée à l'`ActionRun` d'expédition, **sans prompt système, clé ni raisonnement interne**. Stockage (colonne ou table) non précisé dans les docs.
 
@@ -85,7 +85,7 @@ Toutes portent un `session_id` (propriété vérifiée, réponse `NOT_FOUND` ide
 6. Les journaux masquent secrets et contenus non nécessaires.
 7. **[PROPOSÉ]** Un `Prospect` n'entre dans le carnet que **recopié par le serveur** depuis une version de rapport figée, avec son `source_ref` **revérifié** ; le navigateur ne fournit jamais son contenu ; sa provenance est immuable.
 8. **[PROPOSÉ]** Unicité `(session_id, source, source_ref)` pour les prospects et `(session_id, prospect_id)` pour les conversations ; double ajout concurrent ⇒ une seule ligne.
-9. **[PROPOSÉ]** Quota 5 par `(prospect, rôle)`, `(conversation, rôle)` et `(campagne, rôle)` : jamais 6, y compris sous concurrence ; aucun quota ni débit consommé sans réponse exploitable ; aucun gain en $ sur ces actions.
+9. **[PROPOSÉ]** Quota 5 par `(prospect, action)`, `(conversation, rôle)` et `(campagne, rôle)` : jamais 6, y compris sous concurrence ; aucun quota ni débit consommé sans réponse exploitable ; aucun gain en $ sur ces actions.
 10. **[PROPOSÉ]** Aucun agent n'a d'outil d'envoi ; un envoi réel exige une action du joueur (`confirm: true`, version de brouillon existante), part vers la **seule adresse du prospect** de la conversation stockée par le serveur, et n'a lieu **qu'une fois** par `Idempotency-Key`.
 11. **[PROPOSÉ]** Le modèle ne reçoit jamais la valeur d'un email ou d'un téléphone, ni les notes du joueur ; les journaux et erreurs ne contiennent aucun contenu personnel (noms, contacts, notes, instantanés, messages, adresses).
 12. **[PROPOSÉ]** Les jetons de messagerie sont chiffrés au repos, jamais exposés au navigateur ni aux journaux ; une boîte par partie.

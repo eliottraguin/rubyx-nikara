@@ -202,13 +202,13 @@ pro_01;Boulangerie Dupont;;gérant;email_generique;contact@exemple.test;Secteur 
 ```
 
 ### 3. Actions sur un prospect (fiche client, premier message)
-Référence : `PRODUIT-PROSPECTION.md` §13, `RULES.md` §11. Tickets API-J1, API-K1. Clé de quota **`(prospect, rôle)`** : 5, jamais 6.
+Référence : `PRODUIT-PROSPECTION.md` §13, `RULES.md` §11. Tickets API-J1, API-K1. Clé de quota **`(prospect, action)`** : 5, jamais 6.
 
-**`POST /api/prospects/{id}/profile`** — action `prospect_profile` (rôle `profiler`, 3 $ par génération, valeur de départ).
-**`POST /api/prospects/{id}/message`** — action `prospect_message` (rôle `outreach`, 2 $ par génération).
+**`POST /api/prospects/{id}/profile`** — action `prospect_profile` (rôle `replier`, 3 $ par génération, valeur de départ).
+**`POST /api/prospects/{id}/message`** — action `prospect_message` (rôle `replier`, 2 $ par génération).
 - Corps : `{instruction?}` (consigne facultative ≤ 500 caractères), et pour la cohérence de version `{profile_version?}` (champ **non écrit** dans les docs pour ces routes : voir « Points à trancher »).
 - Réponse 202 : `ActionOut` (`type`: `prospect_profile` | `prospect_message`) ; à la fin, une **version** de fiche client (`FicheClient` : `resume` ≤ 600, `pourquoi_ce_prospect` 1 à 5, `points_d_accroche` 1 à 5, `a_verifier` 0 à 8, `sources`) ou de brouillon (`Brouillon` : `canal_cible` (type seulement), `objet` ≤ 90, `corps` ≤ 800, `mentions`) et la liste des **contrôles par code** réussis/échoués.
-- Erreurs : `ROLE_LOCKED` (rôle non acheté ; en Réel la condition de score est levée), `INSUFFICIENT_FUNDS`, `MESSAGE_LIMIT` (6e génération par `(prospect, rôle)`), `VERSION_CONFLICT` (fiche entreprise périmée), `INVALID_OUTPUT` (aucun débit), `LLM_UNAVAILABLE` (aucun débit), `NOT_FOUND`, `INVALID_REQUEST`.
+- Erreurs : `ROLE_LOCKED` (rôle non acheté ; en Réel la condition de score est levée), `INSUFFICIENT_FUNDS`, `MESSAGE_LIMIT` (6e génération par `(prospect, action)`), `VERSION_CONFLICT` (fiche entreprise périmée), `INVALID_OUTPUT` (aucun débit), `LLM_UNAVAILABLE` (aucun débit), `NOT_FOUND`, `INVALID_REQUEST`.
 - `Idempotency-Key` : oui. **Aucun gain**. Le modèle reçoit l'instantané minimisé et la fiche entreprise dans un **bloc de données délimité**, jamais la valeur d'un email/téléphone ni les notes. Un brouillon est du **texte que le joueur copie** : aucun envoi, aucun `mailto:`.
 - Dépense **hors finale** : ces actions n'entrent pas dans la limite de 30 $ de la finale.
 ```json
@@ -359,18 +359,18 @@ Référence : `CARTE-TECH.md` (protocole événements serveur → animations), t
 - Portée : documentée pour les **actions d'expédition**. Les autres actions (`prospect_*`, `conversation_*`, `ad_campaign`) n'ont pas d'événements de trace décrits, à l'exception des **drones** qui lisent les actions `ad_campaign` (`VILLE-ET-BATIMENT.md` §10) : voir « Points à trancher ».
 
 ### 10. Rôles, actions et quotas (récapitulatif)
-Le hangar passe à **7 rôles** (`scout`, `qualifier`, `profiler`, `outreach`, `triage`, `replier`, `ads`) ; le chef d'équipe est reporté en P2. L'énumération `Role` du code livré compte encore les 6 rôles du cahier (obsolète) : **migration d'énumération** à prévoir (`RULES.md` §2). Prix et coûts (valeurs de départ de `rules_v2`) : `scout` 0, `qualifier` 30, `profiler` 40 (3 $/génération), `outreach` 45 (2 $), `triage` 35 (1 $), `replier` 45 (2 $), `ads` 50 (4 $).
+**5e décision (2026-11-07)** : le hangar passe à **4 rôles** (`scout`, `triage`, `replier`, `ads`) ; `qualifier`, `profiler`, `outreach` sont supprimés (voir API-R1) ; le chef d'équipe est reporté en P2. L'énumération `Role` du code livré compte encore les 6 rôles du cahier (obsolète) : **migration d'énumération** à prévoir (`RULES.md` §2). Prix et coûts (valeurs de départ de `rules_v2`) : `scout` 0, `triage` 35 (1 $), `replier` 45 (fiche client 3 $, premier message 2 $, réponse 2 $), `ads` 50 (4 $).
 
 | Action (`type`) | Route | Rôle | Clé de quota | Plafond |
 |---|---|---|---|---|
-| expédition (message) | `POST /api/attempts/{id}/messages` *(livrée)* | `scout`, `qualifier` | `(tentative, rôle)` | 5 |
-| `prospect_profile` | `POST /api/prospects/{id}/profile` | `profiler` | `(prospect, rôle)` | 5 |
-| `prospect_message` | `POST /api/prospects/{id}/message` | `outreach` | `(prospect, rôle)` | 5 |
+| expédition (message) | `POST /api/attempts/{id}/messages` *(livrée)* | `scout` | `(tentative, rôle)` | 5 |
+| `prospect_profile` | `POST /api/prospects/{id}/profile` | `replier` | `(prospect, action)` | 5 |
+| `prospect_message` | `POST /api/prospects/{id}/message` | `replier` | `(prospect, action)` | 5 |
 | `conversation_triage` | `POST /api/conversations/{id}/triage` | `triage` | `(conversation, rôle)` | 5 |
 | `conversation_reply` | `POST /api/conversations/{id}/reply` | `replier` | `(conversation, rôle)` | 5 |
 | `ad_campaign` | `POST /api/campaigns/{id}/generate` | `ads` | `(campagne, rôle)` | 5 |
 
-Aucune de ces cinq actions nouvelles ne rapporte de gain ; `triage`, `replier`, `ads`, `profiler` et `outreach` **n'entrent pas** dans la dépense de la finale (≤ 30 $). Les tours du client simulé (Tutoriel) sont à la charge de la plateforme (6 par conversation), pas du joueur.
+Aucune de ces cinq actions nouvelles ne rapporte de gain ; `triage`, `replier` et `ads` **n'entrent pas** dans la dépense de la finale (≤ 30 $). Les tours du client simulé (Tutoriel) sont à la charge de la plateforme (6 par conversation), pas du joueur.
 
 ## Points à trancher
 > Aucune de ces questions n'est décidée ici. Chacune est un détail manquant ou une contradiction entre documents, relevée pendant DOC-L1 et DOC-M1. À arbitrer avant l'implémentation des tickets concernés.
@@ -396,12 +396,12 @@ Aucune de ces cinq actions nouvelles ne rapporte de gain ; `triage`, `replier`, 
 14. **Paramètres de la liste de prospects** (noms, valeurs de tri, filtre « à relancer ») et de `GET /api/conversations` ; contenu exact des **bacs** du courrier (« À traiter », « En attente », « Clos », « À ne plus contacter ») et règle qui range une conversation dans un bac.
 15. **Réponses de `POST /api/prospects`** (bilan ajoutés / déjà présents / refusés) et de `POST /api/mailbox/sync` : forme non écrite.
 16. **Corps des actions** `profile` / `message` / `triage` / `reply` / `generate` : seule la consigne facultative (≤ 500) est documentée ; pas de champ de version de fiche entreprise nommé alors que `VERSION_CONFLICT` est annoncé pour une version périmée.
-17. **`POST /api/conversations/{id}/messages`** : lien avec le brouillon (« Utiliser ce brouillon ») et avec `draft_version_id` non précisé ; le brouillon `outreach` (stocké sur le prospect) n'a pas de route décrite pour devenir le premier message d'une conversation.
+17. **`POST /api/conversations/{id}/messages`** : lien avec le brouillon (« Utiliser ce brouillon ») et avec `draft_version_id` non précisé ; le brouillon `replier` (premier message) (stocké sur le prospect) n'a pas de route décrite pour devenir le premier message d'une conversation.
 18. **`DELETE /api/mailbox`** : forme de l'option « supprimer aussi les messages importés » (paramètre ou corps).
 19. **`POST /api/mailbox/connect`** : comportement si une boîte est déjà connectée ; liste exacte des fournisseurs (Gmail, Microsoft 365/Outlook proposés ; IMAP/SMTP à étudier, `OPEN-QUESTIONS.md`).
 20. **Export JSON de la partie** (`GET /api/session/export`) : schéma et contenu exact non définis (la mention des conversations et campagnes vient de `PRODUIT-CLIENTS-PUB.md` §4 et n'est pas reprise pour les campagnes).
 21. **Export Markdown d'une campagne** : paramètre de choix de version non nommé.
-22. **Stockage de la fiche client et du brouillon `outreach`**, et de la **synthèse** `triage` : les docs parlent de « versions immuables » sans nommer l'entité ni la table (voir `DATA-MODEL.md`).
+22. **Stockage de la fiche client et du brouillon `replier` (premier message)**, et de la **synthèse** `triage` : les docs parlent de « versions immuables » sans nommer l'entité ni la table (voir `DATA-MODEL.md`).
 23. **`building.next_level_at`** au niveau maximal : valeur non précisée (`null` supposé). Seuils de `rules_v2.building.levels` : valeurs non écrites.
 24. **Trace des actions non-expédition** (`prospect_*`, `conversation_*`, `ad_campaign`) : seul le protocole d'expédition est décrit ; les drones lisent `ad_campaign` sans événement défini.
 25. **Suppression d'un prospect et conversation** : la cascade vers la conversation est déduite de « suppression en cascade avec le prospect, la conversation et la partie » (`PRODUIT-CLIENTS-PUB.md` §4) ; l'effet sur une conversation déjà envoyée en Réel n'est pas précisé.

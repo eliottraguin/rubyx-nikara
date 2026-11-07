@@ -14,12 +14,12 @@
 
 | Rôle | Id technique | Prix | Déblocage |
 |---|---|---|---|
-| Éclaireur | `scout` | 0 | Au lancement |
-| Qualificateur | `qualifier` | 30 | Score ≥ 50 sur la planète 2 |
-| Analyste de fiche client | `profiler` | 40 | Score ≥ 50 sur la planète 3 |
-| Rédacteur de premier message | `outreach` | 45 | Score ≥ 50 sur la planète 4 |
+| Éclaireur (**seul bot de prospection**) | `scout` | 0 | Au lancement |
+| Trieur de boîte | `triage` | 35 | Score ≥ 50 sur la planète 2 (Tutoriel) |
+| Rédacteur (fiche client, premier message, réponses) | `replier` | 45 | Score ≥ 50 sur la planète 3 (Tutoriel) |
+| Directeur de campagne | `ads` | 50 | Score ≥ 50 sur la planète 4 (Tutoriel) |
 
-`scout` et `qualifier` travaillent en expédition ; `profiler` et `outreach` travaillent sur un prospect du carnet (§11). **Mode Réel : la condition de score de déblocage est levée** pour `qualifier`, `profiler` et `outreach` (seul le prix reste ; décision par défaut, `OPEN-QUESTIONS.md`) ; en Tutoriel, elle s'applique.
+**5e décision (2026-11-07)** : plus de `qualifier`, `profiler` ni `outreach`. Le tri (doublons, hors-cible, critères structurés) est fait **par code** sur le rapport du `scout`. `replier` travaille sur un prospect du carnet (fiche client, premier message : §11) et sur une conversation (réponses). `scout` travaille en expédition. **Mode Réel : la condition de score est levée** pour `triage`, `replier` et `ads` (seul le prix reste) ; en Tutoriel, elle s'applique. Seuils exacts à confirmer (`OPEN-QUESTIONS.md` n° 57).
 
 Le chef d'équipe est **reporté en P2**. Unicité `(session, rôle)` **[GARDÉ]** : un double achat concurrent ne débite et ne crée qu'une fois (F07, T06). Changer les ids de rôles demande une migration de l'énumération `Role` (voir `BACKLOG.md`).
 
@@ -138,8 +138,8 @@ Le **carnet de prospection** (`PRODUIT-PROSPECTION.md` §12) est le produit ; la
 | Action | Coût | Quota | Gain |
 |---|---|---|---|
 | Ajouter au carnet, consulter, trier, filtrer, rechercher, annoter, changer de statut, marquer « contacté », **supprimer**, **exporter** (CSV, JSON complet) | **Gratuit, jamais refusé pour manque de fonds** | Aucun | Aucun |
-| **Fiche client** (`profiler`) | 3 $ par génération (valeur de départ) | **5 par (prospect, rôle)**, jamais 6 | **Aucun** |
-| **Brouillon de premier message** (`outreach`) | 2 $ par génération (valeur de départ) | **5 par (prospect, rôle)**, jamais 6 | **Aucun** |
+| **Fiche client** (`prospect_profile`, rôle `replier`) | 3 $ par génération (valeur de départ) | **5 par (prospect, action)**, jamais 6 | **Aucun** |
+| **Brouillon de premier message** (`prospect_message`, rôle `replier`) | 2 $ par génération (valeur de départ) | **5 par (prospect, action)**, jamais 6 | **Aucun** |
 
 - Mécanisme **identique au moteur** : réservation + quota **avant** l'appel, règlement **après**, aucune transaction ouverte pendant l'appel, **aucun débit ni quota consommé sans réponse exploitable**, `Idempotency-Key` (même clé ⇒ même résultat, même clé avec un autre corps ⇒ refus), coût maximal affiché avant l'envoi. Les écritures du ledger portent l'`id` du prospect, **jamais** son contenu.
 - Toute mutation du carnet (`POST`, `PATCH`, `DELETE`, actions) porte une `Idempotency-Key` ; `PATCH` utilise la `version` du prospect (`VERSION_CONFLICT` si périmée).
