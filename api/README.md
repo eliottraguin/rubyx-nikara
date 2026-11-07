@@ -1,0 +1,59 @@
+# API (FastAPI + Pydantic + SQLite)
+
+Ticket BE01 : socle lançable, schémas partagés, sessions, migrations. Les routes du moteur (missions, actions, économie, livrables, IA) sont des **stubs 501** (`NOT_IMPLEMENTED`) jusqu'à BE02–BE06.
+
+## Choix techniques
+- **Gestionnaire de paquets : `uv`** (dépendances dans `pyproject.toml`, versions exactes verrouillées dans `uv.lock`, Python 3.12 via `.python-version`). Environnement virtuel local `api/.venv/` (ignoré par git).
+- **Base : SQLite** via SQLAlchemy 2, fichier `api/var/rubix.db` (ignoré par git ; `RUBIX_DB_PATH` pour changer).
+- **Migrations : Alembic** (`api/migrations/`). Elles sont aussi appliquées automatiquement au démarrage de l'API (idempotent).
+- **Règles** chargées depuis `data/rules/rules_v1.json` (prix, gains, capital initial, quotas, limites). Aucune de ces valeurs n'est en dur dans le code.
+- **LLM** : interface `app/llm/base.py`, seule implémentation `mock` (déterministe, sans réseau). L'état renvoyé contient `llm.simulated = true` (badge obligatoire).
+
+## Commandes (depuis `api/`)
+```bash
+uv sync                                              # installer
+uv run uvicorn app.main:app --reload --port 8000     # lancer (Swagger : http://localhost:8000/docs)
+uv run pytest                                        # tester (mock, aucun réseau)
+uv run python -m app.export_openapi                  # exporter api/openapi.json
+uv run python -m app.export_fixtures                 # régénérer data/fixtures/
+uv run alembic upgrade head                          # migrer à la main (facultatif)
+uv run alembic revision --autogenerate -m "message"  # nouvelle migration (relire le résultat)
+curl localhost:8000/api/health                       # vérifier l'état
+```
+Les tests échouent si `api/openapi.json` ou `data/fixtures/` sont périmés : relancer les deux exports ci-dessus après un changement de schéma, et signaler le changement (docs/CONTRACTS.md).
+
+## Configuration (variables d'environnement, toutes facultatives)
+| Variable | Défaut |
+|---|---|
+| `RUBIX_DB_PATH` | `api/var/rubix.db` |
+| `RUBIX_DATA_DIR` | `data/` à la racine du dépôt |
+| `RUBIX_RULES_VERSION` | `rules_v1` |
+| `RUBIX_LLM_PROVIDER` | `mock` (seule valeur disponible) |
+| `RUBIX_COOKIE_SECURE` | `0` (mettre `1` derrière HTTPS) |
+| `RUBIX_CORS_ORIGINS` | vide (liste séparée par des virgules, ex. `http://localhost:3000`) |
+| `RUBIX_AUTO_EVALUATE` | `1` : chaque livraison est évaluée par le serveur (BE06) ; `0` : laissée en `EVALUATING` |
+| `RUBIX_DEMO_SECRET` | vide = mode démo **inactif** (`POST /api/demo/events` répond 404). Sinon secret attendu dans l'en-tête `X-Demo-Secret` |
+
+## Arborescence
+```
+api/app/main.py          création de l'app, routes, handlers
+api/app/config.py        paramètres (env)
+api/app/rules.py         chargement/validation de data/rules/
+api/app/errors.py        codes stables, statuts HTTP, messages français
+api/app/deps.py          base, propriété de session (cookie), Idempotency-Key
+api/app/models.py        tables SQLAlchemy ; api/migrations/ schéma réel
+api/app/schemas/         Pydantic : entités, état, évaluateur, plan du chef, erreurs
+api/app/llm/             interface adaptateur + mock
+api/app/routes/          health, sessions, stubs (501)
+api/app/services/        création de partie, état, solde
+api/tests/               pytest
+data/rules/ data/fixtures/
+```
+
+## Comportements à connaître
+- **Session** : cookie `rubix_session` opaque (HttpOnly, SameSite=Lax), seul le hachage SHA-256 est stocké. La partie est déduite du cookie uniquement ; l'id public `ses_…` n'est jamais un jeton. Sans cookie valide : `401 SESSION_REQUIRED`.
+- **Front sur un autre port** : cookie partagé entre ports de `localhost`, mais le navigateur exige CORS pour `fetch` avec `credentials: "include"` : soit un proxy Next (`rewrites` vers l'API, recommandé), soit `RUBIX_CORS_ORIGINS=http://localhost:3000`.
+- **Idempotency-Key** : obligatoire (8–128 car. `A-Za-z0-9_.:-`) sur `POST`/`DELETE` ; BE01 ne valide que la présence et le format. La rejouabilité (même clé => même résultat) est livrée par BE04. Aujourd'hui deux `POST /api/sessions` avec la même clé créent deux parties.
+- **Erreurs** : `{"error": {"code", "message", "details?"}}`, messages en français ; la validation ne renvoie jamais la valeur reçue ; les erreurs internes sont génériques. Exemples : `data/fixtures/errors/`.
+- **Suppression** : `DELETE /api/session` supprime la partie et toutes ses lignes (cascade) et efface le cookie.
+- **Intégrité en base** : unicités `(session, rôle)`, `Evaluation.submission_id`, `LedgerEntry.source_action`, `ActionRun.idempotency_key` ; triggers refusant tout `UPDATE` d'une version de livrable et des champs figés d'une livraison.

@@ -1,0 +1,3507 @@
+{
+  "components": {
+    "schemas": {
+      "ActionOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "debited": {
+            "title": "Debited",
+            "type": "integer"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "messages_remaining": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Messages Remaining",
+            "type": "object"
+          },
+          "pending_cost": {
+            "title": "Pending Cost",
+            "type": "integer"
+          },
+          "plan_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Summary"
+          },
+          "reservations": {
+            "items": {
+              "$ref": "#/components/schemas/ReservationOut"
+            },
+            "title": "Reservations",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ActionStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "type",
+          "status",
+          "steps",
+          "error",
+          "debited",
+          "pending_cost",
+          "reservations",
+          "messages",
+          "balance",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ActionOut",
+        "type": "object"
+      },
+      "ActionStepOut": {
+        "properties": {
+          "artifact_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Version Id"
+          },
+          "cost": {
+            "default": 0,
+            "title": "Cost",
+            "type": "integer"
+          },
+          "depends_on": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depends On"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "free_credit": {
+            "default": false,
+            "title": "Free Credit",
+            "type": "boolean"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message Id"
+          },
+          "reservation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reservation Id"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "task": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task"
+          }
+        },
+        "required": [
+          "index",
+          "kind",
+          "status"
+        ],
+        "title": "ActionStepOut",
+        "type": "object"
+      },
+      "ActiveActionView": {
+        "description": "Action non terminée de la partie (à suivre via `GET /api/actions/{id}`, ou à confirmer / reprendre pour un plan).",
+        "properties": {
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "type",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ActiveActionView",
+        "type": "object"
+      },
+      "AgentView": {
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "owned": {
+            "title": "Owned",
+            "type": "boolean"
+          },
+          "price": {
+            "title": "Price",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "unlock_mission": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unlock Mission"
+          },
+          "unlocked": {
+            "default": false,
+            "title": "Unlocked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "role",
+          "label",
+          "price",
+          "owned",
+          "unlock_mission"
+        ],
+        "title": "AgentView",
+        "type": "object"
+      },
+      "AppliedEventView": {
+        "properties": {
+          "added_documents": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Added Documents",
+            "type": "array"
+          },
+          "brief_version": {
+            "title": "Brief Version",
+            "type": "integer"
+          },
+          "credited_roles": {
+            "description": "Rôles recevant un message gratuit (une fois par rôle)",
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            },
+            "title": "Credited Roles",
+            "type": "array"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "diff": {
+            "items": {
+              "$ref": "#/components/schemas/BriefDiffItem"
+            },
+            "title": "Diff",
+            "type": "array"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          }
+        },
+        "required": [
+          "event_id",
+          "brief_version"
+        ],
+        "title": "AppliedEventView",
+        "type": "object"
+      },
+      "ArtifactCreate": {
+        "additionalProperties": false,
+        "description": "Version manuelle (`content`, éventuellement `parent_id` pour une édition) ou assemblage de versions existantes.",
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "maxLength": 20000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "kind": {
+            "default": "manual",
+            "enum": [
+              "manual",
+              "assembly"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "part_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Ids"
+          },
+          "type": {
+            "default": "text",
+            "pattern": "^[a-z][a-z0-9_]{0,31}$",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "ArtifactCreate",
+        "type": "object"
+      },
+      "ArtifactShareOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "artifact_version_id": {
+            "title": "Artifact Version Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "artifact_version_id",
+          "role",
+          "action_id",
+          "created_at"
+        ],
+        "title": "ArtifactShareOut",
+        "type": "object"
+      },
+      "ArtifactVersionOut": {
+        "properties": {
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "contributions": {
+            "items": {},
+            "title": "Contributions",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "type",
+          "content",
+          "parent_id",
+          "author",
+          "sources",
+          "contributions",
+          "created_at"
+        ],
+        "title": "ArtifactVersionOut",
+        "type": "object"
+      },
+      "AttemptDetail": {
+        "description": "Reprise complète d'une tentative (F12) : tout ce qu'il faut pour restaurer l'atelier.",
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactVersionOut"
+            },
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "attempt": {
+            "$ref": "#/components/schemas/AttemptSummary"
+          },
+          "brief": {
+            "$ref": "#/components/schemas/BriefView"
+          },
+          "content_available": {
+            "title": "Content Available",
+            "type": "boolean"
+          },
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentView"
+            },
+            "title": "Documents",
+            "type": "array"
+          },
+          "evaluations": {
+            "items": {
+              "$ref": "#/components/schemas/EvaluationOut"
+            },
+            "title": "Evaluations",
+            "type": "array"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "mission_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mission Title"
+          },
+          "shares": {
+            "items": {
+              "$ref": "#/components/schemas/ArtifactShareOut"
+            },
+            "title": "Shares",
+            "type": "array"
+          },
+          "submissions": {
+            "items": {
+              "$ref": "#/components/schemas/SubmissionOut"
+            },
+            "title": "Submissions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "attempt",
+          "content_available",
+          "brief",
+          "documents",
+          "messages",
+          "artifacts",
+          "shares",
+          "submissions",
+          "evaluations"
+        ],
+        "title": "AttemptDetail",
+        "type": "object"
+      },
+      "AttemptSummary": {
+        "properties": {
+          "artifacts_count": {
+            "title": "Artifacts Count",
+            "type": "integer"
+          },
+          "attempt_no": {
+            "title": "Attempt No",
+            "type": "integer"
+          },
+          "brief_version": {
+            "title": "Brief Version",
+            "type": "integer"
+          },
+          "clarifications_used": {
+            "title": "Clarifications Used",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "failure_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Failure Reasons",
+            "type": "array"
+          },
+          "free_credit_roles": {
+            "description": "Rôles ayant encore un message gratuit (crédit de correction)",
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            },
+            "title": "Free Credit Roles",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "message_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Message Counts",
+            "type": "object"
+          },
+          "mission_id": {
+            "title": "Mission Id",
+            "type": "string"
+          },
+          "model_calls": {
+            "title": "Model Calls",
+            "type": "integer"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Score de la dernière livraison évaluée, sinon null",
+            "title": "Score"
+          },
+          "spend_cap": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spend Cap"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "EVALUATING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submission Id"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "mission_id",
+          "attempt_no",
+          "status",
+          "brief_version",
+          "unit_price",
+          "spend_cap",
+          "message_counts",
+          "free_credit_roles",
+          "clarifications_used",
+          "model_calls",
+          "score",
+          "submission_id",
+          "artifacts_count",
+          "created_at"
+        ],
+        "title": "AttemptSummary",
+        "type": "object"
+      },
+      "Balance": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "integer"
+          },
+          "booked": {
+            "title": "Booked",
+            "type": "integer"
+          },
+          "reserved": {
+            "title": "Reserved",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "booked",
+          "reserved",
+          "available"
+        ],
+        "title": "Balance",
+        "type": "object"
+      },
+      "BriefChange": {
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "diff": {
+            "items": {
+              "$ref": "#/components/schemas/BriefDiffItem"
+            },
+            "title": "Diff",
+            "type": "array"
+          },
+          "event_id": {
+            "title": "Event Id",
+            "type": "string"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "event_id"
+        ],
+        "title": "BriefChange",
+        "type": "object"
+      },
+      "BriefDiffItem": {
+        "properties": {
+          "after": {
+            "title": "After",
+            "type": "string"
+          },
+          "before": {
+            "title": "Before",
+            "type": "string"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "title": "BriefDiffItem",
+        "type": "object"
+      },
+      "BriefView": {
+        "description": "Brief public de la tentative : version courante et historique des changements (diff).",
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/BriefChange"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Brief public à la version courante ; null si le contenu de mission est absent",
+            "title": "Content"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "content",
+          "changes"
+        ],
+        "title": "BriefView",
+        "type": "object"
+      },
+      "ClarificationIn": {
+        "additionalProperties": false,
+        "properties": {
+          "question": {
+            "minLength": 1,
+            "title": "Question",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "ClarificationIn",
+        "type": "object"
+      },
+      "CompanyOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "CompanyOut",
+        "type": "object"
+      },
+      "DemoEventIn": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "maxLength": 64,
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 64,
+            "title": "Event Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "event_id"
+        ],
+        "title": "DemoEventIn",
+        "type": "object"
+      },
+      "DemoEventOut": {
+        "properties": {
+          "attempt": {
+            "$ref": "#/components/schemas/AttemptSummary"
+          },
+          "demo": {
+            "const": true,
+            "default": true,
+            "title": "Demo",
+            "type": "boolean"
+          },
+          "event": {
+            "$ref": "#/components/schemas/AppliedEventView"
+          }
+        },
+        "required": [
+          "event",
+          "attempt"
+        ],
+        "title": "DemoEventOut",
+        "type": "object"
+      },
+      "DocumentView": {
+        "properties": {
+          "authority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authority"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "DocumentView",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "description": "Code stable (ex. INSUFFICIENT_FUNDS)",
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Détails de validation (emplacement + message)",
+            "title": "Details"
+          },
+          "message": {
+            "description": "Message en français, sans donnée sensible",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "EvaluationOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "criteria": {
+            "items": {},
+            "title": "Criteria",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {},
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "judge_version": {
+            "title": "Judge Version",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "submission_id": {
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "submission_id",
+          "model",
+          "judge_version",
+          "criteria",
+          "score",
+          "evidence",
+          "status",
+          "created_at"
+        ],
+        "title": "EvaluationOut",
+        "type": "object"
+      },
+      "GameState": {
+        "properties": {
+          "active_actions": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ActiveActionView"
+            },
+            "title": "Active Actions",
+            "type": "array"
+          },
+          "agents": {
+            "items": {
+              "$ref": "#/components/schemas/AgentView"
+            },
+            "title": "Agents",
+            "type": "array"
+          },
+          "attempts": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AttemptSummary"
+            },
+            "title": "Attempts",
+            "type": "array"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          },
+          "contracts_version": {
+            "title": "Contracts Version",
+            "type": "string"
+          },
+          "llm": {
+            "$ref": "#/components/schemas/LLMInfo"
+          },
+          "missions": {
+            "items": {
+              "$ref": "#/components/schemas/MissionView"
+            },
+            "title": "Missions",
+            "type": "array"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Progress"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quotas": {
+            "$ref": "#/components/schemas/QuotaInfo"
+          },
+          "session": {
+            "$ref": "#/components/schemas/SessionInfo"
+          }
+        },
+        "required": [
+          "session",
+          "balance",
+          "agents",
+          "missions",
+          "quotas",
+          "llm",
+          "contracts_version"
+        ],
+        "title": "GameState",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthOut": {
+        "properties": {
+          "contracts_version": {
+            "title": "Contracts Version",
+            "type": "string"
+          },
+          "db": {
+            "const": "ok",
+            "title": "Db",
+            "type": "string"
+          },
+          "llm_provider": {
+            "title": "Llm Provider",
+            "type": "string"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "contracts_version",
+          "rules_version",
+          "llm_provider",
+          "db"
+        ],
+        "title": "HealthOut",
+        "type": "object"
+      },
+      "LLMInfo": {
+        "properties": {
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "simulated": {
+            "title": "Simulated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "provider",
+          "simulated"
+        ],
+        "title": "LLMInfo",
+        "type": "object"
+      },
+      "MessageIn": {
+        "additionalProperties": false,
+        "properties": {
+          "linked_artifact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Linked Artifact Ids",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "text": {
+            "description": "Instruction au rôle (longueur maximale contrôlée par le serveur : rules.limits)",
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "text"
+        ],
+        "title": "MessageIn",
+        "type": "object"
+      },
+      "MessageOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "author": {
+            "title": "Author",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "linked_artifact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Linked Artifact Ids",
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "role",
+          "author",
+          "text",
+          "linked_artifact_ids",
+          "status",
+          "action_id",
+          "created_at"
+        ],
+        "title": "MessageOut",
+        "type": "object"
+      },
+      "MissionView": {
+        "properties": {
+          "active_attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Attempt Id"
+          },
+          "attempts_count": {
+            "default": 0,
+            "title": "Attempts Count",
+            "type": "integer"
+          },
+          "best_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Best Score"
+          },
+          "can_retry": {
+            "default": false,
+            "title": "Can Retry",
+            "type": "boolean"
+          },
+          "can_start": {
+            "default": false,
+            "title": "Can Start",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max_reward": {
+            "title": "Max Reward",
+            "type": "integer"
+          },
+          "requires": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requires"
+          },
+          "status": {
+            "enum": [
+              "LOCKED",
+              "AVAILABLE",
+              "ACTIVE",
+              "EVALUATING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "unit_price": {
+            "title": "Unit Price",
+            "type": "integer"
+          },
+          "unlocks": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/Role"
+            },
+            "title": "Unlocks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "max_reward",
+          "unit_price",
+          "status"
+        ],
+        "title": "MissionView",
+        "type": "object"
+      },
+      "Mode": {
+        "enum": [
+          "beginner",
+          "expert"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "NextAction": {
+        "properties": {
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "mission_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mission Id"
+          },
+          "type": {
+            "enum": [
+              "start_mission",
+              "continue_attempt",
+              "await_evaluation",
+              "retry_mission",
+              "start_rescue",
+              "campaign_complete"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "message"
+        ],
+        "title": "NextAction",
+        "type": "object"
+      },
+      "Progress": {
+        "properties": {
+          "completed_missions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Completed Missions",
+            "type": "array"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/NextAction"
+          },
+          "reputation": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Moyenne des meilleurs scores des missions terminées (informative)",
+            "title": "Reputation"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "total_missions": {
+            "title": "Total Missions",
+            "type": "integer"
+          },
+          "victory": {
+            "title": "Victory",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "completed_missions",
+          "total_missions",
+          "reputation",
+          "victory",
+          "stage",
+          "next_action"
+        ],
+        "title": "Progress",
+        "type": "object"
+      },
+      "PurchaseIn": {
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "PurchaseIn",
+        "type": "object"
+      },
+      "PurchaseOut": {
+        "properties": {
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
+          },
+          "price_paid": {
+            "title": "Price Paid",
+            "type": "integer"
+          },
+          "purchased_at": {
+            "format": "date-time",
+            "title": "Purchased At",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "action_id",
+          "role",
+          "price_paid",
+          "purchased_at",
+          "balance"
+        ],
+        "title": "PurchaseOut",
+        "type": "object"
+      },
+      "QuotaInfo": {
+        "properties": {
+          "clarifications_per_attempt": {
+            "title": "Clarifications Per Attempt",
+            "type": "integer"
+          },
+          "messages_per_agent_per_attempt": {
+            "title": "Messages Per Agent Per Attempt",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "messages_per_agent_per_attempt",
+          "clarifications_per_attempt"
+        ],
+        "title": "QuotaInfo",
+        "type": "object"
+      },
+      "ReservationOut": {
+        "properties": {
+          "action_id": {
+            "title": "Action Id",
+            "type": "string"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "quota": {
+            "title": "Quota",
+            "type": "integer"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Role"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "action_id",
+          "amount",
+          "role",
+          "attempt_id",
+          "quota",
+          "status",
+          "expires_at",
+          "created_at"
+        ],
+        "title": "ReservationOut",
+        "type": "object"
+      },
+      "Role": {
+        "description": "Ids techniques (docs/RULES.md §2). `researcher` = « chargé de veille ».",
+        "enum": [
+          "writer",
+          "prospector",
+          "researcher",
+          "analyst",
+          "qa",
+          "lead"
+        ],
+        "title": "Role",
+        "type": "string"
+      },
+      "SessionCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "company_name": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Company Name",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "required": [
+          "company_name",
+          "mode"
+        ],
+        "title": "SessionCreate",
+        "type": "object"
+      },
+      "SessionInfo": {
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyOut"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "rules_version": {
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "seed": {
+            "title": "Seed",
+            "type": "integer"
+          },
+          "stage": {
+            "title": "Stage",
+            "type": "string"
+          },
+          "state": {
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "company",
+          "state",
+          "stage",
+          "seed",
+          "rules_version",
+          "created_at"
+        ],
+        "title": "SessionInfo",
+        "type": "object"
+      },
+      "ShareCreate": {
+        "additionalProperties": false,
+        "description": "Partage d'une version de livrable ou d'un document du corpus avec un rôle possédé.",
+        "properties": {
+          "artifact_version_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Version Id"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "title": "ShareCreate",
+        "type": "object"
+      },
+      "SubmissionOut": {
+        "properties": {
+          "artifact_version_id": {
+            "title": "Artifact Version Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "brief_version": {
+            "title": "Brief Version",
+            "type": "integer"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rubric": {
+            "additionalProperties": true,
+            "title": "Rubric",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "artifact_version_id",
+          "brief_version",
+          "content_hash",
+          "rubric",
+          "status",
+          "created_at"
+        ],
+        "title": "SubmissionOut",
+        "type": "object"
+      },
+      "SubmitCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_version_id": {
+            "maxLength": 64,
+            "title": "Artifact Version Id",
+            "type": "string"
+          },
+          "brief_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Version du brief vue par le joueur ; périmée => VERSION_CONFLICT",
+            "title": "Brief Version"
+          }
+        },
+        "required": [
+          "artifact_version_id"
+        ],
+        "title": "SubmitCreate",
+        "type": "object"
+      },
+      "SubmitOut": {
+        "properties": {
+          "artifact_version_id": {
+            "title": "Artifact Version Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "attempt_status": {
+            "enum": [
+              "ACTIVE",
+              "EVALUATING",
+              "COMPLETED",
+              "FAILED"
+            ],
+            "title": "Attempt Status",
+            "type": "string"
+          },
+          "brief_version": {
+            "title": "Brief Version",
+            "type": "integer"
+          },
+          "content_hash": {
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "replayed": {
+            "default": false,
+            "title": "Replayed",
+            "type": "boolean"
+          },
+          "rubric": {
+            "additionalProperties": true,
+            "title": "Rubric",
+            "type": "object"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "attempt_id",
+          "artifact_version_id",
+          "brief_version",
+          "content_hash",
+          "rubric",
+          "status",
+          "created_at",
+          "attempt_status"
+        ],
+        "title": "SubmitOut",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Contrats v0.1 (docs/CONTRACTS.md). Le backend est seul maître de l'argent, des quotas et des droits.",
+    "title": "API du jeu de gestion avec agents IA",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/actions/{action_id}": {
+      "get": {
+        "description": "Statut, résultat partiel, débit confirmé et réservations d'une action de la partie.",
+        "operationId": "get_action_api_actions__action_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Action",
+        "tags": [
+          "actions"
+        ]
+      }
+    },
+    "/api/actions/{action_id}/confirm": {
+      "post": {
+        "description": "Confirme séparément les délégations du plan du chef et réserve leur surcoût, sans nouvelle\nplanification. Après un résultat partiel, une nouvelle confirmation reprend sans rejouer les étapes\nterminées. Même clé : aucun nouvel appel ni débit.",
+        "operationId": "confirm_api_actions__action_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "action_id",
+            "required": true,
+            "schema": {
+              "title": "Action Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Confirm",
+        "tags": [
+          "actions"
+        ]
+      }
+    },
+    "/api/agents/purchase": {
+      "post": {
+        "description": "Achète un rôle débloqué (réussite de la mission requise) si le solde disponible le permet.\nLe prix vient des règles serveur. Même `Idempotency-Key` : même résultat, aucun second débit (200).",
+        "operationId": "purchase_api_agents_purchase_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Purchase",
+        "tags": [
+          "économie"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}": {
+      "get": {
+        "description": "Reprise complète (F12) : brief et diff, documents, messages, versions, partages, livraisons, évaluations.",
+        "operationId": "get_attempt_api_attempts__attempt_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Get Attempt",
+        "tags": [
+          "tentatives et livrables"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}/artifacts": {
+      "post": {
+        "description": "Version manuelle ou assemblage. Les versions sont immuables : une édition crée un enfant (auteur `player`).",
+        "operationId": "create_artifact_api_attempts__attempt_id__artifacts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArtifactCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactVersionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Create Artifact",
+        "tags": [
+          "tentatives et livrables"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}/clarifications": {
+      "post": {
+        "description": "Question factuelle au client : 2 gratuites par tentative, hors quotas des agents.",
+        "operationId": "clarify_api_attempts__attempt_id__clarifications_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClarificationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Clarify",
+        "tags": [
+          "actions"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}/messages": {
+      "post": {
+        "description": "Réserve quota + coût, appelle le rôle, règle après réponse exploitable. Une instruction au chef\nprépare un plan (`AWAITING_CONFIRMATION`) à confirmer via `POST /api/actions/{id}/confirm`.\nMême clé : même action, aucun nouvel appel ni débit. Une action échouée rejoue son erreur.",
+        "operationId": "send_message_api_attempts__attempt_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Send Message",
+        "tags": [
+          "actions"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}/shares": {
+      "post": {
+        "description": "Partage journalisé d'une version ou d'un document avec un rôle possédé.",
+        "operationId": "share_piece_api_attempts__attempt_id__shares_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactShareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Share Piece",
+        "tags": [
+          "tentatives et livrables"
+        ]
+      }
+    },
+    "/api/attempts/{attempt_id}/submit": {
+      "post": {
+        "description": "Fige la version (texte, version du brief, grille, empreinte), passe en EVALUATING puis lance l'évaluation serveur (BE06) :\nscore, paiement et clôture calculés par le serveur. Si l'évaluation échoue, la livraison reste EVALUATING (rejouer `submit`).",
+        "operationId": "submit_api_attempts__attempt_id__submit_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "attempt_id",
+            "required": true,
+            "schema": {
+              "title": "Attempt Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Submit",
+        "tags": [
+          "tentatives et livrables"
+        ]
+      }
+    },
+    "/api/demo/events": {
+      "post": {
+        "description": "Injecte un événement admissible (avant livraison) : nouvelle version du brief + diff ; ne touche ni note ni solde.",
+        "operationId": "inject_demo_event_api_demo_events_post",
+        "parameters": [
+          {
+            "description": "Secret de démo configuré côté serveur.",
+            "in": "header",
+            "name": "X-Demo-Secret",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Secret de démo configuré côté serveur.",
+              "title": "X-Demo-Secret"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoEventIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoEventOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Inject Demo Event",
+        "tags": [
+          "démo"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "santé"
+        ]
+      }
+    },
+    "/api/missions/{mission_id}/retry": {
+      "post": {
+        "description": "Nouvelle tentative (compteurs neufs, historique conservé). Ne rouvre jamais une livraison figée.\nRejouable : la même clé renvoie la même tentative (200), jamais une 2e.",
+        "operationId": "retry_mission_api_missions__mission_id__retry_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry Mission",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/api/missions/{mission_id}/start": {
+      "post": {
+        "description": "Ouvre une tentative (tarif et plafond figés). Rejouable : une tentative ACTIVE existante est renvoyée (200).",
+        "operationId": "start_mission_api_missions__mission_id__start_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mission_id",
+            "required": true,
+            "schema": {
+              "title": "Mission Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start Mission",
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/api/notebook": {
+      "get": {
+        "operationId": "list_notebook_api_notebook_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_IMPLEMENTED"
+          }
+        },
+        "summary": "List Notebook",
+        "tags": [
+          "à venir (501)"
+        ]
+      },
+      "post": {
+        "operationId": "add_notebook_entry_api_notebook_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_IMPLEMENTED"
+          }
+        },
+        "summary": "Add Notebook Entry",
+        "tags": [
+          "à venir (501)"
+        ]
+      }
+    },
+    "/api/session": {
+      "delete": {
+        "description": "Supprime la partie et ses contenus (suppression en cascade) ; efface le cookie.",
+        "operationId": "delete_session_api_session_delete",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Delete Session",
+        "tags": [
+          "session"
+        ]
+      }
+    },
+    "/api/sessions": {
+      "post": {
+        "description": "Crée une partie : 30 $ de jeu, rédacteur possédé, cookie de session opaque.\nRejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e.",
+        "operationId": "create_session_api_sessions_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Create Session",
+        "tags": [
+          "session"
+        ]
+      }
+    },
+    "/api/state": {
+      "get": {
+        "description": "État complet utile à l'UI ; la partie est déterminée par le cookie uniquement.",
+        "operationId": "get_state_api_state_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "Get State",
+        "tags": [
+          "session"
+        ]
+      }
+    }
+  }
+}

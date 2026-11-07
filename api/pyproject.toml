@@ -1,0 +1,25 @@
+[project]
+name = "rubix-api"
+version = "0.1.0"
+description = "API FastAPI du jeu de gestion avec agents IA (moteur, sessions, données)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "pydantic>=2.8,<3",
+  "sqlalchemy>=2.0,<3",
+  "alembic>=1.13,<2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8,<9",
+  "httpx>=0.27,<1",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
