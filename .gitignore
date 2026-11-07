@@ -36,3 +36,13 @@ test-results/
 *.pem
 *.zip
 .vercel
+
+# python (api/)
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+api/var/
+*.db
+*.db-wal
+*.db-shm

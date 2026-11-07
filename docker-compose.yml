@@ -1,0 +1,37 @@
+# API + interface. Un seul point d'entrée navigateur : http://localhost:3000 (Next réécrit /api/* vers l'API).
+# Lancer :  RUBIX_DEMO_SECRET=<16+ caractères> docker compose up --build   (ou fichier --env-file hors dépôt)
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      RUBIX_LLM_PROVIDER: ${RUBIX_LLM_PROVIDER:-mock}
+      RUBIX_LLM_API_KEY: ${RUBIX_LLM_API_KEY:-}
+      RUBIX_DEMO_SECRET: ${RUBIX_DEMO_SECRET:-}   # vide = démo/ops inactives ; aucun secret par défaut
+      RUBIX_COOKIE_SECURE: ${RUBIX_COOKIE_SECURE:-0}
+      RUBIX_RETENTION_DAYS: ${RUBIX_RETENTION_DAYS:-7}
+      RUBIX_TOKEN_CAP_SESSION: ${RUBIX_TOKEN_CAP_SESSION:-}
+      RUBIX_TOKEN_CAP_GLOBAL: ${RUBIX_TOKEN_CAP_GLOBAL:-}
+    volumes:
+      - rubix-data:/var/lib/rubix
+    # Non publié sur l'hôte : seul le front l'atteint. Décommenter pour le diagnostic (127.0.0.1 seulement).
+    # ports: ["127.0.0.1:8000:8000"]
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: web.Dockerfile
+      args:
+        RUBIX_API_URL: http://api:8000
+        NEXT_PUBLIC_API_MODE: http
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+volumes:
+  rubix-data:
