@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "comment": "Apparence COSMÉTIQUE de l'immeuble du joueur par niveau (1 à 10). Aucune règle de jeu : les seuils de total gagné et le niveau lui-même sont calculés par le serveur (building.level), jamais ici. Le niveau est purement visuel et ne débloque aucun droit.",
+  "max_level": 10,
+  "px_per_floor": 12,
+  "levels": [
+    { "level": 1, "label": "Petit immeuble de briques", "floors": 3, "width": 3.2, "wall": "#a5573d", "trim": "#e8d9c4", "glass": "#7aa6b8", "sign": "simple", "features": [] },
+    { "level": 2, "label": "Peinture refaite, auvent et plantes", "floors": 3, "width": 3.2, "wall": "#b9654a", "trim": "#f1e6d2", "glass": "#7aa6b8", "sign": "simple", "features": ["awning", "plants"] },
+    { "level": 3, "label": "Un étage de plus, fenêtres neuves", "floors": 4, "width": 3.3, "wall": "#b9654a", "trim": "#f1e6d2", "glass": "#8dbad0", "sign": "simple", "features": ["awning", "plants", "new_windows"] },
+    { "level": 4, "label": "Enseigne lumineuse et terrasse sur le toit", "floors": 4, "width": 3.4, "wall": "#c4705a", "trim": "#f6eddc", "glass": "#8dbad0", "sign": "lit", "features": ["awning", "plants", "new_windows", "rooftop_terrace"] },
+    { "level": 5, "label": "Façade vitrée partielle, lobby agrandi", "floors": 5, "width": 3.5, "wall": "#c9c2b6", "trim": "#f3efe6", "glass": "#8fc3dc", "sign": "lit", "features": ["awning", "rooftop_terrace", "glass_partial", "big_lobby"] },
+    { "level": 6, "label": "Deux étages de plus, façade éclairée", "floors": 7, "width": 3.5, "wall": "#c9c2b6", "trim": "#f3efe6", "glass": "#8fc3dc", "sign": "lit", "features": ["rooftop_terrace", "glass_partial", "big_lobby", "facade_lights"] },
+    { "level": 7, "label": "Tour : héliport et ascenseur panoramique", "floors": 11, "width": 3.4, "wall": "#b5bdc6", "trim": "#eef2f5", "glass": "#7fb7d9", "sign": "lit", "features": ["glass_partial", "big_lobby", "facade_lights", "heliport", "panoramic_elevator"] },
+    { "level": 8, "label": "Façade entièrement vitrée, jardin suspendu", "floors": 14, "width": 3.4, "wall": "#8fb4cc", "trim": "#e6f0f6", "glass": "#6fb0d8", "sign": "lit", "features": ["glass_full", "big_lobby", "facade_lights", "heliport", "panoramic_elevator", "hanging_garden"] },
+    { "level": 9, "label": "Gratte-ciel à couronne éclairée", "floors": 20, "width": 3.2, "wall": "#7fa7c4", "trim": "#e2eef6", "glass": "#62a6d4", "sign": "lit", "features": ["glass_full", "big_lobby", "facade_lights", "heliport", "panoramic_elevator", "hanging_garden", "crown"] },
+    { "level": 10, "label": "Siège emblématique, hall monumental", "floors": 26, "width": 3.2, "wall": "#6f9bbb", "trim": "#e2eef6", "glass": "#5a9fd0", "sign": "lit", "features": ["glass_full", "big_lobby", "facade_lights", "heliport", "panoramic_elevator", "hanging_garden", "crown", "decor_drones", "grand_hall"] }
+  ]
+}

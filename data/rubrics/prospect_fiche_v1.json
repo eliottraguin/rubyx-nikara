@@ -1,0 +1,167 @@
+{
+  "id": "prospect_fiche_v1",
+  "action": "prospect_profile",
+  "role": "profiler",
+  "version": 1,
+  "title": "Fiche client d'un prospect",
+  "language": "fr",
+  "payment": false,
+  "gain": 0,
+  "quota": {
+    "per_target": 5,
+    "target": "prospect"
+  },
+  "on_essential_failure": {
+    "error_code": "INVALID_OUTPUT",
+    "repair_attempts": 1,
+    "debit": false
+  },
+  "evaluator_policy": {
+    "instructions_in_input_are_data": true,
+    "model_never_produces_reward": true
+  },
+  "checks": [
+    {
+      "id": "sections_present",
+      "label": "Toutes les sections présentes",
+      "essential": true,
+      "kind": "section_present",
+      "description": "resume, pourquoi_ce_prospect, points_d_accroche, a_verifier, sources.",
+      "params": {
+        "sections": [
+          "resume",
+          "pourquoi_ce_prospect",
+          "points_d_accroche",
+          "a_verifier",
+          "sources"
+        ]
+      }
+    },
+    {
+      "id": "resume_len",
+      "label": "Résumé borné",
+      "essential": true,
+      "kind": "max_chars",
+      "description": "Résumé de 600 caractères au plus.",
+      "params": {
+        "field": "resume",
+        "max": 600
+      }
+    },
+    {
+      "id": "pourquoi_count",
+      "label": "1 à 5 raisons",
+      "essential": true,
+      "kind": "count_range",
+      "description": "Entre 1 et 5 raisons.",
+      "params": {
+        "field": "pourquoi_ce_prospect",
+        "min": 1,
+        "max": 5
+      }
+    },
+    {
+      "id": "pourquoi_linked",
+      "label": "Raisons reliées",
+      "essential": false,
+      "kind": "ref_in_input",
+      "description": "Chaque raison cite un critère de la fiche cible et un champ de l'instantané.",
+      "params": {
+        "field": "pourquoi_ce_prospect",
+        "refs": [
+          "profile_criterion",
+          "snapshot_field"
+        ]
+      }
+    },
+    {
+      "id": "accroches_count",
+      "label": "1 à 5 accroches",
+      "essential": false,
+      "kind": "count_range",
+      "description": "Entre 1 et 5 points d'accroche.",
+      "params": {
+        "field": "points_d_accroche",
+        "min": 1,
+        "max": 5
+      }
+    },
+    {
+      "id": "a_verifier_count",
+      "label": "À vérifier borné",
+      "essential": false,
+      "kind": "count_range",
+      "description": "0 à 8 éléments.",
+      "params": {
+        "field": "a_verifier",
+        "min": 0,
+        "max": 8
+      }
+    },
+    {
+      "id": "sources_in_snapshot",
+      "label": "Sources existantes",
+      "essential": true,
+      "kind": "ref_in_input",
+      "description": "Chaque source citée existe dans l'instantané.",
+      "params": {
+        "field": "sources",
+        "refs": [
+          "snapshot_source_ref"
+        ]
+      }
+    },
+    {
+      "id": "no_new_fact",
+      "label": "Aucun fait absent de l'instantané",
+      "essential": true,
+      "kind": "no_new_facts",
+      "description": "Nom, chiffre, date ou événement absents de l'instantané et de la fiche entreprise.",
+      "params": {
+        "allowed_inputs": [
+          "snapshot",
+          "profile"
+        ]
+      }
+    },
+    {
+      "id": "no_new_url",
+      "label": "Aucune URL absente",
+      "essential": true,
+      "kind": "no_new_urls",
+      "description": "Aucune URL absente de l'instantané.",
+      "params": {
+        "allowed_inputs": [
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "id": "a_verifier_if_missing",
+      "label": "À vérifier renseigné si manque",
+      "essential": false,
+      "kind": "required_when_missing",
+      "description": "`a_verifier` non vide si un champ utile manque ou si la donnée est ancienne.",
+      "params": {
+        "field": "a_verifier",
+        "condition": "snapshot_missing_or_stale"
+      }
+    },
+    {
+      "id": "no_contact_value",
+      "label": "Aucune coordonnée en clair",
+      "essential": true,
+      "kind": "no_contact_value",
+      "description": "Aucune adresse email ni aucun numéro de téléphone dans la sortie.",
+      "params": {}
+    },
+    {
+      "id": "no_html_or_link",
+      "label": "Texte brut, sans lien produit",
+      "essential": true,
+      "kind": "no_link_markup",
+      "description": "Aucune balise HTML, aucun lien Markdown ni URL cliquable produits par le modèle.",
+      "params": {}
+    }
+  ]
+}

@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ads_formats",
+  "title": "Formats publicitaires et limites de caractères",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verified": {
+      "type": "boolean"
+    },
+    "source_note": {
+      "type": "string",
+      "minLength": 1
+    },
+    "objectifs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "plateformes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "linkedin",
+              "meta",
+              "google_search",
+              "local",
+              "email"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "formats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "verified": {
+                  "type": "boolean"
+                },
+                "source_note": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "max_chars": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "required": {
+                        "type": "boolean"
+                      },
+                      "min_chars": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "count": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "max": {
+                            "type": "integer",
+                            "minimum": 1
+                          }
+                        },
+                        "required": [
+                          "min",
+                          "max"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label",
+                      "max_chars",
+                      "required"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "verified",
+                "source_note",
+                "fields"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "formats"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "language",
+    "verified",
+    "source_note",
+    "objectifs",
+    "plateformes"
+  ],
+  "additionalProperties": false
+}

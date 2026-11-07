@@ -15,7 +15,12 @@
         "lead",
         "client_evaluator",
         "client_clarifier",
-        "coach"
+        "coach",
+        "profiler",
+        "outreach",
+        "triage",
+        "replier",
+        "ads"
       ]
     },
     "kind": {
@@ -116,7 +121,12 @@
         "agent_response",
         "lead_plan",
         "evaluator_output",
-        "free_text"
+        "free_text",
+        "prospect_fiche",
+        "prospect_message",
+        "conversation_synthese",
+        "conversation_reponse",
+        "ad_kit"
       ]
     },
     "max_output_tokens_key": {

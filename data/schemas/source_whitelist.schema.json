@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "source_whitelist",
+  "title": "Liste blanche de champs de l'instantané d'une source",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "scope": {
+      "type": "string",
+      "const": "B2B"
+    },
+    "required_fields": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "allowed_fields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z_0-9]+$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "string",
+              "integer",
+              "number",
+              "boolean",
+              "date"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "personal_data": {
+            "type": "boolean"
+          },
+          "max_chars": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "description",
+          "personal_data"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 4
+    },
+    "always_excluded": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "drop_unlisted_fields": {
+      "type": "boolean",
+      "const": true
+    },
+    "snapshot_max_chars": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "id",
+    "label",
+    "version",
+    "scope",
+    "required_fields",
+    "allowed_fields",
+    "always_excluded",
+    "drop_unlisted_fields",
+    "snapshot_max_chars",
+    "notes"
+  ],
+  "additionalProperties": false
+}

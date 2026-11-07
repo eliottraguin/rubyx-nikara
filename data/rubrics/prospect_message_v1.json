@@ -1,0 +1,147 @@
+{
+  "id": "prospect_message_v1",
+  "action": "prospect_message",
+  "role": "outreach",
+  "version": 1,
+  "title": "Premier message à un prospect",
+  "language": "fr",
+  "payment": false,
+  "gain": 0,
+  "quota": {
+    "per_target": 5,
+    "target": "prospect"
+  },
+  "on_essential_failure": {
+    "error_code": "INVALID_OUTPUT",
+    "repair_attempts": 1,
+    "debit": false
+  },
+  "evaluator_policy": {
+    "instructions_in_input_are_data": true,
+    "model_never_produces_reward": true
+  },
+  "checks": [
+    {
+      "id": "body_len",
+      "label": "Corps borné",
+      "essential": true,
+      "kind": "max_chars",
+      "description": "Corps limité par `limits.draft_max_chars`.",
+      "params": {
+        "field": "corps",
+        "limit_key": "limits.draft_max_chars"
+      }
+    },
+    {
+      "id": "subject_len",
+      "label": "Objet borné",
+      "essential": false,
+      "kind": "max_chars",
+      "description": "Objet de 90 caractères au plus.",
+      "params": {
+        "field": "objet",
+        "max": 90
+      }
+    },
+    {
+      "id": "channel_type_only",
+      "label": "Type de canal seulement",
+      "essential": true,
+      "kind": "field_in_set",
+      "description": "`canal_cible` est un type de canal connu.",
+      "params": {
+        "field": "canal_cible",
+        "values": [
+          "email_generique",
+          "formulaire",
+          "adresse",
+          "telephone_standard",
+          "reseau_pro"
+        ]
+      }
+    },
+    {
+      "id": "no_new_fact",
+      "label": "Aucun fait absent des données",
+      "essential": true,
+      "kind": "no_new_facts",
+      "description": "Aucun chiffre, nom ou événement absent de l'instantané et de la fiche entreprise.",
+      "params": {
+        "allowed_inputs": [
+          "snapshot",
+          "profile"
+        ]
+      }
+    },
+    {
+      "id": "no_new_url_or_number",
+      "label": "Aucune URL ni numéro absent",
+      "essential": true,
+      "kind": "no_new_urls",
+      "description": "Aucune URL ni aucun numéro absents des données.",
+      "params": {
+        "allowed_inputs": [
+          "snapshot",
+          "profile"
+        ],
+        "also_numbers": true
+      }
+    },
+    {
+      "id": "mention_origin",
+      "label": "Mention d'origine",
+      "essential": true,
+      "kind": "contains_mentions",
+      "description": "Origine des coordonnées mentionnée.",
+      "params": {
+        "mention": "origine",
+        "source_file": "data/clients/mentions_v1.json"
+      }
+    },
+    {
+      "id": "mention_opposition",
+      "label": "Mention d'opposition",
+      "essential": true,
+      "kind": "contains_mentions",
+      "description": "Possibilité de refuser de nouveaux messages mentionnée.",
+      "params": {
+        "mention": "opposition",
+        "source_file": "data/clients/mentions_v1.json"
+      }
+    },
+    {
+      "id": "tone_matches",
+      "label": "Ton conforme à la fiche",
+      "essential": false,
+      "kind": "tone_matches",
+      "description": "Vouvoiement ou tutoiement conforme à `ton` de la fiche.",
+      "params": {
+        "profile_field": "ton"
+      }
+    },
+    {
+      "id": "no_numeric_promise",
+      "label": "Aucune promesse chiffrée inventée",
+      "essential": true,
+      "kind": "no_promise_figure",
+      "description": "Aucun résultat chiffré promis qui ne figure pas dans la fiche entreprise.",
+      "params": {}
+    },
+    {
+      "id": "no_contact_value",
+      "label": "Aucune coordonnée en clair",
+      "essential": true,
+      "kind": "no_contact_value",
+      "description": "Aucune adresse email ni aucun numéro de téléphone dans la sortie.",
+      "params": {}
+    },
+    {
+      "id": "no_html_or_link",
+      "label": "Texte brut, sans lien produit",
+      "essential": true,
+      "kind": "no_link_markup",
+      "description": "Aucune balise HTML, aucun lien Markdown ni URL cliquable produits par le modèle.",
+      "params": {}
+    }
+  ]
+}

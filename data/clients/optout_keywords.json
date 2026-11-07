@@ -1,0 +1,42 @@
+{
+  "id": "optout_keywords",
+  "version": 1,
+  "language": "fr",
+  "normalization": [
+    "minuscules",
+    "suppression des accents",
+    "espaces multiples réduits",
+    "apostrophes typographiques remplacées"
+  ],
+  "match": "contient la locution entière (frontières de mots) après normalisation",
+  "code_overrides_model": true,
+  "keywords": [
+    "stop",
+    "arretez",
+    "arretez de m'ecrire",
+    "arreter de m'ecrire",
+    "ne plus me contacter",
+    "ne me contactez plus",
+    "ne plus etre contacte",
+    "ne plus recevoir",
+    "je ne souhaite plus recevoir",
+    "je ne veux plus recevoir",
+    "desinscrire",
+    "desinscrivez moi",
+    "desinscription",
+    "desabonner",
+    "desabonnez moi",
+    "desabonnement",
+    "retirez moi de votre liste",
+    "supprimez mes coordonnees",
+    "supprimez mon adresse",
+    "supprimez mes donnees",
+    "ne m'ecrivez plus",
+    "cessez de me contacter",
+    "droit d'opposition",
+    "je m'oppose",
+    "unsubscribe",
+    "remove me from your list"
+  ],
+  "notes": "Détection par code, avant et en plus du modèle. Les mots-clés sont stockés déjà normalisés."
+}

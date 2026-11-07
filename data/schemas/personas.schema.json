@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "personas",
+  "title": "Personas de clients simulés (fictives)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "language": {
+      "type": "string",
+      "const": "fr"
+    },
+    "fictive": {
+      "type": "boolean",
+      "const": true
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "check_catalog": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "personas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^p_[a-z_]+$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fictive": {
+            "type": "boolean",
+            "const": true
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objective": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "traps": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          },
+          "opens_with": {
+            "type": "string"
+          },
+          "silent": {
+            "type": "boolean"
+          },
+          "goal": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "minLength": 1
+              },
+              "checks": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "description",
+              "checks"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "fictive",
+          "company",
+          "objective",
+          "tone",
+          "traps",
+          "opens_with",
+          "silent",
+          "goal"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 8
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "language",
+    "fictive",
+    "notes",
+    "check_catalog",
+    "personas"
+  ],
+  "additionalProperties": false
+}

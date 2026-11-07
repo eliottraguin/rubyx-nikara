@@ -1,0 +1,105 @@
+{
+  "id": "ads_checklist",
+  "version": 1,
+  "language": "fr",
+  "notes": "Points à vérifier par le joueur avant de publier lui-même. Le produit ne publie rien ; le contenu juridique est à faire valider.",
+  "items": [
+    {
+      "id": "claims_substantiated",
+      "label": "Chaque affirmation (prix, délai, résultat, label) est exacte et vérifiable.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "no_comparison_disparaging",
+      "label": "Aucune comparaison dénigrante ni mention d'un concurrent sans base vérifiable.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "legal_mentions",
+      "label": "Les mentions légales obligatoires de l'annonceur figurent là où elles sont requises.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "image_rights",
+      "label": "Les droits d'utilisation de chaque image, police et logo sont acquis.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "platform_policy",
+      "label": "L'annonce respecte la politique publicitaire en vigueur de la plateforme choisie.",
+      "essential": true,
+      "platforms": [
+        "linkedin",
+        "meta",
+        "google_search"
+      ]
+    },
+    {
+      "id": "char_limits_recheck",
+      "label": "Les limites de caractères ont été revérifiées dans l'outil de la plateforme.",
+      "essential": true,
+      "platforms": [
+        "linkedin",
+        "meta",
+        "google_search",
+        "email"
+      ]
+    },
+    {
+      "id": "b2b_targeting",
+      "label": "Le ciblage vise des entreprises et des fonctions, jamais des personnes précises.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "opt_out_email",
+      "label": "L'email permet de se désinscrire facilement et indique l'origine des coordonnées.",
+      "essential": true,
+      "platforms": [
+        "email"
+      ]
+    },
+    {
+      "id": "consent_and_tracking",
+      "label": "Le suivi (cookies, balises) est déclaré et conforme aux règles de consentement.",
+      "essential": false,
+      "platforms": "all"
+    },
+    {
+      "id": "links_checked",
+      "label": "Chaque lien a été ouvert et mène à la bonne page.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "price_dates_current",
+      "label": "Les prix, dates et conditions affichés sont à jour.",
+      "essential": true,
+      "platforms": "all"
+    },
+    {
+      "id": "accessibility",
+      "label": "Contraste, lisibilité et texte alternatif du visuel ont été vérifiés.",
+      "essential": false,
+      "platforms": "all"
+    },
+    {
+      "id": "proofread",
+      "label": "Le texte a été relu (orthographe, ton, cohérence avec la fiche entreprise).",
+      "essential": false,
+      "platforms": "all"
+    },
+    {
+      "id": "local_media_rules",
+      "label": "Les règles de l'affichage ou du support presse choisi (format, mentions) ont été vérifiées.",
+      "essential": false,
+      "platforms": [
+        "local"
+      ]
+    }
+  ]
+}

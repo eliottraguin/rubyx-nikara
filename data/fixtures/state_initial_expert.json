@@ -195,6 +195,25 @@
     "messages_per_agent_per_attempt": 5,
     "clarifications_per_attempt": 2
   },
+  "target_profile": {
+    "profile_version": 1,
+    "entreprise_nom": "Atelier Exemple",
+    "offre": "",
+    "besoin": "",
+    "cible_secteurs": [],
+    "cible_zone": [],
+    "cible_taille": null,
+    "cible_fonctions": [],
+    "exclusions": [],
+    "ton": "vouvoiement_formel",
+    "modifie_le": "2026-01-01T09:00:00Z",
+    "complete": false
+  },
+  "building": {
+    "level": 1,
+    "total_earned": 0,
+    "next_level_at": 20
+  },
   "llm": {
     "provider": "mock",
     "simulated": true

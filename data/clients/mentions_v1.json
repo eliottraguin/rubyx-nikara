@@ -1,0 +1,27 @@
+{
+  "id": "mentions_v1",
+  "version": 1,
+  "language": "fr",
+  "origine": "Vos coordonnées professionnelles proviennent de {source}, consultée le {collecte_le}.",
+  "opposition": "Si vous ne souhaitez plus recevoir de message de ma part, répondez simplement « stop » et je ne vous écrirai plus.",
+  "placeholders": [
+    "source",
+    "collecte_le"
+  ],
+  "detection_keywords": {
+    "origine": [
+      "proviennent de",
+      "source :",
+      "trouvé sur",
+      "consultée le"
+    ],
+    "opposition": [
+      "ne souhaitez plus",
+      "répondez stop",
+      "répondez simplement",
+      "ne plus recevoir",
+      "vous opposer"
+    ]
+  },
+  "notes": "Texte standard configurable ; contrôle par code : la présence d'au moins un mot-clé de chaque liste. À faire valider juridiquement."
+}

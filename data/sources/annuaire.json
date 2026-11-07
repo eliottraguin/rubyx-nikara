@@ -1,0 +1,96 @@
+{
+  "id": "annuaire",
+  "label": "Annuaire",
+  "version": 1,
+  "scope": "B2B",
+  "required_fields": [
+    "source_ref",
+    "entreprise",
+    "collecte_le"
+  ],
+  "allowed_fields": [
+    {
+      "name": "source_ref",
+      "type": "string",
+      "description": "Identifiant de l'enregistrement renvoyé pendant l'expédition (obligatoire, vérifié par code)",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "description": "Nom de l'entreprise",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "description": "Date de collecte (UTC, ISO 8601), obligatoire",
+      "personal_data": false
+    },
+    {
+      "name": "secteur",
+      "type": "string",
+      "description": "Secteur d'activité",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "adresse_pro",
+      "type": "string",
+      "description": "Adresse professionnelle",
+      "personal_data": false,
+      "max_chars": 200
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "description": "Ville",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "code_postal",
+      "type": "string",
+      "description": "Code postal",
+      "personal_data": false,
+      "max_chars": 10
+    },
+    {
+      "name": "telephone_standard",
+      "type": "string",
+      "description": "Standard téléphonique de l'entreprise",
+      "personal_data": false,
+      "max_chars": 30
+    },
+    {
+      "name": "email_generique",
+      "type": "string",
+      "description": "Adresse générique (contact@, accueil@) ; jamais nominative",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "site_web",
+      "type": "string",
+      "description": "Site de l'entreprise",
+      "personal_data": false,
+      "max_chars": 200
+    }
+  ],
+  "always_excluded": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "drop_unlisted_fields": true,
+  "snapshot_max_chars": 2000,
+  "notes": "Seuls les canaux génériques de l'entreprise sont conservés ; une adresse nominative est écartée."
+}

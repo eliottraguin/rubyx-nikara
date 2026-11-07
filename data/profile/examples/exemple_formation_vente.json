@@ -1,0 +1,27 @@
+{
+  "id": "exemple_formation_vente",
+  "simule": true,
+  "profile_spec": "target_profile_v1",
+  "entreprise_nom": "Cadence Formation (fictive)",
+  "offre": "Cadence anime des ateliers de prospection téléphonique de deux jours pour les équipes commerciales de PME. Programme adaptable au secteur.",
+  "besoin": "Les jeunes commerciaux n'osent pas appeler et obtiennent peu de rendez-vous.",
+  "cible_secteurs": [
+    "commerce_distribution",
+    "conseil_services_entreprises"
+  ],
+  "cible_zone": [
+    "Occitanie"
+  ],
+  "cible_taille": {
+    "effectif_min": 20,
+    "effectif_max": 300
+  },
+  "cible_fonctions": [
+    "Directeur commercial",
+    "Responsable des ventes"
+  ],
+  "exclusions": [
+    "Cabinets de recrutement"
+  ],
+  "ton": "vouvoiement_chaleureux"
+}

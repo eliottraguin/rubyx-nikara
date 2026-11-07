@@ -1,0 +1,592 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rules_v2",
+  "title": "Règles v2 (cap prospection)",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "rules_v2"
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supersedes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "initial_capital": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "initial_agents": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "scout",
+          "qualifier",
+          "profiler",
+          "outreach",
+          "triage",
+          "replier",
+          "ads"
+        ]
+      },
+      "minItems": 1
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "scout",
+              "qualifier",
+              "profiler",
+              "outreach",
+              "triage",
+              "replier",
+              "ads"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "section": {
+            "type": "string",
+            "enum": [
+              "prospection",
+              "clients",
+              "pub"
+            ]
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unlock_planet": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "section",
+          "price",
+          "unlock_planet"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 7
+    },
+    "real_mode_waives_score_unlock": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "scout",
+          "qualifier",
+          "profiler",
+          "outreach",
+          "triage",
+          "replier",
+          "ads"
+        ]
+      },
+      "minItems": 0
+    },
+    "planets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "max_reward": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unit_price": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "requires_pass": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "initially_available": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "max_reward",
+          "unit_price",
+          "requires_pass",
+          "initially_available"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "quotas": {
+      "type": "object"
+    },
+    "scoring": {
+      "type": "object"
+    },
+    "prospect_actions": {
+      "type": "object",
+      "properties": {
+        "profiler": {
+          "type": "object",
+          "properties": {
+            "cost": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_per_target": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "quota_key": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 2
+            },
+            "target": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "conversation",
+                "campaign"
+              ]
+            },
+            "gain": {
+              "type": "integer",
+              "const": 0
+            },
+            "counts_in_final_spend": {
+              "type": "boolean",
+              "const": false
+            }
+          },
+          "required": [
+            "cost",
+            "quota_per_target",
+            "quota_key",
+            "target",
+            "gain",
+            "counts_in_final_spend"
+          ],
+          "additionalProperties": false
+        },
+        "outreach": {
+          "type": "object",
+          "properties": {
+            "cost": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_per_target": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "quota_key": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 2
+            },
+            "target": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "conversation",
+                "campaign"
+              ]
+            },
+            "gain": {
+              "type": "integer",
+              "const": 0
+            },
+            "counts_in_final_spend": {
+              "type": "boolean",
+              "const": false
+            }
+          },
+          "required": [
+            "cost",
+            "quota_per_target",
+            "quota_key",
+            "target",
+            "gain",
+            "counts_in_final_spend"
+          ],
+          "additionalProperties": false
+        },
+        "triage": {
+          "type": "object",
+          "properties": {
+            "cost": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_per_target": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "quota_key": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 2
+            },
+            "target": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "conversation",
+                "campaign"
+              ]
+            },
+            "gain": {
+              "type": "integer",
+              "const": 0
+            },
+            "counts_in_final_spend": {
+              "type": "boolean",
+              "const": false
+            }
+          },
+          "required": [
+            "cost",
+            "quota_per_target",
+            "quota_key",
+            "target",
+            "gain",
+            "counts_in_final_spend"
+          ],
+          "additionalProperties": false
+        },
+        "replier": {
+          "type": "object",
+          "properties": {
+            "cost": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_per_target": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "quota_key": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 2
+            },
+            "target": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "conversation",
+                "campaign"
+              ]
+            },
+            "gain": {
+              "type": "integer",
+              "const": 0
+            },
+            "counts_in_final_spend": {
+              "type": "boolean",
+              "const": false
+            }
+          },
+          "required": [
+            "cost",
+            "quota_per_target",
+            "quota_key",
+            "target",
+            "gain",
+            "counts_in_final_spend"
+          ],
+          "additionalProperties": false
+        },
+        "ads": {
+          "type": "object",
+          "properties": {
+            "cost": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_per_target": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "quota_key": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 2
+            },
+            "target": {
+              "type": "string",
+              "enum": [
+                "prospect",
+                "conversation",
+                "campaign"
+              ]
+            },
+            "gain": {
+              "type": "integer",
+              "const": 0
+            },
+            "counts_in_final_spend": {
+              "type": "boolean",
+              "const": false
+            }
+          },
+          "required": [
+            "cost",
+            "quota_per_target",
+            "quota_key",
+            "target",
+            "gain",
+            "counts_in_final_spend"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "profiler",
+        "outreach",
+        "triage",
+        "replier",
+        "ads"
+      ],
+      "additionalProperties": false
+    },
+    "prospect_statuses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "followup_days": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "retention_days": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "retention_notice_days": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "prompt_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "business_agent_max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "client_or_lead_max_output_tokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "call_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider_concurrency": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reservation_ttl_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "prospects_max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "notes_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "player_instruction_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "draft_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "campaigns_max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "campaign_name_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "campaign_instruction_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "technical_retries": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "prompt_max_chars",
+        "business_agent_max_output_tokens",
+        "client_or_lead_max_output_tokens",
+        "call_timeout_seconds",
+        "provider_concurrency",
+        "reservation_ttl_seconds",
+        "prospects_max",
+        "notes_max_chars",
+        "player_instruction_max_chars",
+        "draft_max_chars",
+        "campaigns_max",
+        "campaign_name_max_chars",
+        "campaign_instruction_max_chars",
+        "technical_retries"
+      ],
+      "additionalProperties": false
+    },
+    "messaging": {
+      "type": "object",
+      "properties": {
+        "send_per_day": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "send_per_hour": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "send_cooldown_hours": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "inbound_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sim_turns_max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reply_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "send_per_day",
+        "send_per_hour",
+        "send_cooldown_hours",
+        "inbound_max_chars",
+        "sim_turns_max",
+        "reply_max_chars"
+      ],
+      "additionalProperties": false
+    },
+    "building": {
+      "type": "object",
+      "properties": {
+        "levels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "min_total_earned": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "level",
+              "min_total_earned"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 10
+        }
+      },
+      "required": [
+        "levels"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "source",
+    "supersedes",
+    "initial_capital",
+    "initial_agents",
+    "agents",
+    "real_mode_waives_score_unlock",
+    "planets",
+    "quotas",
+    "scoring",
+    "prospect_actions",
+    "prospect_statuses",
+    "followup_days",
+    "retention_days",
+    "retention_notice_days",
+    "limits",
+    "messaging",
+    "building"
+  ],
+  "additionalProperties": false
+}

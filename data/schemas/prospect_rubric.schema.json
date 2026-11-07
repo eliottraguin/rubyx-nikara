@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prospect_rubric",
+  "title": "Liste de contrôles par code (actions sur prospect, conversation, campagne), sans paiement",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^(prospect_fiche|prospect_message|conversation_synthese|conversation_reponse|ad_kit)_v[0-9]+$"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "prospect_profile",
+        "prospect_message",
+        "conversation_triage",
+        "conversation_reply",
+        "ad_campaign"
+      ]
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "profiler",
+        "outreach",
+        "triage",
+        "replier",
+        "ads"
+      ]
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "const": "fr"
+    },
+    "payment": {
+      "type": "boolean",
+      "const": false
+    },
+    "gain": {
+      "type": "integer",
+      "const": 0
+    },
+    "quota": {
+      "type": "object",
+      "properties": {
+        "per_target": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "target": {
+          "type": "string",
+          "enum": [
+            "prospect",
+            "conversation",
+            "campaign"
+          ]
+        }
+      },
+      "required": [
+        "per_target",
+        "target"
+      ],
+      "additionalProperties": false
+    },
+    "on_essential_failure": {
+      "type": "object",
+      "properties": {
+        "error_code": {
+          "type": "string",
+          "const": "INVALID_OUTPUT"
+        },
+        "repair_attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "debit": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": [
+        "error_code",
+        "repair_attempts",
+        "debit"
+      ],
+      "additionalProperties": false
+    },
+    "evaluator_policy": {
+      "type": "object",
+      "properties": {
+        "instructions_in_input_are_data": {
+          "type": "boolean",
+          "const": true
+        },
+        "model_never_produces_reward": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "instructions_in_input_are_data",
+        "model_never_produces_reward"
+      ],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_0-9]+$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "essential": {
+            "type": "boolean"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "section_present",
+              "max_chars",
+              "count_range",
+              "field_in_set",
+              "ref_in_input",
+              "quote_in_input",
+              "no_new_facts",
+              "no_new_urls",
+              "contains_mentions",
+              "tone_matches",
+              "no_promise_figure",
+              "no_contact_value",
+              "no_link_markup",
+              "required_when_missing",
+              "covers_questions",
+              "optout_agreement",
+              "char_limit_per_format",
+              "no_personal_target"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "params": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "essential",
+          "kind",
+          "description",
+          "params"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5
+    }
+  },
+  "required": [
+    "id",
+    "action",
+    "role",
+    "version",
+    "title",
+    "language",
+    "payment",
+    "gain",
+    "quota",
+    "on_essential_failure",
+    "evaluator_policy",
+    "checks"
+  ],
+  "additionalProperties": false
+}

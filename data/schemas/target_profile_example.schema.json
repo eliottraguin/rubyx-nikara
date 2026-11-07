@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "target_profile_example",
+  "title": "Fiche d'exemple (Tutoriel, fictive)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "simule": {
+      "type": "boolean",
+      "const": true
+    },
+    "profile_spec": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entreprise_nom": {
+      "type": "string",
+      "minLength": 1
+    },
+    "offre": {
+      "type": "string",
+      "minLength": 1
+    },
+    "besoin": {
+      "type": "string"
+    },
+    "cible_secteurs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "cible_zone": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "cible_taille": {
+      "type": "object",
+      "properties": {
+        "effectif_min": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effectif_max": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "effectif_min",
+        "effectif_max"
+      ],
+      "additionalProperties": false
+    },
+    "cible_fonctions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "exclusions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "ton": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "id",
+    "simule",
+    "profile_spec",
+    "entreprise_nom",
+    "offre",
+    "besoin",
+    "cible_secteurs",
+    "cible_zone",
+    "cible_taille",
+    "cible_fonctions",
+    "exclusions",
+    "ton"
+  ],
+  "additionalProperties": false
+}

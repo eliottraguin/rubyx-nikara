@@ -1,0 +1,274 @@
+{
+  "version": "rules_v2",
+  "source": "docs/RULES.md (sections 1 à 14, cap prospection) ; docs/PRODUIT-CLIENTS-PUB.md ; docs/VILLE-ET-BATIMENT.md section 4",
+  "supersedes": "rules_v1",
+  "initial_capital": 30,
+  "initial_agents": [
+    "scout"
+  ],
+  "agents": [
+    {
+      "id": "scout",
+      "label": "Éclaireur",
+      "section": "prospection",
+      "price": 0,
+      "unlock_planet": null
+    },
+    {
+      "id": "qualifier",
+      "label": "Qualificateur",
+      "section": "prospection",
+      "price": 30,
+      "unlock_planet": "registre"
+    },
+    {
+      "id": "profiler",
+      "label": "Analyste de fiche client",
+      "section": "prospection",
+      "price": 40,
+      "unlock_planet": "carte-locale"
+    },
+    {
+      "id": "outreach",
+      "label": "Rédacteur de premier message",
+      "section": "prospection",
+      "price": 45,
+      "unlock_planet": "linkedin"
+    },
+    {
+      "id": "triage",
+      "label": "Trieur de boîte",
+      "section": "clients",
+      "price": 35,
+      "unlock_planet": null
+    },
+    {
+      "id": "replier",
+      "label": "Rédacteur de réponse",
+      "section": "clients",
+      "price": 45,
+      "unlock_planet": null
+    },
+    {
+      "id": "ads",
+      "label": "Directeur de campagne",
+      "section": "pub",
+      "price": 50,
+      "unlock_planet": null
+    }
+  ],
+  "real_mode_waives_score_unlock": [
+    "qualifier",
+    "profiler",
+    "outreach"
+  ],
+  "planets": [
+    {
+      "id": "annuaire",
+      "label": "Annuaire",
+      "max_reward": 20,
+      "unit_price": 0,
+      "requires_pass": null,
+      "initially_available": true
+    },
+    {
+      "id": "registre",
+      "label": "Registre",
+      "max_reward": 30,
+      "unit_price": 1,
+      "requires_pass": "annuaire",
+      "initially_available": false
+    },
+    {
+      "id": "carte-locale",
+      "label": "Carte locale",
+      "max_reward": 40,
+      "unit_price": 1,
+      "requires_pass": "registre",
+      "initially_available": false
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "max_reward": 60,
+      "unit_price": 2,
+      "requires_pass": "carte-locale",
+      "initially_available": false
+    },
+    {
+      "id": "glassdoor",
+      "label": "Glassdoor",
+      "max_reward": 90,
+      "unit_price": 2,
+      "requires_pass": "linkedin",
+      "initially_available": false
+    },
+    {
+      "id": "constellation",
+      "label": "Constellation",
+      "max_reward": 150,
+      "unit_price": 3,
+      "requires_pass": "glassdoor",
+      "initially_available": false
+    },
+    {
+      "id": "secours",
+      "label": "Secours",
+      "max_reward": 10,
+      "unit_price": 0,
+      "requires_pass": null,
+      "initially_available": true
+    }
+  ],
+  "quotas": {
+    "messages_per_agent_per_attempt": 5,
+    "clarifications_per_attempt": 2,
+    "model_calls_per_attempt": 36,
+    "model_calls_reserved_for_evaluation": 2,
+    "max_plan_steps": 2
+  },
+  "scoring": {
+    "pass_score": 50,
+    "final_pass_score": 60,
+    "essential_failure_cap": 40,
+    "final_mission_id": "constellation",
+    "final_max_spend": 30,
+    "final_min_contributing_roles": 2
+  },
+  "prospect_actions": {
+    "profiler": {
+      "cost": 3,
+      "quota_per_target": 5,
+      "quota_key": [
+        "target",
+        "role"
+      ],
+      "target": "prospect",
+      "gain": 0,
+      "counts_in_final_spend": false
+    },
+    "outreach": {
+      "cost": 2,
+      "quota_per_target": 5,
+      "quota_key": [
+        "target",
+        "role"
+      ],
+      "target": "prospect",
+      "gain": 0,
+      "counts_in_final_spend": false
+    },
+    "triage": {
+      "cost": 1,
+      "quota_per_target": 5,
+      "quota_key": [
+        "target",
+        "role"
+      ],
+      "target": "conversation",
+      "gain": 0,
+      "counts_in_final_spend": false
+    },
+    "replier": {
+      "cost": 2,
+      "quota_per_target": 5,
+      "quota_key": [
+        "target",
+        "role"
+      ],
+      "target": "conversation",
+      "gain": 0,
+      "counts_in_final_spend": false
+    },
+    "ads": {
+      "cost": 4,
+      "quota_per_target": 5,
+      "quota_key": [
+        "target",
+        "role"
+      ],
+      "target": "campaign",
+      "gain": 0,
+      "counts_in_final_spend": false
+    }
+  },
+  "prospect_statuses": [
+    "nouveau",
+    "contacte",
+    "en_discussion",
+    "gagne",
+    "perdu",
+    "ecarte"
+  ],
+  "followup_days": 7,
+  "retention_days": 180,
+  "retention_notice_days": 30,
+  "limits": {
+    "prompt_max_chars": 4000,
+    "business_agent_max_output_tokens": 800,
+    "client_or_lead_max_output_tokens": 1200,
+    "call_timeout_seconds": 45,
+    "technical_retries": 1,
+    "provider_concurrency": 5,
+    "reservation_ttl_seconds": 300,
+    "prospects_max": 500,
+    "notes_max_chars": 2000,
+    "player_instruction_max_chars": 500,
+    "draft_max_chars": 800,
+    "campaigns_max": 20,
+    "campaign_name_max_chars": 80,
+    "campaign_instruction_max_chars": 500
+  },
+  "messaging": {
+    "send_per_day": 20,
+    "send_per_hour": 5,
+    "send_cooldown_hours": 24,
+    "inbound_max_chars": 4000,
+    "sim_turns_max": 6,
+    "reply_max_chars": 1200
+  },
+  "building": {
+    "levels": [
+      {
+        "level": 1,
+        "min_total_earned": 0
+      },
+      {
+        "level": 2,
+        "min_total_earned": 20
+      },
+      {
+        "level": 3,
+        "min_total_earned": 45
+      },
+      {
+        "level": 4,
+        "min_total_earned": 80
+      },
+      {
+        "level": 5,
+        "min_total_earned": 125
+      },
+      {
+        "level": 6,
+        "min_total_earned": 180
+      },
+      {
+        "level": 7,
+        "min_total_earned": 250
+      },
+      {
+        "level": 8,
+        "min_total_earned": 340
+      },
+      {
+        "level": 9,
+        "min_total_earned": 450
+      },
+      {
+        "level": 10,
+        "min_total_earned": 600
+      }
+    ]
+  }
+}

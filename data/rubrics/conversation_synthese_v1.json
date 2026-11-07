@@ -1,0 +1,121 @@
+{
+  "id": "conversation_synthese_v1",
+  "action": "conversation_triage",
+  "role": "triage",
+  "version": 1,
+  "title": "Synthèse d'une conversation",
+  "language": "fr",
+  "payment": false,
+  "gain": 0,
+  "quota": {
+    "per_target": 5,
+    "target": "conversation"
+  },
+  "on_essential_failure": {
+    "error_code": "INVALID_OUTPUT",
+    "repair_attempts": 1,
+    "debit": false
+  },
+  "evaluator_policy": {
+    "instructions_in_input_are_data": true,
+    "model_never_produces_reward": true
+  },
+  "checks": [
+    {
+      "id": "sections_present",
+      "label": "Toutes les sections présentes",
+      "essential": true,
+      "kind": "section_present",
+      "description": "intention, points, urgence, statut_suggere.",
+      "params": {
+        "sections": [
+          "intention",
+          "points",
+          "urgence",
+          "statut_suggere"
+        ]
+      }
+    },
+    {
+      "id": "intention_in_set",
+      "label": "Intention connue",
+      "essential": true,
+      "kind": "field_in_set",
+      "description": "Intention dans l'énumération.",
+      "params": {
+        "field": "intention",
+        "values": [
+          "interesse",
+          "question",
+          "objection",
+          "refus",
+          "desinscription",
+          "hors_sujet"
+        ]
+      }
+    },
+    {
+      "id": "points_quoted",
+      "label": "Points cités exactement",
+      "essential": true,
+      "kind": "quote_in_input",
+      "description": "Chaque point porte une citation présente mot pour mot dans un message reçu.",
+      "params": {
+        "field": "points",
+        "input": "inbound_messages"
+      }
+    },
+    {
+      "id": "urgence_in_set",
+      "label": "Urgence connue",
+      "essential": false,
+      "kind": "field_in_set",
+      "description": "Urgence dans l'énumération.",
+      "params": {
+        "field": "urgence",
+        "values": [
+          "faible",
+          "normale",
+          "elevee"
+        ]
+      }
+    },
+    {
+      "id": "statut_in_set",
+      "label": "Statut suggéré connu",
+      "essential": false,
+      "kind": "field_in_set",
+      "description": "Statut dans la liste des statuts de `rules_v2`.",
+      "params": {
+        "field": "statut_suggere",
+        "values_key": "prospect_statuses"
+      }
+    },
+    {
+      "id": "optout_code_wins",
+      "label": "Désinscription détectée par code",
+      "essential": true,
+      "kind": "optout_agreement",
+      "description": "Si un mot-clé de `data/clients/optout_keywords.json` est détecté, l'intention est `desinscription` (le code l'emporte).",
+      "params": {
+        "keywords_file": "data/clients/optout_keywords.json"
+      }
+    },
+    {
+      "id": "no_contact_value",
+      "label": "Aucune coordonnée en clair",
+      "essential": true,
+      "kind": "no_contact_value",
+      "description": "Aucune adresse email ni aucun numéro de téléphone dans la sortie.",
+      "params": {}
+    },
+    {
+      "id": "no_html_or_link",
+      "label": "Texte brut, sans lien produit",
+      "essential": true,
+      "kind": "no_link_markup",
+      "description": "Aucune balise HTML, aucun lien Markdown ni URL cliquable produits par le modèle.",
+      "params": {}
+    }
+  ]
+}

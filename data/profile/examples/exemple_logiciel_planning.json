@@ -1,0 +1,28 @@
+{
+  "id": "exemple_logiciel_planning",
+  "simule": true,
+  "profile_spec": "target_profile_v1",
+  "entreprise_nom": "Planéa Logiciels (fictive)",
+  "offre": "Planéa propose un logiciel de planification de tournées pour les petites entreprises de transport. Mise en route en une semaine, sans engagement de durée.",
+  "besoin": "Les dispatcheurs perdent des heures chaque semaine à replanifier les tournées à la main.",
+  "cible_secteurs": [
+    "transport_logistique"
+  ],
+  "cible_zone": [
+    "Pays de la Loire",
+    "Bretagne"
+  ],
+  "cible_taille": {
+    "effectif_min": 10,
+    "effectif_max": 200
+  },
+  "cible_fonctions": [
+    "Directeur d'exploitation",
+    "Responsable logistique"
+  ],
+  "exclusions": [
+    "Entreprises de plus de 500 salariés",
+    "Entreprises déjà clientes"
+  ],
+  "ton": "vouvoiement_formel"
+}

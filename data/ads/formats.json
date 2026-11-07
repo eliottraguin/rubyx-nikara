@@ -1,0 +1,195 @@
+{
+  "id": "ads_formats",
+  "version": 1,
+  "language": "fr",
+  "verified": false,
+  "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+  "objectifs": [
+    "notoriete",
+    "leads",
+    "evenement",
+    "offre"
+  ],
+  "plateformes": [
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "formats": [
+        {
+          "id": "sponsored_content",
+          "label": "Contenu sponsorisé (image unique)",
+          "verified": false,
+          "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+          "fields": [
+            {
+              "id": "texte_intro",
+              "label": "Texte d'introduction",
+              "max_chars": 150,
+              "required": true
+            },
+            {
+              "id": "titre",
+              "label": "Titre",
+              "max_chars": 70,
+              "required": true
+            },
+            {
+              "id": "description",
+              "label": "Description",
+              "max_chars": 100,
+              "required": false
+            },
+            {
+              "id": "appel_action",
+              "label": "Appel à l'action",
+              "max_chars": 25,
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "meta",
+      "label": "Meta (Facebook, Instagram)",
+      "formats": [
+        {
+          "id": "feed_image",
+          "label": "Annonce image dans le fil",
+          "verified": false,
+          "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+          "fields": [
+            {
+              "id": "texte_principal",
+              "label": "Texte principal",
+              "max_chars": 125,
+              "required": true
+            },
+            {
+              "id": "titre",
+              "label": "Titre",
+              "max_chars": 40,
+              "required": true
+            },
+            {
+              "id": "description",
+              "label": "Description",
+              "max_chars": 30,
+              "required": false
+            },
+            {
+              "id": "appel_action",
+              "label": "Appel à l'action",
+              "max_chars": 25,
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "google_search",
+      "label": "Google (réseau de recherche)",
+      "formats": [
+        {
+          "id": "rsa",
+          "label": "Annonce textuelle adaptable",
+          "verified": false,
+          "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+          "fields": [
+            {
+              "id": "titre",
+              "label": "Titre",
+              "max_chars": 30,
+              "required": true,
+              "count": {
+                "min": 3,
+                "max": 15
+              }
+            },
+            {
+              "id": "description",
+              "label": "Description",
+              "max_chars": 90,
+              "required": true,
+              "count": {
+                "min": 2,
+                "max": 4
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "local",
+      "label": "Local (presse, affichage)",
+      "formats": [
+        {
+          "id": "encart",
+          "label": "Encart presse ou affiche",
+          "verified": false,
+          "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+          "fields": [
+            {
+              "id": "titre",
+              "label": "Titre",
+              "max_chars": 60,
+              "required": true
+            },
+            {
+              "id": "corps",
+              "label": "Corps",
+              "max_chars": 200,
+              "required": true
+            },
+            {
+              "id": "appel_action",
+              "label": "Appel à l'action",
+              "max_chars": 40,
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "email",
+      "label": "Email (campagne)",
+      "formats": [
+        {
+          "id": "newsletter",
+          "label": "Email de campagne",
+          "verified": false,
+          "source_note": "Valeur prudente non vérifiée : à confirmer auprès de la documentation officielle de la plateforme avant publication.",
+          "fields": [
+            {
+              "id": "objet",
+              "label": "Objet",
+              "max_chars": 60,
+              "required": true
+            },
+            {
+              "id": "pre_en_tete",
+              "label": "Pré-en-tête",
+              "max_chars": 90,
+              "required": false
+            },
+            {
+              "id": "corps",
+              "label": "Corps",
+              "max_chars": 800,
+              "required": true
+            },
+            {
+              "id": "appel_action",
+              "label": "Appel à l'action",
+              "max_chars": 30,
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

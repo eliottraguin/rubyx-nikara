@@ -1,0 +1,163 @@
+{
+  "id": "ad_kit_v1",
+  "action": "ad_campaign",
+  "role": "ads",
+  "version": 1,
+  "title": "Kit de campagne publicitaire",
+  "language": "fr",
+  "payment": false,
+  "gain": 0,
+  "quota": {
+    "per_target": 5,
+    "target": "campaign"
+  },
+  "on_essential_failure": {
+    "error_code": "INVALID_OUTPUT",
+    "repair_attempts": 1,
+    "debit": false
+  },
+  "evaluator_policy": {
+    "instructions_in_input_are_data": true,
+    "model_never_produces_reward": true
+  },
+  "checks": [
+    {
+      "id": "sections_present",
+      "label": "Toutes les sections présentes",
+      "essential": true,
+      "kind": "section_present",
+      "description": "Les huit sections du kit.",
+      "params": {
+        "sections": [
+          "positionnement",
+          "audience_resume",
+          "accroches",
+          "textes",
+          "brief_visuel",
+          "plan",
+          "checklist",
+          "a_verifier"
+        ]
+      }
+    },
+    {
+      "id": "positionnement_len",
+      "label": "Positionnement borné",
+      "essential": false,
+      "kind": "max_chars",
+      "description": "Une phrase de 160 caractères au plus.",
+      "params": {
+        "field": "positionnement",
+        "max": 160
+      }
+    },
+    {
+      "id": "accroches_count",
+      "label": "3 à 5 accroches",
+      "essential": false,
+      "kind": "count_range",
+      "description": "Entre 3 et 5 accroches reliées à la fiche.",
+      "params": {
+        "field": "accroches",
+        "min": 3,
+        "max": 5
+      }
+    },
+    {
+      "id": "texts_char_limits",
+      "label": "Limites de caractères du format",
+      "essential": true,
+      "kind": "char_limit_per_format",
+      "description": "Chaque texte respecte la limite de son champ dans `data/ads/formats.json`.",
+      "params": {
+        "formats_file": "data/ads/formats.json"
+      }
+    },
+    {
+      "id": "no_new_fact",
+      "label": "Aucun fait absent de la fiche",
+      "essential": true,
+      "kind": "no_new_facts",
+      "description": "Aucun fait, chiffre, pourcentage, prix, date, témoignage ou label absent de la fiche entreprise.",
+      "params": {
+        "allowed_inputs": [
+          "profile"
+        ]
+      }
+    },
+    {
+      "id": "no_new_url_or_number",
+      "label": "Aucune URL ni numéro absent",
+      "essential": true,
+      "kind": "no_new_urls",
+      "description": "Aucune URL ni aucun numéro absents des données.",
+      "params": {
+        "allowed_inputs": [
+          "profile"
+        ],
+        "also_numbers": true
+      }
+    },
+    {
+      "id": "no_named_person_target",
+      "label": "Aucune cible nominative",
+      "essential": true,
+      "kind": "no_personal_target",
+      "description": "Aucune personne nommée visée ; aucun ciblage de particuliers.",
+      "params": {}
+    },
+    {
+      "id": "plan_indicators",
+      "label": "2 à 4 indicateurs",
+      "essential": false,
+      "kind": "count_range",
+      "description": "Entre 2 et 4 indicateurs de suivi sans valeurs promises.",
+      "params": {
+        "field": "plan.indicateurs",
+        "min": 2,
+        "max": 4
+      }
+    },
+    {
+      "id": "checklist_from_data",
+      "label": "Checklist issue des données",
+      "essential": true,
+      "kind": "ref_in_input",
+      "description": "Chaque point de checklist existe dans `data/ads/checklist.json`.",
+      "params": {
+        "field": "checklist",
+        "refs": [
+          "checklist_item_id"
+        ],
+        "source_file": "data/ads/checklist.json"
+      }
+    },
+    {
+      "id": "a_verifier_if_missing",
+      "label": "À vérifier renseigné si manque",
+      "essential": true,
+      "kind": "required_when_missing",
+      "description": "`a_verifier` non vide si un fait utile manque dans la fiche.",
+      "params": {
+        "field": "a_verifier",
+        "condition": "profile_missing_fact"
+      }
+    },
+    {
+      "id": "no_numeric_promise",
+      "label": "Aucune promesse chiffrée inventée",
+      "essential": true,
+      "kind": "no_promise_figure",
+      "description": "Aucun résultat chiffré promis hors fiche.",
+      "params": {}
+    },
+    {
+      "id": "no_html_or_link",
+      "label": "Texte brut, sans lien produit",
+      "essential": true,
+      "kind": "no_link_markup",
+      "description": "Aucune balise HTML, aucun lien Markdown ni URL cliquable produits par le modèle.",
+      "params": {}
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "exemple_nettoyage_bureaux",
+  "simule": true,
+  "profile_spec": "target_profile_v1",
+  "entreprise_nom": "Verdoyant Services (fictive)",
+  "offre": "Verdoyant assure le nettoyage de bureaux avec des produits écolabellisés et des passages en soirée. Devis sous 48 heures.",
+  "besoin": "Les entreprises veulent des locaux propres sans perturber leurs équipes ni utiliser de produits agressifs.",
+  "cible_secteurs": [
+    "immobilier",
+    "conseil_services_entreprises",
+    "logiciel_services_numeriques"
+  ],
+  "cible_zone": [
+    "Lyon",
+    "Grenoble"
+  ],
+  "cible_taille": {
+    "effectif_min": 5,
+    "effectif_max": 150
+  },
+  "cible_fonctions": [
+    "Responsable des services généraux",
+    "Office manager"
+  ],
+  "exclusions": [
+    "Particuliers",
+    "Chantiers de construction"
+  ],
+  "ton": "tutoiement"
+}

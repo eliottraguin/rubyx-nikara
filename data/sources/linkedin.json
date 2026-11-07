@@ -1,0 +1,95 @@
+{
+  "id": "linkedin",
+  "label": "LinkedIn",
+  "version": 1,
+  "scope": "B2B",
+  "required_fields": [
+    "source_ref",
+    "entreprise",
+    "collecte_le"
+  ],
+  "allowed_fields": [
+    {
+      "name": "source_ref",
+      "type": "string",
+      "description": "Identifiant de l'enregistrement renvoyé pendant l'expédition (obligatoire, vérifié par code)",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "description": "Nom de l'entreprise",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "description": "Date de collecte (UTC, ISO 8601), obligatoire",
+      "personal_data": false
+    },
+    {
+      "name": "secteur",
+      "type": "string",
+      "description": "Secteur de l'entreprise",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "effectif_tranche",
+      "type": "string",
+      "description": "Tranche d'effectif",
+      "personal_data": false,
+      "max_chars": 40
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "description": "Ville du siège",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "contact_nom",
+      "type": "string",
+      "description": "Nom du décideur, seulement s'il est fourni comme donnée professionnelle",
+      "personal_data": true,
+      "max_chars": 80
+    },
+    {
+      "name": "contact_fonction",
+      "type": "string",
+      "description": "Fonction du décideur",
+      "personal_data": false,
+      "max_chars": 100
+    },
+    {
+      "name": "anciennete_poste_mois",
+      "type": "integer",
+      "description": "Ancienneté dans le poste, en mois",
+      "personal_data": false
+    },
+    {
+      "name": "profil_pro_ref",
+      "type": "string",
+      "description": "Référence du profil professionnel renvoyée par la source (pas d'URL libre)",
+      "personal_data": false,
+      "max_chars": 120
+    }
+  ],
+  "always_excluded": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "drop_unlisted_fields": true,
+  "snapshot_max_chars": 2000,
+  "notes": "Données personnelles minimales : nom et fonction professionnels uniquement ; ni photo, ni parcours détaillé, ni réseau personnel."
+}

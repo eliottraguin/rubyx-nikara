@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "target_profile_spec",
+  "title": "Spécification de la fiche entreprise et cible",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "fields": {
+      "type": "object",
+      "properties": {
+        "entreprise_nom": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "offre": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "besoin": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "cible_secteurs": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "cible_zone": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "cible_taille": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "cible_fonctions": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "exclusions": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        },
+        "ton": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "list",
+                "range",
+                "enum"
+              ]
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "required_for_real": {
+              "type": "boolean"
+            },
+            "min_chars": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "item_max_chars": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "min_value": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_value": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 0
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "default": {
+              "type": "string",
+              "minLength": 1
+            },
+            "suggestions_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "type",
+            "required",
+            "required_for_real"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "entreprise_nom",
+        "offre",
+        "besoin",
+        "cible_secteurs",
+        "cible_zone",
+        "cible_taille",
+        "cible_fonctions",
+        "exclusions",
+        "ton"
+      ],
+      "additionalProperties": false
+    },
+    "ton_labels": {
+      "type": "object"
+    },
+    "sectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_]+$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5
+    },
+    "free_entry_allowed": {
+      "type": "boolean"
+    },
+    "consigne": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "description",
+    "fields",
+    "ton_labels",
+    "sectors",
+    "free_entry_allowed",
+    "consigne"
+  ],
+  "additionalProperties": false
+}

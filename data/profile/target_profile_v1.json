@@ -1,0 +1,156 @@
+{
+  "id": "target_profile_v1",
+  "version": 1,
+  "description": "Champs, bornes et énumérations de la fiche entreprise et cible (docs/PRODUIT-PROSPECTION.md section 11). Les bornes sont lues ici, jamais codées en dur.",
+  "fields": {
+    "entreprise_nom": {
+      "type": "text",
+      "min_chars": 1,
+      "max_chars": 60,
+      "required": true,
+      "required_for_real": false
+    },
+    "offre": {
+      "type": "text",
+      "min_chars": 1,
+      "max_chars": 400,
+      "required": true,
+      "required_for_real": true
+    },
+    "besoin": {
+      "type": "text",
+      "min_chars": 0,
+      "max_chars": 300,
+      "required": false,
+      "required_for_real": false
+    },
+    "cible_secteurs": {
+      "type": "list",
+      "min_items": 1,
+      "max_items": 5,
+      "item_max_chars": 60,
+      "required": true,
+      "required_for_real": true,
+      "suggestions_field": "sectors"
+    },
+    "cible_zone": {
+      "type": "list",
+      "min_items": 1,
+      "max_items": 5,
+      "item_max_chars": 60,
+      "required": true,
+      "required_for_real": true
+    },
+    "cible_taille": {
+      "type": "range",
+      "min_value": 1,
+      "max_value": 100000,
+      "required": false,
+      "required_for_real": false,
+      "keys": [
+        "effectif_min",
+        "effectif_max"
+      ]
+    },
+    "cible_fonctions": {
+      "type": "list",
+      "min_items": 0,
+      "max_items": 5,
+      "item_max_chars": 60,
+      "required": false,
+      "required_for_real": false
+    },
+    "exclusions": {
+      "type": "list",
+      "min_items": 0,
+      "max_items": 10,
+      "item_max_chars": 100,
+      "required": false,
+      "required_for_real": false
+    },
+    "ton": {
+      "type": "enum",
+      "values": [
+        "vouvoiement_formel",
+        "vouvoiement_chaleureux",
+        "tutoiement"
+      ],
+      "default": "vouvoiement_formel",
+      "required": true,
+      "required_for_real": false
+    }
+  },
+  "ton_labels": {
+    "vouvoiement_formel": "Vouvoiement formel",
+    "vouvoiement_chaleureux": "Vouvoiement chaleureux",
+    "tutoiement": "Tutoiement"
+  },
+  "sectors": [
+    {
+      "id": "logiciel_services_numeriques",
+      "label": "Logiciels et services numériques"
+    },
+    {
+      "id": "industrie",
+      "label": "Industrie et fabrication"
+    },
+    {
+      "id": "batiment_travaux",
+      "label": "Bâtiment et travaux publics"
+    },
+    {
+      "id": "commerce_distribution",
+      "label": "Commerce et distribution"
+    },
+    {
+      "id": "restauration_hotellerie",
+      "label": "Restauration et hôtellerie"
+    },
+    {
+      "id": "transport_logistique",
+      "label": "Transport et logistique"
+    },
+    {
+      "id": "sante_social",
+      "label": "Santé et action sociale"
+    },
+    {
+      "id": "education_formation",
+      "label": "Éducation et formation"
+    },
+    {
+      "id": "immobilier",
+      "label": "Immobilier"
+    },
+    {
+      "id": "finance_assurance",
+      "label": "Finance et assurance"
+    },
+    {
+      "id": "conseil_services_entreprises",
+      "label": "Conseil et services aux entreprises"
+    },
+    {
+      "id": "energie_environnement",
+      "label": "Énergie et environnement"
+    },
+    {
+      "id": "agriculture_agroalimentaire",
+      "label": "Agriculture et agroalimentaire"
+    },
+    {
+      "id": "tourisme_loisirs",
+      "label": "Tourisme et loisirs"
+    },
+    {
+      "id": "communication_marketing",
+      "label": "Communication et marketing"
+    },
+    {
+      "id": "associations_collectivites",
+      "label": "Associations et collectivités"
+    }
+  ],
+  "free_entry_allowed": true,
+  "consigne": "Décrivez une cible (des entreprises et des fonctions), pas des personnes."
+}

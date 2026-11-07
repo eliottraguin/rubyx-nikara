@@ -1,0 +1,115 @@
+{
+  "id": "registre",
+  "label": "Registre",
+  "version": 1,
+  "scope": "B2B",
+  "required_fields": [
+    "source_ref",
+    "entreprise",
+    "collecte_le"
+  ],
+  "allowed_fields": [
+    {
+      "name": "source_ref",
+      "type": "string",
+      "description": "Identifiant de l'enregistrement renvoyé pendant l'expédition (obligatoire, vérifié par code)",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "description": "Nom de l'entreprise",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "description": "Date de collecte (UTC, ISO 8601), obligatoire",
+      "personal_data": false
+    },
+    {
+      "name": "identifiant_registre",
+      "type": "string",
+      "description": "Identifiant d'immatriculation de l'entreprise",
+      "personal_data": false,
+      "max_chars": 30
+    },
+    {
+      "name": "forme_juridique",
+      "type": "string",
+      "description": "Forme juridique",
+      "personal_data": false,
+      "max_chars": 60
+    },
+    {
+      "name": "secteur_libelle",
+      "type": "string",
+      "description": "Libellé d'activité",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "secteur_code",
+      "type": "string",
+      "description": "Code d'activité",
+      "personal_data": false,
+      "max_chars": 10
+    },
+    {
+      "name": "effectif_tranche",
+      "type": "string",
+      "description": "Tranche d'effectif",
+      "personal_data": false,
+      "max_chars": 40
+    },
+    {
+      "name": "date_creation",
+      "type": "date",
+      "description": "Date de création de l'entreprise",
+      "personal_data": false
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "description": "Ville du siège",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "region",
+      "type": "string",
+      "description": "Région",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "statut_actif",
+      "type": "boolean",
+      "description": "Entreprise en activité",
+      "personal_data": false
+    },
+    {
+      "name": "dirigeant_fonction",
+      "type": "string",
+      "description": "Fonction du dirigeant (jamais son nom)",
+      "personal_data": false,
+      "max_chars": 60
+    }
+  ],
+  "always_excluded": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "drop_unlisted_fields": true,
+  "snapshot_max_chars": 2000,
+  "notes": "Le nom d'un dirigeant personne physique n'est pas conservé : seule la fonction l'est."
+}

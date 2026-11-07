@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ads_checklist",
+  "title": "Checklist de conformité avant publication",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "notes": {
+      "type": "string",
+      "minLength": 1
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_0-9]+$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "essential": {
+            "type": "boolean"
+          },
+          "platforms": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 1
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "essential",
+          "platforms"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 5
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "language",
+    "notes",
+    "items"
+  ],
+  "additionalProperties": false
+}

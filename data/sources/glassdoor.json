@@ -1,0 +1,93 @@
+{
+  "id": "glassdoor",
+  "label": "Glassdoor",
+  "version": 1,
+  "scope": "B2B",
+  "required_fields": [
+    "source_ref",
+    "entreprise",
+    "collecte_le"
+  ],
+  "allowed_fields": [
+    {
+      "name": "source_ref",
+      "type": "string",
+      "description": "Identifiant de l'enregistrement renvoyé pendant l'expédition (obligatoire, vérifié par code)",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "description": "Nom de l'entreprise",
+      "personal_data": false,
+      "max_chars": 120
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "description": "Date de collecte (UTC, ISO 8601), obligatoire",
+      "personal_data": false
+    },
+    {
+      "name": "secteur",
+      "type": "string",
+      "description": "Secteur de l'entreprise",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "effectif_tranche",
+      "type": "string",
+      "description": "Tranche d'effectif",
+      "personal_data": false,
+      "max_chars": 40
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "description": "Ville du siège",
+      "personal_data": false,
+      "max_chars": 80
+    },
+    {
+      "name": "note_globale",
+      "type": "number",
+      "description": "Note globale agrégée",
+      "personal_data": false
+    },
+    {
+      "name": "offres_ouvertes",
+      "type": "integer",
+      "description": "Nombre d'offres d'emploi ouvertes",
+      "personal_data": false
+    },
+    {
+      "name": "signal_recrutement",
+      "type": "string",
+      "description": "Signal de recrutement ou de croissance, en une phrase",
+      "personal_data": false,
+      "max_chars": 200
+    },
+    {
+      "name": "date_signal",
+      "type": "date",
+      "description": "Date du signal",
+      "personal_data": false
+    }
+  ],
+  "always_excluded": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "drop_unlisted_fields": true,
+  "snapshot_max_chars": 2000,
+  "notes": "Ni avis de salariés, ni salaire individuel, ni nom de salarié n'est conservé : seulement des agrégats et un signal d'entreprise."
+}

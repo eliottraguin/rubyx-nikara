@@ -1,0 +1,131 @@
+{
+  "id": "conversation_reponse_v1",
+  "action": "conversation_reply",
+  "role": "replier",
+  "version": 1,
+  "title": "Brouillon de réponse à un client",
+  "language": "fr",
+  "payment": false,
+  "gain": 0,
+  "quota": {
+    "per_target": 5,
+    "target": "conversation"
+  },
+  "on_essential_failure": {
+    "error_code": "INVALID_OUTPUT",
+    "repair_attempts": 1,
+    "debit": false
+  },
+  "evaluator_policy": {
+    "instructions_in_input_are_data": true,
+    "model_never_produces_reward": true
+  },
+  "checks": [
+    {
+      "id": "body_len",
+      "label": "Réponse bornée",
+      "essential": true,
+      "kind": "max_chars",
+      "description": "Corps limité par `messaging.reply_max_chars`.",
+      "params": {
+        "field": "corps",
+        "limit_key": "messaging.reply_max_chars"
+      }
+    },
+    {
+      "id": "no_new_fact",
+      "label": "Aucun fait, prix, date absent",
+      "essential": true,
+      "kind": "no_new_facts",
+      "description": "Aucun fait, prix ou date absent de la fiche, de l'instantané et du fil.",
+      "params": {
+        "allowed_inputs": [
+          "profile",
+          "snapshot",
+          "thread"
+        ]
+      }
+    },
+    {
+      "id": "no_new_url_or_number",
+      "label": "Aucune URL ni numéro absent",
+      "essential": true,
+      "kind": "no_new_urls",
+      "description": "Aucune URL ni aucun numéro absents des données.",
+      "params": {
+        "allowed_inputs": [
+          "profile",
+          "snapshot",
+          "thread"
+        ],
+        "also_numbers": true
+      }
+    },
+    {
+      "id": "covers_questions",
+      "label": "Questions couvertes",
+      "essential": true,
+      "kind": "covers_questions",
+      "description": "Chaque question du dernier message reçoit une réponse, ou une promesse de retour si la donnée manque.",
+      "params": {
+        "by": "intention"
+      }
+    },
+    {
+      "id": "mention_opposition",
+      "label": "Mention d'opposition si nécessaire",
+      "essential": true,
+      "kind": "contains_mentions",
+      "description": "Mention d'opposition présente tant que le client n'en a pas été informé.",
+      "params": {
+        "mention": "opposition",
+        "source_file": "data/clients/mentions_v1.json",
+        "unless": "already_informed"
+      }
+    },
+    {
+      "id": "optout_no_pitch",
+      "label": "Aucune relance après désinscription",
+      "essential": true,
+      "kind": "optout_agreement",
+      "description": "Si la désinscription est détectée, la réponse confirme sobrement et ne propose rien.",
+      "params": {
+        "keywords_file": "data/clients/optout_keywords.json"
+      }
+    },
+    {
+      "id": "tone_matches",
+      "label": "Ton conforme à la fiche",
+      "essential": false,
+      "kind": "tone_matches",
+      "description": "Ton conforme à `ton` de la fiche.",
+      "params": {
+        "profile_field": "ton"
+      }
+    },
+    {
+      "id": "no_numeric_promise",
+      "label": "Aucune promesse chiffrée inventée",
+      "essential": true,
+      "kind": "no_promise_figure",
+      "description": "Aucun résultat chiffré promis hors fiche.",
+      "params": {}
+    },
+    {
+      "id": "no_contact_value",
+      "label": "Aucune coordonnée en clair",
+      "essential": true,
+      "kind": "no_contact_value",
+      "description": "Aucune adresse email ni aucun numéro de téléphone dans la sortie.",
+      "params": {}
+    },
+    {
+      "id": "no_html_or_link",
+      "label": "Texte brut, sans lien produit",
+      "essential": true,
+      "kind": "no_link_markup",
+      "description": "Aucune balise HTML, aucun lien Markdown ni URL cliquable produits par le modèle.",
+      "params": {}
+    }
+  ]
+}
