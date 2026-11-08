@@ -25,7 +25,9 @@ async function toError(res: Response): Promise<ApiError> {
     if (typeof body.message === "string") message = body.message;
     else if (typeof raw.detail === "string") message = raw.detail;
   } catch {
-    /* corps non JSON : message par défaut */
+    if (res.status >= 500) {
+      return new ApiError("NETWORK", "Le serveur est indisponible. Vérifiez que l'API est démarrée.", res.status);
+    }
   }
   if (code === "UNKNOWN") {
     if (res.status === 422) code = "VALIDATION";

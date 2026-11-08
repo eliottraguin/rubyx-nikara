@@ -241,9 +241,9 @@ export function createSearchesApi(opts: SearchesClientOptions = {}): SearchesApi
   };
 }
 
-/** Point d'accès unique côté interface : mock hors `NEXT_PUBLIC_API_MODE=http`, chargé à la demande. */
+/** Point d'accès unique côté interface : mock explicite, chargé à la demande. */
 export function createSearchesApiForMode(): SearchesApi {
-  if (process.env.NEXT_PUBLIC_API_MODE === "http") return createSearchesApi();
+  if (process.env.NEXT_PUBLIC_API_MODE !== "mock") return createSearchesApi();
   let mock: Promise<SearchesApi> | null = null;
   const load = () => (mock ??= import("@/mocks/searches").then((m) => m.createMockSearchesApi()));
   return { run: async (i, o) => (await load()).run(i, o), contact: async (id) => (await load()).contact(id) };
