@@ -13,14 +13,18 @@
         "ads",
         "assistant_prospection",
         "assistant_clients",
-        "assistant_pub"
+        "assistant_pub",
+        "orchestrator",
+        "evaluator"
       ]
     },
     "kind": {
       "type": "string",
       "enum": [
         "business",
-        "system"
+        "system",
+        "orchestrator",
+        "evaluator"
       ]
     },
     "version": {
@@ -118,7 +122,8 @@
         "conversation_synthese",
         "conversation_reponse",
         "ad_kit",
-        "assistant_plan"
+        "assistant_plan",
+        "evaluator_output"
       ]
     },
     "max_output_tokens_key": {

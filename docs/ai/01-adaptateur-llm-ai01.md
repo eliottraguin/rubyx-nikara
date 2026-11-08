@@ -1,5 +1,13 @@
 # AI01 — Adaptateur LLM : ce qu'il doit exposer (documentation uniquement)
 
+**Statut (GR3-62, D2)** : deux fichiers de rôle ajoutés, `data/roles/orchestrator.json` et `data/roles/evaluator.json`
+(`docs/CONTRACTS-V2.md` §11) — l'orchestrateur remplace les trois assistants (`assistant_prospection/clients/pub`) et
+l'évaluateur reçoit désormais la fiche entreprise (nouveau : `docs/CONTRACTS.md` 29g l'en excluait avant la 7e décision).
+**Aucun code n'a changé** : `RealLLMAdapter._system(role)` lit déjà `data/roles/<role>.json` par nom de fichier,
+sans énumération Python à étendre ; ces deux rôles sont donc chargés dès aujourd'hui, sans attendre que C1
+(orchestrateur) ou C4/GR3-63 (évaluateur) construisent leur route. Pas de nouvelle valeur ajoutée à `Role`
+(`api/app/schemas/common.py`) ni de nouvelle route : ce choix revient à ces tickets. Tests : `api/tests/test_role_prompts.py`.
+
 **Statut (GR3-61)** : fournisseur `codex` ajouté (`api/app/llm/codex.py`, `api/tests/test_llm_codex.py`), même contrat et même protocole que `real` (`api/app/llm/real.py`) — **investigation** : la relais AXIS parle directement le protocole Messages d'Anthropic en HTTP, appelable depuis le serveur Python sans pont Node ; `index.mjs` (essai isolé `@axis/sdk`) reste inutilisé, aucune dépendance Node ajoutée. Les deux fournisseurs sont **écrits et testés sur faux transport**, aucun réseau. L'étape **« un appel réel réussi » reste À FAIRE par le propriétaire** avec ses accès (commande ci-dessous, `RUBIX_LLM_PROVIDER=codex` ou `real`). Aucun fichier de secret n'a été lu. L'adaptateur `mock` reste le défaut. Rappel (`docs/OPEN-QUESTIONS.md` #65) : le groupe AXIS sondé jusqu'ici ne sert que des modèles Claude, aucun modèle « codex » à proprement parler — `codex` est le nom de fournisseur attendu par le produit (`docs/PLAN-V2.md` §5), pas un modèle distinct ; décision de modèles par rôle toujours portée par `data/llm/models.json`.
 
 ## Protocole vérifié (relais AXIS, sondée en amont)
