@@ -36,9 +36,12 @@ function useMotionPref() {
   return [off, toggle] as const;
 }
 
-/** La carte est l'entrée principale ; la boutique d'agents est un écran secondaire. */
-const SECONDARY = [{ href: "/boutique", label: "Boutique" }];
-const SECONDARY_PREFIXES = ["/boutique"];
+/**
+ * La carte est l'entrée principale. La boutique et l'évaluateur sont des bâtiments de la ville (clic sur la carte,
+ * ou lien HUD/liste) : plus de menu « Autres écrans » pour y entrer, mais le bandeau secondaire reste affiché.
+ */
+const SECONDARY: { href: string; label: string }[] = [];
+const SECONDARY_PREFIXES = ["/boutique", "/evaluateur"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, connectionLost, refresh, account, api, setState, setAccount, farewellRef } = useGame();
@@ -73,21 +76,23 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <li>
                   <ShortcutsMenu path={path} />
                 </li>
-                <li>
-                  {/* `key` : le menu se referme après chaque navigation. */}
-                  <details className="nav-more" key={path}>
-                    <summary className={onSecondary ? "nav-more-on" : undefined}>Autres écrans</summary>
-                    <ul className="nav-more-list">
-                      {SECONDARY.map((n) => (
-                        <li key={n.href}>
-                          <Link href={n.href} aria-current={path === n.href ? "page" : undefined}>
-                            {n.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                </li>
+                {SECONDARY.length > 0 ? (
+                  <li>
+                    {/* `key` : le menu se referme après chaque navigation. */}
+                    <details className="nav-more" key={path}>
+                      <summary className={onSecondary ? "nav-more-on" : undefined}>Autres écrans</summary>
+                      <ul className="nav-more-list">
+                        {SECONDARY.map((n) => (
+                          <li key={n.href}>
+                            <Link href={n.href} aria-current={path === n.href ? "page" : undefined}>
+                              {n.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </li>
+                ) : null}
               </ul>
             </nav>
           ) : null}

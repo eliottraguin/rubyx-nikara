@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { botList } from "@/game/map/bots";
 import type { Trip } from "@/game/map/trips";
 import type { MapViewModel } from "@/game/map/viewmodel";
@@ -76,6 +77,27 @@ export function BuildingStatus({ vm, onEnter, constructing, onSkip }: { vm: MapV
         Entrer dans votre immeuble
       </button>
     </section>
+  );
+}
+
+/** Bâtiments de la ville sans lien avec la prospection (boutique, évaluateur) : équivalent texte, sans la scène 3D. */
+export function NavBuildingLinks() {
+  return (
+    <nav aria-label="Autres bâtiments de la ville">
+      <h2 className="h4">Autres bâtiments</h2>
+      <ul className="nav-building-list">
+        <li>
+          <Link href="/boutique" className="btn btn-small">
+            Boutique
+          </Link>
+        </li>
+        <li>
+          <Link href="/evaluateur" className="btn btn-small">
+            Évaluateur
+          </Link>
+        </li>
+      </ul>
+    </nav>
   );
 }
 
