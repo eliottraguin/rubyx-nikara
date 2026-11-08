@@ -30,6 +30,7 @@ from .routes import (
     prospects,
     searches,
     sessions,
+    shop,
 )
 from .rules import load_rules
 from .rules_v2 import load_rules_v2
@@ -44,6 +45,7 @@ from .services.planet_source import SimulatedPlanetSource
 from .services.prospect_actions import reconcile_prospect_actions
 from .services.prospect_lookup import SqlProspectLookup
 from .services.search_actions import SearchEngine, reconcile_searches
+from .services.shop import load_shop_catalog
 from .sources_spec import load_sources_spec
 
 
@@ -53,6 +55,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     configure_logging(settings)
     rules = load_rules(settings.data_dir, settings.rules_version)
     rules_v2 = load_rules_v2(settings.data_dir)  # cap prospection : prix des 4 rôles du hangar, building, limites, rétention
+    shop_catalog = load_shop_catalog(settings.data_dir)  # boutique (docs/CONTRACTS-V2.md §2) : data/shop/*.json, data/agents/tiers.json
     profile_spec = load_profile_spec(settings.data_dir)  # bornes de la fiche entreprise et cible
     ads_spec = load_ads_spec(settings.data_dir)  # section Pub : formats, limites, checklist, grille du kit
     sources_spec = load_sources_spec(settings.data_dir)  # listes blanches de champs par source (data/sources/)
@@ -93,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.rules = rules
     app.state.rules_v2 = rules_v2
+    app.state.shop_catalog = shop_catalog
     app.state.profile_spec = profile_spec
     app.state.sources_spec = sources_spec
     app.state.ads_spec = ads_spec
@@ -115,6 +119,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(sessions.router)
     app.include_router(auth.router)
     app.include_router(agents.router)
+    app.include_router(shop.router)
     app.include_router(profile.router)
     app.include_router(prospects.router)
     app.include_router(campaigns.router)

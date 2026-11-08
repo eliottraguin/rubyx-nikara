@@ -20,7 +20,7 @@ import {
   type Material,
 } from "three";
 import type { CityScene } from "@/game/login/CityScene";
-import type { MapLayout, PlaceLayout } from "../../layout";
+import type { MapLayout, NavBuildingLayout, PlaceLayout } from "../../layout";
 import type { PlanetStatus } from "../../viewmodel";
 import { seedOf, type Tier, type TowerSpec } from "./blocks";
 import { TILE_U, TILE_V } from "./facade";
@@ -52,6 +52,10 @@ const STATUS_TEXT: Record<PlanetStatus, string> = {
   in_progress: "Expédition en cours",
   visited: "Visité",
 };
+
+/** Bâtiments cliquables sans état serveur (boutique, évaluateur) : toujours ouverts, couleur fixe par type. */
+const NAV_COLOR: Record<NavBuildingLayout["kind"], string> = { shop: "#e0463c", academy: "#6b4fa0" };
+const NAV_TEXT: Record<NavBuildingLayout["kind"], string> = { shop: "Boutique", academy: "Évaluateur" };
 
 export class Landmark {
   readonly group = new Group();
@@ -192,6 +196,8 @@ interface Ctx {
 export class Landmarks {
   readonly hq: Landmark;
   readonly places = new Map<string, Landmark>();
+  /** Boutique et évaluateur : bâtiments cliquables de la ville, sans état serveur. */
+  readonly nav = new Map<string, Landmark>();
   private hqStyle: HqStyle | null = null;
   private company = "";
 
@@ -206,10 +212,17 @@ export class Landmarks {
       this.buildPlace(lm, p);
       this.decorate(lm, "locked", false);
     }
+    for (const n of ctx.layout.navBuildings) {
+      const lm = new Landmark(n.id, n.name, n.grid.x, n.grid.y);
+      this.nav.set(n.id, lm);
+      ctx.parent.add(lm.group);
+      this.buildNav(lm, n);
+      this.decorateNav(lm, n.kind);
+    }
   }
 
   all(): Landmark[] {
-    return [this.hq, ...this.places.values()];
+    return [this.hq, ...this.places.values(), ...this.nav.values()];
   }
 
   setHq(style: HqStyle, company = ""): void {
@@ -288,6 +301,40 @@ export class Landmarks {
     } else ring.visible = true;
     void city;
     void Color;
+  }
+
+  /** Anneau et étiquette de la boutique / de l'évaluateur : toujours disponibles, couleur fixe par type. */
+  private decorateNav(lm: Landmark, kind: NavBuildingLayout["kind"]): void {
+    lm.status = "available";
+    const { kit } = this.ctx;
+    const color = NAV_COLOR[kind];
+    const ring = new Mesh(lm.own(new RingGeometry(2.2, 2.55, 48)), lm.own(kit.basic(color, 0.6).clone()));
+    (ring.material as Material).transparent = true;
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = CURB + 0.03;
+    lm.group.add(ring);
+    lm.ring = ring;
+    const pin = new Group();
+    const cone = new Mesh(lm.own(new ConeGeometry(0.34, 0.7, 14)), lm.own(kit.basic(color).clone()));
+    cone.rotation.x = Math.PI;
+    pin.add(cone);
+    const head = new Mesh(lm.own(new SphereGeometry(0.26, 14, 10)), lm.own(kit.basic(color).clone()));
+    head.position.y = 0.55;
+    pin.add(head);
+    pin.position.y = lm.height + 1.5;
+    pin.scale.setScalar(1.5);
+    lm.group.add(pin);
+    lm.pin = pin;
+    const tex = labelTexture(lm.name, NAV_TEXT[kind], color);
+    if (tex) {
+      lm.own(tex);
+      const sp = new Sprite(lm.own(new SpriteMaterial({ map: tex, transparent: true, depthTest: false })));
+      sp.scale.set(7.6, 2.02, 1);
+      sp.position.y = lm.height + 3.2;
+      sp.renderOrder = 20;
+      lm.group.add(sp);
+      lm.label = sp;
+    }
   }
 
   // --- Lieux -----------------------------------------------------------------------------------------------------
@@ -396,6 +443,60 @@ export class Landmarks {
       }
     }
     // socle de place
+    b.add(box(3.7, 0.05, 3.7), kit.lambert("#e4dccb"), mat4(0, CURB + 0.025, 0));
+    this.finish(lm, b, h);
+  }
+
+  // --- Boutique et évaluateur (bâtiments de la ville, sans lien avec la prospection) -----------------------------
+
+  private buildNav(lm: Landmark, n: NavBuildingLayout): void {
+    const { kit } = this.ctx;
+    const b = new StaticBatch();
+    const trim = kit.lambert("#f4efe0");
+    let h: number;
+    if (n.kind === "shop") {
+      // boutique : grande vitrine vitrée au rez-de-chaussée, étage en brique, auvent et enseigne
+      const w = 3.1;
+      const d = 2.8;
+      const groundH = 1.15;
+      const glass = kit.lambert("#2f6a8c", { opacity: 0.85 });
+      const gp = boxParts(w, groundH, d, { uTile: TILE_U, vTile: TILE_V, vOffset: 0 });
+      b.add(gp.sides, glass, mat4(0, 0, 0));
+      b.add(gp.top, trim, mat4(0, 0, 0));
+      const upperFloors = Math.max(1, n.floors - 1);
+      const upperPal = pal("brick", 1);
+      const up = boxParts(w * 0.94, upperFloors * FLOOR, d * 0.94, { uTile: TILE_U, vTile: TILE_V, vOffset: groundH });
+      b.add(up.sides, kit.facade(upperPal), mat4(0, groundH, 0));
+      b.add(up.top, kit.lambert(upperPal.roof), mat4(0, groundH, 0));
+      const top = groundH + upperFloors * FLOOR;
+      h = addRoof(b, kit, "flat", 0, top, 0, w * 0.94, d * 0.94, upperPal.roof, upperPal.trim, mulberry32(seedOf(n.id)));
+      // auvent au-dessus de la vitrine
+      b.add(box(w * 0.96, 0.08, 0.6), kit.basic("#e0463c"), mat4(0, groundH + 0.1, d / 2 + 0.28));
+      b.add(box(w * 0.96, 0.03, 0.08), kit.lambert("#fff6dc"), mat4(0, groundH - 0.06, d / 2 + 0.56));
+      for (const sx of [-1, 1]) b.add(cyl(0.02, 0.9, 6), kit.lambert("#5d636c"), mat4(sx * (w / 2 - 0.2), groundH / 2, d / 2 + 0.02));
+    } else {
+      // évaluateur : académie, péristyle de colonnes, fronton triangulaire et lanterne vitrée au sommet
+      const w = 3.0;
+      const d = 2.6;
+      const bodyFloors = Math.max(2, n.floors);
+      const bodyPal = pal("stone", 3);
+      const bp = boxParts(w, bodyFloors * FLOOR, d, { uTile: TILE_U, vTile: TILE_V, vOffset: 0 });
+      b.add(bp.sides, kit.facade(bodyPal), mat4(0, 0, 0));
+      b.add(bp.top, kit.lambert(bodyPal.roof), mat4(0, 0, 0));
+      const top = bodyFloors * FLOOR;
+      for (let i = 0; i < 4; i++) b.add(cyl(0.1, 1.6, 10), trim, mat4(-1.05 + i * 0.7, top - 0.8, d / 2 + 0.12));
+      b.add(box(w, 0.14, 0.6), trim, mat4(0, top + 0.07, d / 2 + 0.12));
+      const ped = new CylinderGeometry(0.95, 0.95, w, 3);
+      ped.rotateZ(Math.PI / 2);
+      ped.rotateY(Math.PI / 2);
+      b.add(ped, trim, mat4(0, top + 0.5, d / 2 + 0.12, 1, 0.42, 0.12));
+      // lanterne vitrée, éclairée
+      const lanY = top + 0.9;
+      b.add(cyl(0.4, 0.18, 14), trim, mat4(0, lanY, 0));
+      b.add(cyl(0.3, 0.5, 10), kit.lambert("#cfe8f4", { opacity: 0.6, emissive: "#ffe9a0", emissiveIntensity: 0.6 }), mat4(0, lanY + 0.34, 0));
+      b.add(new ConeGeometry(0.34, 0.3, 10), kit.lambert(bodyPal.roof), mat4(0, lanY + 0.74, 0));
+      h = lanY + 0.9;
+    }
     b.add(box(3.7, 0.05, 3.7), kit.lambert("#e4dccb"), mat4(0, CURB + 0.025, 0));
     this.finish(lm, b, h);
   }

@@ -12,7 +12,7 @@ Thème **ville** (4e décision, `docs/VILLE-ET-BATIMENT.md`) : l'ancien thème s
 
 | Fichier | Contenu |
 |---|---|
-| `city_v1.json` | Grille isométrique 2:1 (tuile 64x32), terre, fleuves, rives, ponts, parc (Central Park, décor), îlots (style, étages), **graphe de rues** (`streets.nodes`, `streets.edges`), immeuble du joueur au centre (`hq`), héliport, **six lieux** (`id`, `name`, `district`, `vehicle`, position, `street_node`, `helipad`). Remplace `layout_v1.json` (supprimé : plus rien n'en dépend). |
+| `city_v1.json` | Grille isométrique 2:1 (tuile 64x32), terre, fleuves, rives, ponts, parc (Central Park, décor), îlots (style, étages), **graphe de rues** (`streets.nodes`, `streets.edges`), immeuble du joueur au centre (`hq`), héliport, **six lieux** (`id`, `name`, `district`, `vehicle`, position, `street_node`, `helipad`), **deux bâtiments** sans lien avec la prospection (`buildings` : boutique, évaluateur — `id`, `name`, `kind`, `district`, position, `street_node`, `route`, aucun état serveur). Remplace `layout_v1.json` (supprimé : plus rien n'en dépend). |
 | `building_v1.json` | Apparence de l'immeuble pour les niveaux 1 à 10 (étages, couleurs, enseigne, éléments). Les **seuils de niveau** ne sont **pas** ici : ils sont calculés par le serveur (`building.level`, `rules_v2`). |
 
 Notes :

@@ -62,6 +62,8 @@ export interface ProspectQuery {
   ordre?: ProspectOrdre;
   statut?: string;
   etiquette?: Pertinence;
+  /** Lieu d'origine (`source`, ex. `annuaire`) : filtre déjà pris en charge par le serveur, exposé ici pour les puces de filtre. */
+  source?: string;
   q?: string;
   cursor?: string;
   limit?: number;
@@ -74,6 +76,7 @@ export function buildQuery(p: ProspectQuery, forExport = false): string {
   if (p.ordre) u.set("ordre", p.ordre);
   if (p.statut) u.set("statut", p.statut);
   if (p.etiquette) u.set("etiquette", p.etiquette);
+  if (p.source) u.set("source", p.source);
   const q = p.q?.trim();
   if (q) u.set("q", q.slice(0, 100));
   if (!forExport) {

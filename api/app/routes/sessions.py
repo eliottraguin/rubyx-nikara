@@ -30,13 +30,19 @@ def create_session(payload: SessionCreate, request: Request, response: Response,
             secure=app.state.settings.cookie_secure,
             path="/",
         )
-    return svc.build_state(db, app.state.rules, app.state.llm, game, rules_v2=app.state.rules_v2, profile_spec=app.state.profile_spec, searches=getattr(app.state, "searches", None))
+    return svc.build_state(
+        db, app.state.rules, app.state.llm, game, rules_v2=app.state.rules_v2, profile_spec=app.state.profile_spec,
+        searches=getattr(app.state, "searches", None), shop_catalog=getattr(app.state, "shop_catalog", None),
+    )
 
 
 @router.get("/api/state", response_model=GameState, responses={401: ERRORS[401]})
 def get_state(request: Request, db: DB, game: CurrentSession) -> GameState:
     """État complet utile à l'UI ; la partie est déterminée par le cookie uniquement."""
-    return svc.build_state(db, request.app.state.rules, request.app.state.llm, game, rules_v2=request.app.state.rules_v2, profile_spec=request.app.state.profile_spec, searches=getattr(request.app.state, "searches", None))
+    return svc.build_state(
+        db, request.app.state.rules, request.app.state.llm, game, rules_v2=request.app.state.rules_v2, profile_spec=request.app.state.profile_spec,
+        searches=getattr(request.app.state, "searches", None), shop_catalog=getattr(request.app.state, "shop_catalog", None),
+    )
 
 
 @router.delete("/api/session", status_code=204, responses={401: ERRORS[401], 422: ERRORS[422]})

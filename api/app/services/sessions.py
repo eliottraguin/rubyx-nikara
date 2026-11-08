@@ -34,9 +34,11 @@ from ..schemas.state import (
     SessionCreate,
     SessionInfo,
 )
+from . import agent_instances as ai
 from . import building, clients, hangar, profile
 from .purchases import REUSED_KEY, request_hash
 from .search_actions import planets_view
+from .shop import ShopCatalog, shop_view
 
 
 def _aware(dt: datetime) -> datetime:
@@ -153,7 +155,9 @@ def active_actions(db: Session, session_id: str) -> list[ActiveActionView]:
     ]
 
 
-def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession, *, rules_v2: RulesV2, profile_spec: ProfileSpec, searches=None) -> GameState:
+def build_state(
+    db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession, *, rules_v2: RulesV2, profile_spec: ProfileSpec, searches=None, shop_catalog: ShopCatalog | None = None
+) -> GameState:
     owned = set(db.scalars(select(AgentOwnership.role).where(AgentOwnership.session_id == game.id)))
     bal = balance(db, game.id)
     return GameState(
@@ -168,6 +172,8 @@ def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSessio
         ),
         balance=bal,
         hangar=hangar.hangar_view(db, rules_v2, game.mode, owned, game.id),
+        agents=ai.summary_view(db, game.id),
+        shop_catalog=shop_view(db, rules_v2, shop_catalog, game.mode, game.id).items if shop_catalog is not None else [],
         active_actions=active_actions(db, game.id),
         target_profile=profile.view_for_game(db, profile_spec, game),
         clients_obtained=clients.obtained_count(db, game.id),

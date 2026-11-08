@@ -33,6 +33,7 @@ interface Floorstyle {
 
 const STYLE: Record<FloorId, Floorstyle> = {
   toit: { floor: "#c9a577", wall: "#e6e0d2", accent: "#4a90d9" },
+  orchestrateur: { floor: "#e3c3c4", wall: "#f7e6e6", accent: "#c9484a" },
   pub: { floor: "#e7b9cf", wall: "#f6e3ec", accent: "#d9548f" },
   courrier: { floor: "#ead59a", wall: "#fbf1d2", accent: "#e0a526" },
   archives: { floor: "#c3b9e3", wall: "#ebe6f7", accent: "#7a62c9" },
@@ -341,6 +342,38 @@ export function buildRoom(id: FloorId, ctx: RoomCtx): void {
     }));
     const r = robot(st.accent, -1.1, 0, 1.55, -Math.PI / 4, 0.95);
     anims.push((t) => (r.head.rotation.y = Math.sin(t * 0.9) * 0.6));
+  } else if (id === "orchestrateur") {
+    // poste de commandement : console centrale, grand écran de plan, robot orchestrateur
+    box(2.4, 0.08, 1.0, 0, 0.72, -1.6, "#f6f1e6");
+    box(0.08, 0.72, 0.9, -1.2, 0, -1.6, "#8a5f3c");
+    box(0.08, 0.72, 0.9, 1.2, 0, -1.6, "#8a5f3c");
+    box(2.0, 0.9, 0.06, 0, 0, -2.5, st.accent);
+    boxB(1.8, 0.7, 0.03, 0, 0.1, -2.47, "#2a3440");
+    boxB(1.6, 0.5, 0.02, 0, 0.2, -2.45, "#f7d3d3");
+    cyl(0.28, 0.1, -1.6, 0, 1.0, "#2a3440");
+    cyl(0.28, 0.1, 1.6, 0, 1.0, "#2a3440");
+    const chairs: [number, number][] = [[-1.6, 1.0], [1.6, 1.0]];
+    for (const [cx, cz] of chairs) {
+      box(0.4, 0.42, 0.4, cx, 0, cz, "#9aa3ad");
+      box(0.4, 0.5, 0.06, cx, 0.42, cz + 0.17, "#9aa3ad");
+    }
+    const r = robot(st.accent, 0, 0, -0.6, Math.PI, 1.05);
+    anims.push((t) => {
+      r.head.rotation.y = Math.sin(t * 0.6) * 0.5;
+      r.arms[0]!.rotation.z = Math.sin(t * 2) * 0.3;
+      r.arms[1]!.rotation.z = Math.sin(t * 2 + 1) * 0.3;
+    });
+    const beams: Mesh[] = [];
+    for (let i = 0; i < 3; i++) {
+      const m = new Mesh(own(new BoxGeometry(0.04, 0.5, 0.04)), kit.basic("#f7a8a8"));
+      group.add(m);
+      beams.push(m);
+    }
+    anims.push((t) => beams.forEach((m, i) => {
+      const u = (t * 0.3 + i / 3) % 1;
+      m.position.set(-1.4 + i * 1.4, TOP + 0.9 + u * 0.4, -2.3);
+      m.rotation.z = u * 3;
+    }));
   } else {
     // accueil : réception et salon à gauche ; garage, bornes de recharge et coffre à droite
     cyl(2.1, 0.02, -2.2, 0, 0.5, "#cfe8dc", 28);

@@ -38,6 +38,26 @@ export interface PlaceLayout {
   helipad: { grid: Pt; world: Pt } | null;
 }
 
+/** Identifiant des bâtiments navigables sans lien avec la prospection (boutique, évaluateur). */
+export type NavBuildingId = "boutique" | "evaluateur";
+
+/**
+ * Bâtiment cliquable de la ville qui n'est pas un lieu de prospection : pas d'état serveur (locked/visited), juste
+ * une silhouette distincte et une route à ouvrir après un court zoom (même mécanique que l'entrée dans l'immeuble).
+ */
+export interface NavBuildingLayout {
+  id: NavBuildingId;
+  name: string;
+  kind: "shop" | "academy";
+  district: string;
+  grid: Pt;
+  world: Pt;
+  footprint: { w: number; h: number };
+  floors: number;
+  streetNode: string;
+  route: string;
+}
+
 export interface MapLayout {
   tile: { w: number; h: number };
   /** Rectangle monde englobant (pixels), marges comprises (hauteur des immeubles). */
@@ -58,6 +78,7 @@ export interface MapLayout {
   heliport: { grid: Pt; world: Pt; onRoof: boolean };
   blocks: BlockLayout[];
   places: PlaceLayout[];
+  navBuildings: NavBuildingLayout[];
 }
 
 interface RawCity {
@@ -76,6 +97,7 @@ interface RawCity {
   heliport: { grid: Pt; on_roof: boolean };
   blocks: (Rect & { id: string; district: string; style: string; floors: number })[];
   places: { id: string; name: string; district: string; vehicle: string; grid: Pt; footprint: { w: number; h: number }; floors: number; street_node: string; helipad?: Pt }[];
+  buildings?: { id: string; name: string; kind: string; district: string; grid: Pt; footprint: { w: number; h: number }; floors: number; street_node: string; route: string }[];
 }
 
 /** Marge au-dessus de la ville pour les grands immeubles (pixels monde). */
@@ -119,6 +141,18 @@ export function buildLayout(raw: RawCity = cityJson as unknown as RawCity): MapL
       streetNode: p.street_node,
       helipad: p.helipad ? { grid: { x: p.helipad.x, y: p.helipad.y }, world: toWorld({ x: p.helipad.x, y: p.helipad.y }) } : null,
     }));
+  const navBuildings: NavBuildingLayout[] = (raw.buildings ?? []).map((n) => ({
+    id: n.id as NavBuildingId,
+    name: n.name,
+    kind: n.kind as NavBuildingLayout["kind"],
+    district: n.district,
+    grid: n.grid,
+    world: toWorld(n.grid),
+    footprint: n.footprint,
+    floors: n.floors,
+    streetNode: n.street_node,
+    route: n.route,
+  }));
   return {
     tile: raw.tile,
     bounds: { minX: wb.minX - SIDE_MARGIN, maxX: wb.maxX + SIDE_MARGIN, minY: wb.minY - TOP_MARGIN, maxY: wb.maxY + SIDE_MARGIN },
@@ -143,6 +177,7 @@ export function buildLayout(raw: RawCity = cityJson as unknown as RawCity): MapL
     heliport: { grid: raw.heliport.grid, world: toWorld(raw.heliport.grid), onRoof: raw.heliport.on_roof },
     blocks: raw.blocks.map((b) => ({ ...b, style: (BLOCK_STYLES.includes(b.style) ? b.style : "concrete") as BlockStyle })),
     places,
+    navBuildings,
   };
 }
 

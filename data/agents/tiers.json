@@ -1,0 +1,39 @@
+{
+  "version": "agent_tiers_v1",
+  "roles": {
+    "scout": {
+      "max_tier": 3,
+      "tiers": [
+        { "tier": 1, "duration_seconds_min": 20, "duration_seconds_max": 60 },
+        { "tier": 2, "duration_seconds_min": 12, "duration_seconds_max": 36 },
+        { "tier": 3, "duration_seconds_min": 8, "duration_seconds_max": 20 }
+      ]
+    },
+    "triage": {
+      "max_tier": 2,
+      "tiers": [
+        { "tier": 1, "duration_seconds_min": 5, "duration_seconds_max": 15 },
+        { "tier": 2, "duration_seconds_min": 3, "duration_seconds_max": 9 }
+      ]
+    },
+    "replier": {
+      "max_tier": 3,
+      "tiers": [
+        { "tier": 1, "duration_seconds_min": 8, "duration_seconds_max": 20 },
+        { "tier": 2, "duration_seconds_min": 5, "duration_seconds_max": 14 },
+        { "tier": 3, "duration_seconds_min": 3, "duration_seconds_max": 9 }
+      ]
+    },
+    "ads": {
+      "max_tier": 2,
+      "tiers": [
+        { "tier": 1, "duration_seconds_min": 10, "duration_seconds_max": 25 },
+        { "tier": 2, "duration_seconds_min": 6, "duration_seconds_max": 16 }
+      ]
+    }
+  },
+  "improvement": {
+    "cost_by_target_tier": { "2": 60, "3": 120 },
+    "tier_cap_rule": "une configuration améliorée ne peut jamais viser un palier au-delà du palier maximal vendu en boutique pour ce rôle (max_tier ci-dessus) ; elle ne change pas le tier de l'instance (qui ne s'achète qu'en boutique)"
+  }
+}

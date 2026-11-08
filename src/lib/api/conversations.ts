@@ -7,6 +7,8 @@
 export type Bac = "a_traiter" | "en_attente" | "a_ne_plus_contacter" | "clos";
 export type Intention = "interesse" | "question" | "objection" | "refus" | "desinscription" | "hors_sujet";
 export type EtatConversation = "ouverte" | "close" | "desinscrit";
+/** Statut de la négociation (docs/CONTRACTS-V2.md §10, ticket C8). */
+export type NegotiationStatus = "ouverte" | "acceptee" | "refusee";
 
 export interface Conversation {
   id: string;
@@ -21,6 +23,9 @@ export interface Conversation {
   tours_client: number;
   tours_client_max: number;
   created_at: string;
+  /** Offre initiale du client simulé, en $ (message automatique à l'ouverture). */
+  negotiation_offer_initial: number | null;
+  negotiation_status: NegotiationStatus | null;
 }
 export interface ConvMessage {
   id: string;
@@ -99,6 +104,21 @@ export interface ProspectChoice {
   simule: boolean;
 }
 
+/** Retour de l'évaluateur sur la négociation (docs/CONTRACTS-V2.md §10). Jamais bloquant, toujours affiché dans le fil. */
+export interface NegotiationEvaluation {
+  score: number;
+  feedback: string;
+  reward_kind: "argent";
+  reward_amount: number;
+}
+export interface ConversationConcludeOut {
+  conversation_id: string;
+  negotiation_status: "acceptee" | "refusee";
+  /** Nullable par prudence : le contrat ne précise pas ce champ pour le refus forcé (prospect désinscrit). */
+  evaluation: NegotiationEvaluation | null;
+  clients_obtained: number;
+}
+
 export class ConvError extends Error {
   constructor(
     readonly code: string,
@@ -120,6 +140,8 @@ export interface ConversationsApi {
   editDraft(id: string, draftId: string, text: string, objet?: string | null): Promise<Brouillon>;
   remove(id: string): Promise<void>;
   prospects(): Promise<ProspectChoice[]>;
+  /** Conclure la négociation (accepter ou refuser l'offre) : déclenche l'évaluateur (docs/CONTRACTS-V2.md §10, ticket C8). */
+  conclude(id: string, accepted: boolean): Promise<ConversationConcludeOut>;
 }
 
 const newKey = () => globalThis.crypto?.randomUUID?.() ?? `k-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -185,6 +207,7 @@ export function createConversationsApi(opts: { fetch?: typeof fetch } = {}): Con
     reply: (id, i) => send("POST", `/conversations/${enc(id)}/reply`, instr(i), true),
     editDraft: (id, draftId, text, objet) => send("PATCH", `/conversations/${enc(id)}/drafts/${enc(draftId)}`, { text, ...(objet ? { objet } : {}) }, true),
     remove: (id) => send("DELETE", `/conversations/${enc(id)}`, undefined, true),
+    conclude: (id, accepted) => send("POST", `/conversations/${enc(id)}/conclude`, { accepted }, true),
     async prospects() {
       const r = await send<{ items: { id: string; entreprise: string; statut: string; simule: boolean }[] }>("GET", "/prospects?limit=100");
       return r.items.map((p) => ({ id: p.id, entreprise: p.entreprise, statut: p.statut, simule: p.simule }));

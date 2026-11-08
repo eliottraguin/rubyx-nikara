@@ -60,6 +60,11 @@ export class MapBus {
    * `null` sans scène 3D. L'appelant navigue toujours (course contre un délai), jamais bloquant.
    */
   enterBuilding: (() => Promise<void>) | null = null;
+  /**
+   * Posé par la scène : même mécanique qu'`enterBuilding`, mais vers un bâtiment de la ville sans lien avec la
+   * prospection (boutique, évaluateur). `id` = identifiant du bâtiment ; résolu même si l'id est inconnu.
+   */
+  enterNav: ((id: string) => Promise<void>) | null = null;
   private handlers = new Map<keyof MapEvents, Set<(...a: never[]) => void>>();
 
   on<K extends keyof MapEvents>(event: K, fn: Handler<K>): () => void {

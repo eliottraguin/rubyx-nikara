@@ -1,0 +1,11 @@
+{
+  "id": "rubrics_negotiation_v1",
+  "criteres": [
+    { "id": "clarte_reponse", "label": "Réponse claire au client", "poids": 35 },
+    { "id": "ton_pro", "label": "Ton professionnel", "poids": 25 },
+    { "id": "sans_promesse_non_tenable", "label": "Aucune promesse chiffrée non vérifiable", "poids": 25, "essentiel": true },
+    { "id": "fermete_delai", "label": "Délai ou condition clairement posés", "poids": 15 }
+  ],
+  "note_min": 0,
+  "note_max": 100
+}

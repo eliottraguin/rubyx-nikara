@@ -1,0 +1,44 @@
+.layout { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); } }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.item { display: flex; width: 100%; gap: .55rem; align-items: center; text-align: left; font: inherit; border: 2px solid var(--line); border-radius: var(--radius); background: var(--paper); color: var(--ink); padding: .5rem .6rem; cursor: pointer; }
+.item:hover { border-color: var(--accent); }
+.item[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+
+.avatar { flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: .95rem; background: var(--accent); }
+
+.itemBody { flex: 1; min-width: 0; }
+.itemTop { display: flex; align-items: baseline; justify-content: space-between; gap: .4rem; }
+.itemTop strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.offer { flex: none; font-weight: 700; color: var(--accent); }
+.preview { color: var(--muted); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.itemFoot { display: flex; align-items: center; gap: .4rem; margin-top: .15rem; }
+
+.status { font-size: .78rem; font-weight: 700; border-radius: 999px; padding: .1rem .55rem; border: 1px solid var(--line); }
+.statusTraiter { color: var(--warn); border-color: var(--warn); }
+.statusNegociation { color: var(--accent); border-color: var(--accent); }
+.statusAccepte { color: var(--ok); border-color: var(--ok); }
+.statusAbandonne { color: var(--muted); border-color: var(--line); }
+
+.newDot { flex: none; width: .55rem; height: .55rem; border-radius: 50%; background: var(--bad); }
+
+.emptyState { text-align: center; padding: 2rem 1rem; }
+.emptyIcon { font-size: 2.6rem; display: block; margin-bottom: .4rem; }
+
+.offerCard { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; border: 2px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); padding: .5rem .7rem; margin: .5rem 0; }
+.offerCardAmount { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+
+.thread { list-style: none; margin: 0 0 .6rem; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.bubbleRow { display: flex; }
+.bubbleRowEnvoye { justify-content: flex-end; }
+.bubble { max-width: min(32rem, 100%); border-radius: var(--radius); padding: .5rem .7rem; border: 2px solid var(--line); background: var(--paper); }
+.bubbleRecu .bubble { background: var(--paper); }
+.bubbleEnvoye .bubble { background: var(--accent-soft); border-color: var(--accent); }
+.bubbleWho { display: block; font-size: .78rem; font-weight: 700; color: var(--muted); margin-bottom: .1rem; }
+.bubbleText { margin: 0; white-space: pre-wrap; }
+
+.evalCard { border: 2px solid var(--ok); border-radius: var(--radius); background: var(--paper); padding: .5rem .7rem; margin: .4rem 0; }
+.evalScore { font-weight: 700; }
+
+.conclude { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .5rem 0; }
