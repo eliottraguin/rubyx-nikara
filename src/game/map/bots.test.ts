@@ -56,10 +56,19 @@ describe("équivalent texte d'un bot", () => {
     expect(botLine("scout", "failed", place)).toEqual({ state: "en_panne", text: "Éclaireur : en panne, aucun débit" });
   });
 
-  it("le véhicule vient du lieu : à pied, en skate, en hélicoptère", () => {
+  it("le véhicule vient du lieu : à pied, en skate, en voiture, en drone, en hélicoptère", () => {
     expect(botLine("scout", "outbound", { name: "A", vehicle: "foot" }).text).toContain("à pied");
     expect(botLine("scout", "outbound", { name: "A", vehicle: "skate" }).text).toContain("en skate");
+    expect(botLine("scout", "outbound", { name: "A", vehicle: "car" }).text).toContain("en voiture");
+    expect(botLine("scout", "outbound", { name: "A", vehicle: "drone" }).text).toContain("en drone");
     expect(botLine("scout", "outbound", { name: "A", vehicle: "helicopter" }).text).toContain("en hélicoptère");
+  });
+
+  it("le retour annonce ce que l'agent rapporte quand il est connu (GR3-72)", () => {
+    expect(botLine("scout", "return", place)).toEqual({ state: "retour", text: "Éclaireur : de retour avec son dossier" });
+    expect(botLine("scout", "return", place, 3)).toEqual({ state: "retour", text: "Éclaireur : de retour avec 3 prospects" });
+    expect(botLine("scout", "return", place, 1)).toEqual({ state: "retour", text: "Éclaireur : de retour avec 1 prospect" });
+    expect(botLine("scout", "return", place, 0)).toEqual({ state: "retour", text: "Éclaireur : de retour avec 0 prospects" });
   });
 });
 
@@ -81,6 +90,12 @@ describe("liste texte des bots (couche DOM)", () => {
   it("une panne est annoncée sans débit", () => {
     const failed = failTrip([trip()], "t1", T0 + 100);
     expect(botList(["scout"], failed, places, T0 + 200)[0]!.text).toBe("Éclaireur : en panne, aucun débit");
+  });
+
+  it("un retour avec indicateur rapporte le nombre de prospects (GR3-72)", () => {
+    const t = trip({ doneAt: T0, resultCount: 2 });
+    const back = T0 + 2000 /* legMs */ + TIMING.dialogueMin + 100;
+    expect(botList(["scout"], [t], places, back)[0]).toMatchObject({ state: "retour", text: "Éclaireur : de retour avec 2 prospects" });
   });
 });
 

@@ -12,6 +12,23 @@ import { tripFrame, type Trip, type TripPhase } from "../trips";
 import { vehicleOf, type VehicleId } from "../vehicles";
 import { FLOOR as FLOOR_H } from "./world/scale";
 
+/** Décalage latéral (unités) : plusieurs agents sur le même trajet au même instant ne se chevauchent pas. */
+export const LANE_SPREAD = 0.7;
+
+/**
+ * Décalage déterministe (unités, centré sur 0) tiré de l'identifiant du voyage : même voyage => même décalage
+ * (rejouable), deux voyages différents => décalages différents avec une bonne probabilité.
+ */
+export function laneOffset(tripId: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < tripId.length; i++) {
+    h ^= tripId.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const u = ((h >>> 0) % 1000) / 1000;
+  return (u - 0.5) * LANE_SPREAD;
+}
+
 /** Plafond du pas de temps (s) : un onglet en arrière-plan ne fait pas « sauter » les bots. */
 export const MAX_DT = 0.1;
 export const clampDt = (dt: number): number => (Number.isFinite(dt) ? Math.min(MAX_DT, Math.max(0, dt)) : 0);
@@ -26,6 +43,8 @@ export interface BotPose {
   phase: TripPhase;
   /** Rebond vertical déjà inclus dans y. */
   airborne: boolean;
+  /** Ce que l'agent rapporte (`trip.resultCount`, GR3-72) : à la couche d'affichage de choisir quand le montrer. */
+  cargo: number | null;
 }
 
 const toGrid = (p: Pt): Pt => screenToGrid(p);
@@ -43,7 +62,7 @@ export function bounce(timeMs: number, vehicle: VehicleId, moving: boolean, redu
 
 /** Pose 3D d'un voyage à l'instant `now` ; null si le lieu est inconnu ou le voyage terminé. */
 export function botPose(layout: MapLayout, trip: Trip, now: number, reduced: boolean, hqRoofPx?: number): BotPose | null {
-  const path = tripPath(layout, trip.planetId, hqRoofPx);
+  const path = tripPath(layout, trip.planetId, hqRoofPx, trip.tier);
   if (!path) return null;
   const f = tripFrame(trip, now, reduced);
   if (f.phase === "home") return null;
@@ -57,13 +76,19 @@ export function botPose(layout: MapLayout, trip: Trip, now: number, reduced: boo
   const vehicle = vehicleOf(path.vehicle);
   const flying = path.kind === "air";
   const alt = pxToUnits(pose.altitude);
+  // Plusieurs agents sur le même trajet au même instant ne se chevauchent pas (décalage latéral déterministe).
+  const hLen = Math.hypot(h.x, h.y) || 1;
+  const offset = laneOffset(trip.id);
+  const px = g.x + (-h.y / hLen) * offset;
+  const pz = g.y + (h.x / hLen) * offset;
   return {
-    x: g.x,
+    x: px,
     y: alt + bounce(now, vehicle, moving && !flying, reduced) + (flying && !reduced ? Math.sin(now / 300) * 0.04 : 0),
-    z: g.y,
+    z: pz,
     yaw,
     vehicle,
     phase: f.phase,
     airborne: flying,
+    cargo: trip.resultCount ?? null,
   };
 }

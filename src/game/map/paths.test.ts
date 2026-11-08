@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LAYOUT } from "./layout";
-import { legMsForPlace, pathPose, tripPath, type AirPath, type GroundPath } from "./paths";
+import { legMsForPlace, pathPose, placeRoofPx, tripPath, type AirPath, type GroundPath } from "./paths";
 import { LEG_MAX_MS, LEG_MIN_MS } from "./vehicles";
 
 describe("trajets des bots", () => {
@@ -59,5 +59,42 @@ describe("trajets des bots", () => {
     }
     expect(legMsForPlace(LAYOUT, "nulle-part")).toBeUndefined();
     expect(tripPath(LAYOUT, "nulle-part")).toBeNull();
+  });
+
+  it("palier 2 (voiture) : suit toujours les rues, même lieu qu'à pied/vélo", () => {
+    const withoutTier = tripPath(LAYOUT, "annuaire") as GroundPath;
+    const path = tripPath(LAYOUT, "annuaire", undefined, 2) as GroundPath;
+    expect(path.kind).toBe("ground");
+    expect(path.vehicle).toBe("car");
+    expect(path.points).toEqual(withoutTier.points);
+  });
+
+  it("palier 3 (drone) : décolle du garage, survole les toits, se pose au lieu", () => {
+    const path = tripPath(LAYOUT, "annuaire", 120, 3) as AirPath;
+    expect(path.kind).toBe("air");
+    expect(path.vehicle).toBe("drone");
+    expect(path.profile).toBe("plateau");
+    expect(path.from).toEqual(LAYOUT.hq.garageDoor.world);
+    const place = LAYOUT.places.find((p) => p.id === "annuaire")!;
+    expect(path.to).toEqual(place.world);
+    const start = pathPose(path, 0);
+    const mid = pathPose(path, 0.5);
+    const end = pathPose(path, 1);
+    expect(start.altitude).toBe(0);
+    expect(end.altitude).toBeCloseTo(path.endAlt, 6);
+    // le plateau de croisière dépasse le toit de l'immeuble ET celui du lieu : le drone survole les toits.
+    expect(mid.altitude).toBeGreaterThan(120);
+    expect(mid.altitude).toBeGreaterThan(placeRoofPx(place));
+    // le plateau est globalement plat au centre du trajet (contrairement à la courbe de l'hélicoptère).
+    const quarter = pathPose(path, 0.3).altitude;
+    const threeQuarter = pathPose(path, 0.7).altitude;
+    expect(Math.abs(quarter - threeQuarter)).toBeLessThan(1e-6);
+  });
+
+  it("palier 4 : reprend l'hélicoptère existant, palier 1 (sans valeur) : véhicule du lieu inchangé", () => {
+    const heli = tripPath(LAYOUT, "constellation", 120, 4) as AirPath;
+    expect(heli.vehicle).toBe("helicopter");
+    const foot = tripPath(LAYOUT, "annuaire", undefined, 1) as GroundPath;
+    expect(foot.vehicle).toBe(LAYOUT.places.find((p) => p.id === "annuaire")!.vehicle);
   });
 });

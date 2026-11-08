@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TIMING, TIMING_REDUCED, isTripFinished, pruneTrips, syncTrips, tripFrame, type Trip } from "./trips";
+import { TIMING, TIMING_REDUCED, isTripFinished, pruneTrips, reportResult, syncTrips, tripFrame, type Trip } from "./trips";
 
 const T0 = 1_000_000;
 const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t1", planetId: "annuaire", role: "scout", startedAt: T0, doneAt: null, ...over });
@@ -96,5 +96,33 @@ describe("synchronisation avec les actions ouvertes du serveur", () => {
     const fresh = trip({ id: "t2", startedAt: T0 + 100_000 });
     const out = pruneTrips([old, fresh], T0 + 100_000 + 10);
     expect(out.map((t) => t.id)).toEqual(["t2"]);
+  });
+
+  it("une reprise après rechargement garde le palier et l'indicateur de retour inconnus par défaut", () => {
+    const out = syncTrips([], open, T0);
+    expect(out[0]!.tier).toBeUndefined();
+    expect(out[0]!.resultCount).toBeUndefined();
+  });
+
+  it("une synchronisation ultérieure ne touche pas au palier ni à l'indicateur déjà posés", () => {
+    const existing = [trip({ actionId: "act_1", tier: 2, resultCount: 4 })];
+    expect(syncTrips(existing, open, T0)).toBe(existing); // pas de changement -> même tableau (aucune réallocation)
+    const afterDone = syncTrips(existing, [], T0 + 5);
+    expect(afterDone[0]).toMatchObject({ tier: 2, resultCount: 4, doneAt: T0 + 5 });
+  });
+});
+
+describe("indicateur de ce que l'agent rapporte (GR3-72)", () => {
+  it("reportResult pose le nombre rapporté, idempotent", () => {
+    const trips = [trip()];
+    const out = reportResult(trips, "t1", 3);
+    expect(out[0]!.resultCount).toBe(3);
+    expect(reportResult(out, "t1", 3)).toBe(out); // même valeur rejouée => même tableau
+  });
+
+  it("ne touche pas aux autres voyages", () => {
+    const trips = [trip(), trip({ id: "t2" })];
+    const out = reportResult(trips, "t1", 2);
+    expect(out[1]).toBe(trips[1]);
   });
 });

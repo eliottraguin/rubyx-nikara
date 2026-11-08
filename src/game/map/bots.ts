@@ -40,7 +40,12 @@ export interface BotLine {
 }
 
 /** Équivalent texte de l'état d'un bot (liste du mode liste, annonces aria-live). */
-export function botLine(role: Trip["role"], phase: TripPhase | null, place: { name: string; vehicle: VehicleId } | null): BotLine {
+export function botLine(
+  role: Trip["role"],
+  phase: TripPhase | null,
+  place: { name: string; vehicle: VehicleId } | null,
+  resultCount?: number | null,
+): BotLine {
   const who = ROLE_LABEL[role] ?? role;
   const where = place?.name ?? "un lieu";
   const state: BotState = phase ? BOT_STATE_OF_PHASE[phase] : "garage";
@@ -50,7 +55,13 @@ export function botLine(role: Trip["role"], phase: TripPhase | null, place: { na
     case "sur_place":
       return { state, text: `${who} : discute avec ${where}` };
     case "retour":
-      return { state, text: `${who} : de retour avec son dossier` };
+      return {
+        state,
+        text:
+          resultCount === null || resultCount === undefined
+            ? `${who} : de retour avec son dossier`
+            : `${who} : de retour avec ${resultCount} prospect${resultCount === 1 ? "" : "s"}`,
+      };
     case "en_panne":
       return { state, text: `${who} : en panne, aucun débit` };
     default:
@@ -89,7 +100,7 @@ export function botList(
     }
     for (const t of mine) {
       const phase = tripFrame(t, now, reduced).phase;
-      items.push({ key: t.id, role, placeId: t.planetId, ...botLine(role, phase, placeOf(t.planetId)) });
+      items.push({ key: t.id, role, placeId: t.planetId, ...botLine(role, phase, placeOf(t.planetId), t.resultCount) });
     }
   }
   return items;
