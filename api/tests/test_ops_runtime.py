@@ -43,7 +43,7 @@ from tests.conftest import new_key
 
 SECRET = "demo-secret-0123456789"
 KEY = {"Idempotency-Key": "ops-key-00000001"}
-SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name != "mission_definitions"]
+SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name not in ("mission_definitions", "auth_users")]  # auth_users : comptes, hors partie
 
 
 @pytest.fixture

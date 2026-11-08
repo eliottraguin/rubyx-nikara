@@ -30,6 +30,10 @@ class ErrorCode(StrEnum):
     NOT_FOUND = "NOT_FOUND"  # 404 (aussi pour une ressource d'une autre session)
     NOT_IMPLEMENTED = "NOT_IMPLEMENTED"  # 501 route pas encore livrée
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500
+    # Comptes email/mot de passe (GR3-8)
+    AUTH_REQUIRED = "AUTH_REQUIRED"  # 401 cookie de connexion absent, invalide ou expiré
+    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"  # 401 email inconnu ou mot de passe faux (message identique)
+    EMAIL_TAKEN = "EMAIL_TAKEN"  # 409 inscription avec un email déjà utilisé
 
 
 # code -> (statut HTTP, message par défaut en français)
@@ -49,6 +53,9 @@ CATALOG: dict[ErrorCode, tuple[int, str]] = {
     ErrorCode.NOT_FOUND: (404, "Ressource introuvable."),
     ErrorCode.NOT_IMPLEMENTED: (501, "Cette fonctionnalité n'est pas encore implémentée."),
     ErrorCode.INTERNAL_ERROR: (500, "Erreur interne du serveur."),
+    ErrorCode.AUTH_REQUIRED: (401, "Connexion requise."),
+    ErrorCode.INVALID_CREDENTIALS: (401, "Email ou mot de passe incorrect."),
+    ErrorCode.EMAIL_TAKEN: (409, "Cet email est déjà utilisé."),
 }
 
 

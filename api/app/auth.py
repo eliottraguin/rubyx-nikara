@@ -16,6 +16,20 @@ class TokenData(BaseModel):
     exp: datetime
 
 
+MAX_PASSWORD_BYTES = 72  # limite de bcrypt : au-delà, refuser plutôt que tronquer silencieusement
+TOKEN_TTL = timedelta(hours=24)
+# Hash factice pour égaliser le temps de réponse quand l'email est inconnu (anti-énumération par timing).
+_DUMMY_HASH = bcrypt.hashpw(b"dummy-password", bcrypt.gensalt(rounds=12)).decode("utf-8")
+
+
+def normalize_email(email: str) -> str:
+    return email.strip().lower()
+
+
+def burn_password_check(password: str) -> None:
+    verify_password(password, _DUMMY_HASH)
+
+
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt with a salt."""
     salt = bcrypt.gensalt(rounds=12)
@@ -24,14 +38,17 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against a bcrypt hash."""
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    raw = plain_password.encode("utf-8")
+    if len(raw) > MAX_PASSWORD_BYTES:
+        return False
+    return bcrypt.checkpw(raw, hashed_password.encode("utf-8"))
 
 
 def get_jwt_secret() -> str:
     """Get JWT signing key from environment, required for security."""
     secret = os.getenv("JWT_SECRET_KEY")
-    if not secret:
-        raise RuntimeError("JWT_SECRET_KEY environment variable not set. Set it to a strong random string.")
+    if not secret or len(secret) < 32:
+        raise RuntimeError("JWT_SECRET_KEY manquante ou trop courte (32 caractères minimum). Générer : openssl rand -base64 32")
     return secret
 
 
@@ -43,7 +60,7 @@ def get_jwt_algorithm() -> str:
 def create_access_token(user_id: str, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token for the user."""
     if expires_delta is None:
-        expires_delta = timedelta(hours=24)
+        expires_delta = TOKEN_TTL
 
     expire = datetime.now(UTC) + expires_delta
     token_data = TokenData(sub=user_id, exp=expire)

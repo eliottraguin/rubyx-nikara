@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "EMAIL_TAKEN",
+      "message": "Cet email est déjà utilisé."
+    }
+  }
+}

@@ -206,6 +206,7 @@ def test_same_key_different_role_purchase_is_a_single_debit(tmp_path, data_dir):
 # ------------------------------------------------------------------ propriété de session sur TOUTES les routes (T13)
 
 PUBLIC = {("GET", "/api/health"), ("GET", "/api/ready"), ("POST", "/api/sessions")}
+PUBLIC |= {("POST", "/api/auth/register"), ("POST", "/api/auth/login"), ("POST", "/api/auth/logout"), ("GET", "/api/auth/me")}  # comptes email/mdp : auth propre (cookie auth_token)
 SECRET_ROUTES = {"/api/demo/events", "/api/demo/reset", "/api/ops/usage"}  # protégées par un secret serveur, cachées (404)
 BODIES = {
     "/api/attempts/{attempt_id}/artifacts": {"content": "x"},

@@ -57,3 +57,9 @@ data/rules/ data/fixtures/
 - **Erreurs** : `{"error": {"code", "message", "details?"}}`, messages en français ; la validation ne renvoie jamais la valeur reçue ; les erreurs internes sont génériques. Exemples : `data/fixtures/errors/`.
 - **Suppression** : `DELETE /api/session` supprime la partie et toutes ses lignes (cascade) et efface le cookie.
 - **Intégrité en base** : unicités `(session, rôle)`, `Evaluation.submission_id`, `LedgerEntry.source_action`, `ActionRun.idempotency_key` ; triggers refusant tout `UPDATE` d'une version de livrable et des champs figés d'une livraison.
+
+## Comptes email/mot de passe (GR3-8)
+
+- Routes : `POST /api/auth/register`, `/login`, `/logout`, `GET /api/auth/me`. Le jeton vit dans le cookie httpOnly `auth_token` (24 h, SameSite=Lax, `Secure` si `RUBIX_COOKIE_SECURE=1`) et n'est jamais renvoyé dans le corps.
+- `JWT_SECRET_KEY` (32 caractères minimum) est obligatoire ; `openssl rand -base64 32`.
+- Compte de test local : `JWT_SECRET_KEY=... uv run python -m app.create_test_user dev@example.com` (mot de passe aléatoire affiché une fois, ou `TEST_USER_PASSWORD`). Aucun compte n'est committé.
