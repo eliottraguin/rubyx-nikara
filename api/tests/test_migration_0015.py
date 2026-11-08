@@ -188,7 +188,7 @@ def test_fresh_database_gets_a_single_head(tmp_path):
 
     settings = Settings(db_path=tmp_path / "fresh.db")
     cfg = alembic_config(settings.database_url)
-    assert ScriptDirectory.from_config(cfg).get_heads() == ["0016_users"]
+    assert ScriptDirectory.from_config(cfg).get_heads() == ["0017_user_token"]
     command.upgrade(cfg, "head")
     c = sqlite3.connect(settings.db_path)
     names = {r[0] for r in c.execute("SELECT name FROM sqlite_master WHERE type='table'")}

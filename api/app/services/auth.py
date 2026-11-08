@@ -69,9 +69,15 @@ def _new_token(game: GameSession) -> str:
     return token
 
 
-def signup(db: Session, email_raw: str, password: str, anonymous_game: GameSession | None, ip: str | None) -> tuple[User, GameSession | None, str | None]:
+def _new_user_token(user: User) -> str:
+    token = secrets.token_urlsafe(32)
+    user.token_hash = hash_token(token)
+    return token
+
+
+def signup(db: Session, email_raw: str, password: str, anonymous_game: GameSession | None, ip: str | None) -> tuple[User, GameSession | None, str | None, str]:
     """Crée le compte et rattache la partie anonyme du cookie (jamais un identifiant fourni par le client).
-    Retourne (compte, partie rattachée, nouveau jeton). Le jeton est renouvelé (anti-fixation)."""
+    Retourne (compte, partie rattachée, nouveau jeton de partie, jeton de compte). Le jeton est renouvelé (anti-fixation)."""
     email = normalize_email(email_raw)
     check_password_policy(password)
     _check_throttle(db, email, ip)
@@ -87,11 +93,12 @@ def signup(db: Session, email_raw: str, password: str, anonymous_game: GameSessi
     if anonymous_game is not None and anonymous_game.user_id is None:
         anonymous_game.user_id = user.id
         game, token = anonymous_game, _new_token(anonymous_game)
+    user_token = _new_user_token(user)
     db.commit()
-    return user, game, token
+    return user, game, token, user_token
 
 
-def login(db: Session, email_raw: str, password: str, ip: str | None) -> tuple[User, GameSession | None, str | None]:
+def login(db: Session, email_raw: str, password: str, ip: str | None) -> tuple[User, GameSession | None, str | None, str]:
     """Vérifie les identifiants ; message unique en cas d'échec. Rouvre la partie la plus récente du compte avec un jeton neuf
     (le précédent est révoqué : anti-fixation)."""
     try:
@@ -112,13 +119,16 @@ def login(db: Session, email_raw: str, password: str, ip: str | None) -> tuple[U
         user.password_hash = _hasher.hash(password)
     game = db.scalar(select(GameSession).where(GameSession.user_id == user.id).order_by(GameSession.created_at.desc(), GameSession.id))
     token = _new_token(game) if game is not None else None
+    user_token = _new_user_token(user)  # le jeton de compte précédent est révoqué
     db.commit()
-    return user, game, token
+    return user, game, token, user_token
 
 
-def logout(db: Session, game: GameSession) -> None:
-    """Révoque le jeton d'une partie rattachée à un compte (le cookie volé ou resté ouvert ne marche plus).
+def logout(db: Session, game: GameSession | None, user: User | None) -> None:
+    """Révoque le jeton de compte et celui d'une partie rattachée à un compte (un cookie volé ou resté ouvert ne marche plus).
     Une partie anonyme n'est pas touchée : elle n'a pas d'autre moyen d'être reprise."""
-    if game.user_id is not None:
+    if user is not None:
+        user.token_hash = None
+    if game is not None and game.user_id is not None:
         game.token_hash = hash_token(secrets.token_urlsafe(32))
-        db.commit()
+    db.commit()

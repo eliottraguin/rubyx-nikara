@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
-from ..deps import DB, CurrentSession, IdempotencyKey, hash_token
+from ..deps import DB, IdempotencyKey, OptionalUser, hash_token, user_cookie_name
 from ..errors import ApiError, ErrorCode
 from ..models import GameSession, User
 from ..services import auth as svc
@@ -45,6 +45,10 @@ def _set_cookie(request: Request, response: Response, token: str) -> None:
     response.set_cookie(s.cookie_name, token, httponly=True, samesite="lax", secure=s.cookie_secure, path="/")
 
 
+def _set_user_cookie(request: Request, response: Response, token: str) -> None:
+    response.set_cookie(user_cookie_name(request), token, httponly=True, samesite="lax", secure=request.app.state.settings.cookie_secure, path="/")
+
+
 def _client_ip(request: Request) -> str | None:
     return request.client.host if request.client else None
 
@@ -64,7 +68,8 @@ def _out(user: User, game: GameSession | None) -> AuthOut:
 def signup(payload: Credentials, request: Request, response: Response, db: DB, _key: IdempotencyKey) -> AuthOut:
     """Crée un compte (argon2id) et y rattache la partie anonyme du cookie, avec un jeton renouvelé."""
     _check_origin(request)
-    user, game, token = svc.signup(db, payload.email, payload.password, _anonymous_game(request, db), _client_ip(request))
+    user, game, token, user_token = svc.signup(db, payload.email, payload.password, _anonymous_game(request, db), _client_ip(request))
+    _set_user_cookie(request, response, user_token)
     if token:
         _set_cookie(request, response, token)
     return _out(user, game)
@@ -74,17 +79,28 @@ def signup(payload: Credentials, request: Request, response: Response, db: DB, _
 def login(payload: Credentials, request: Request, response: Response, db: DB, _key: IdempotencyKey) -> AuthOut:
     """Connexion : rouvre la partie la plus récente du compte (jeton renouvelé, l'ancien est révoqué)."""
     _check_origin(request)
-    user, game, token = svc.login(db, payload.email, payload.password, _client_ip(request))
+    user, game, token, user_token = svc.login(db, payload.email, payload.password, _client_ip(request))
+    _set_user_cookie(request, response, user_token)
     if token:
         _set_cookie(request, response, token)
     return _out(user, game)
 
 
-@router.post("/api/auth/logout", status_code=204, responses={401: ERRORS[401], 422: ERRORS[422]})
-def logout(request: Request, db: DB, game: CurrentSession, _key: IdempotencyKey) -> Response:
-    """Déconnexion : révoque le jeton de la partie rattachée au compte et efface le cookie."""
+@router.get("/api/auth/me", response_model=AuthOut, responses={401: ERRORS[401]})
+def me(request: Request, db: DB, user: OptionalUser) -> AuthOut:
+    """Compte connecté (cookie de compte) et présence d'une partie rattachée ; ne renvoie jamais la partie d'un autre."""
+    if user is None:
+        raise ApiError(ErrorCode.SESSION_REQUIRED)
+    game = db.scalar(select(GameSession).where(GameSession.user_id == user.id).limit(1))
+    return _out(user, game)
+
+
+@router.post("/api/auth/logout", status_code=204, responses={422: ERRORS[422]})
+def logout(request: Request, db: DB, user: OptionalUser, _key: IdempotencyKey) -> Response:
+    """Déconnexion idempotente : révoque le jeton de compte et celui de la partie rattachée, efface les deux cookies."""
     _check_origin(request)
-    svc.logout(db, game)
+    svc.logout(db, _anonymous_game(request, db), user)
     response = Response(status_code=204)
     response.delete_cookie(request.app.state.settings.cookie_name, path="/")
+    response.delete_cookie(user_cookie_name(request), path="/")
     return response

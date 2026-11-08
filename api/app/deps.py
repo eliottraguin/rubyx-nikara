@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .errors import ApiError, ErrorCode
-from .models import GameSession
+from .models import GameSession, User
 
 _KEY_RE = re.compile(r"^[A-Za-z0-9_.:\-]{8,128}$")
 
@@ -41,6 +41,21 @@ def get_current_session(request: Request, db: DB) -> GameSession:
 
 
 CurrentSession = Annotated[GameSession, Depends(get_current_session)]
+
+
+def user_cookie_name(request: Request) -> str:
+    return f"{request.app.state.settings.cookie_name}_user"
+
+
+def get_optional_user(request: Request, db: DB) -> User | None:
+    """Compte connecté d'après le cookie de compte opaque ; jamais d'après un identifiant fourni par le client."""
+    token = request.cookies.get(user_cookie_name(request))
+    if not token or len(token) > 256:
+        return None
+    return db.scalar(select(User).where(User.token_hash == hash_token(token)))
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 
 
 def require_idempotency_key(

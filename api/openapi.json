@@ -5025,7 +5025,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "description": "Déconnexion : révoque le jeton de la partie rattachée au compte et efface le cookie.",
+        "description": "Déconnexion idempotente : révoque le jeton de compte et celui de la partie rattachée, efface les deux cookies.",
         "operationId": "logout_api_auth_logout_post",
         "parameters": [
           {
@@ -5051,16 +5051,6 @@
           "204": {
             "description": "Successful Response"
           },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
           "422": {
             "content": {
               "application/json": {
@@ -5073,6 +5063,38 @@
           }
         },
         "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "description": "Compte connecté (cookie de compte) et présence d'une partie rattachée ; ne renvoie jamais la partie d'un autre.",
+        "operationId": "me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "Me",
         "tags": [
           "auth"
         ]
@@ -8537,7 +8559,7 @@
     },
     "/api/sessions": {
       "post": {
-        "description": "Crée une partie : 30 $ de jeu, rédacteur possédé, cookie de session opaque.\nRejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e.",
+        "description": "Crée une partie : 30 $ de jeu, rédacteur possédé, cookie de session opaque.\nRattachée au compte connecté (cookie de compte), sinon anonyme. Rejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e.",
         "operationId": "create_session_api_sessions_post",
         "parameters": [
           {

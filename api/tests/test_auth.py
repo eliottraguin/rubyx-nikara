@@ -111,3 +111,42 @@ def test_other_users_game_not_attachable_or_readable(client, make_session):
     with TestClient(client.app) as c2:
         assert login(c2, "b@example.com").json()["has_game"] is False
         assert c2.get("/api/state").status_code == 401
+
+
+def test_game_created_after_login_is_attached_and_reopened(client, make_session):
+    assert signup(client).json()["has_game"] is False
+    assert client.get("/api/auth/me").json()["has_game"] is False
+    make_session(client)  # créée après connexion : rattachée via le cookie de compte
+    with client.app.state.session_factory() as db:
+        assert db.scalar(select(GameSession)).user_id == db.scalar(select(User)).id
+    assert client.get("/api/auth/me").json()["has_game"] is True
+    assert client.post("/api/auth/logout", headers=k()).status_code == 204
+    assert client.get("/api/auth/me").status_code == 401
+    with TestClient(client.app) as c2:  # reconnexion depuis un autre navigateur : retrouve son entreprise
+        assert login(c2).json()["has_game"] is True
+        assert c2.get("/api/state").json()["session"]["company"]["name"] == "Atelier Test"
+
+
+def test_anonymous_creation_stays_anonymous_and_logout_without_game(client, make_session):
+    make_session(client)
+    with client.app.state.session_factory() as db:
+        assert db.scalar(select(GameSession)).user_id is None
+    signup(client, email="solo@example.com")
+    with TestClient(client.app) as c2:
+        signup(c2, email="nogame@example.com")
+        assert c2.post("/api/auth/logout", headers=k()).status_code == 204  # sans partie : déconnexion possible
+        assert c2.get("/api/auth/me").status_code == 401
+
+
+def test_forged_or_revoked_account_cookie_does_not_attach(client, make_session):
+    signup(client)
+    leaked = client.cookies.get("rubix_session_user")
+    client.post("/api/auth/logout", headers=k())
+    with TestClient(client.app) as other:
+        other.cookies.set("rubix_session_user", leaked)
+        assert other.get("/api/auth/me").status_code == 401
+        make_session(other)
+        other.cookies.set("rubix_session_user", "forged")
+        make_session(other)
+    with client.app.state.session_factory() as db:
+        assert all(g.user_id is None for g in db.scalars(select(GameSession)))
