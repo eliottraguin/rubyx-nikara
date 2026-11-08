@@ -57,8 +57,31 @@ class GameSession(Base):
     # Idempotence de la création (migration 0004) : empreintes (jamais la clé en clair) ; unique => pas de 2e partie
     creation_key_hash: Mapped[str | None] = mapped_column(String, unique=True)
     creation_request_hash: Mapped[str | None] = mapped_column(String)
+    # Compte propriétaire (migration 0016) ; NULL = partie anonyme. Jamais fourni par le client.
+    user_id: Mapped[str | None] = mapped_column(String, ForeignKey("users.id", ondelete="SET NULL"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class User(Base):
+    """Compte joueur (ADR 0001) : email normalisé unique, hash argon2id (jamais le mot de passe)."""
+
+    __tablename__ = "users"
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("usr"))
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class AuthAttempt(Base):
+    """Tentative d'authentification échouée (anti-bruteforce) ; empreintes seules, jamais d'email ni d'IP en clair."""
+
+    __tablename__ = "auth_attempts"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key_hash: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
 class TargetProfileVersion(Base):

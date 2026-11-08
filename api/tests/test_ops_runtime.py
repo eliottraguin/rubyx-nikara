@@ -34,7 +34,8 @@ from tests.conftest import new_key
 
 SECRET = "demo-secret-0123456789"
 KEY = {"Idempotency-Key": "ops-key-00000001"}
-SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables]
+ACCOUNT_TABLES = {"users", "auth_attempts"}  # comptes : survivent à la suppression d'une partie (user_id SET NULL)
+SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name not in ACCOUNT_TABLES]
 
 
 @pytest.fixture
