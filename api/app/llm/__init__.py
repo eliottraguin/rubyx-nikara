@@ -13,11 +13,13 @@ if TYPE_CHECKING:
 def get_adapter(provider: str, settings: Settings | None = None) -> LLMAdapter:
     if provider == "mock":
         return MockLLMAdapter()
-    if provider == "real" and settings is not None and settings.llm_api_key and settings.llm_base_url:
+    if provider in ("real", "codex") and settings is not None and settings.llm_api_key and settings.llm_base_url:
+        from .codex import CodexLLMAdapter
         from .models_spec import load_llm_models
         from .real import RealLLMAdapter
 
-        return RealLLMAdapter(
+        adapter_cls = CodexLLMAdapter if provider == "codex" else RealLLMAdapter
+        return adapter_cls(
             base_url=settings.llm_base_url,
             api_key=settings.llm_api_key,
             models=load_llm_models(settings.data_dir),
