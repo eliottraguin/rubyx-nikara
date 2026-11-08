@@ -94,10 +94,16 @@ export class CityScene {
   private readonly cameraOffset: Vector3;
   private zoomRaf = 0;
   private cancelZoom: (() => void) | null = null;
+  private readonly tickHandlers = new Set<(dt: number) => void>();
+  private readonly lookAtPoint = new Vector3(0, 0, 0);
 
+  /**
+   * `plan: null` = scène nue (sol, lumière, caméra, boucle) : la vue de jeu (`MapView`) y ajoute sa propre ville
+   * sans décor de connexion (ADR 0002 : un seul moteur, `CityScene` est le socle).
+   */
   constructor(
     private readonly canvas: HTMLCanvasElement,
-    plan: CityPlan = planCity(2024),
+    plan: CityPlan | null = planCity(2024),
   ) {
     this.reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     this.renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -114,9 +120,47 @@ export class CityScene {
     const sun = new DirectionalLight("#fff4dd", 1.6);
     sun.position.set(20, 40, 10);
     this.scene.add(sun);
-    this.buildCity(plan);
-    this.buildClouds(plan);
+    if (plan) {
+      this.buildCity(plan);
+      this.buildClouds(plan);
+    }
     this.resize();
+  }
+
+  /** Points d'extension pour une scène de jeu (affichage seulement) : racine 3D, caméra, ressources, boucle. */
+  get root(): Scene {
+    return this.scene;
+  }
+  get orthoCamera(): OrthographicCamera {
+    return this.camera;
+  }
+  get reducedMotion(): boolean {
+    return this.reduceMotion;
+  }
+  /** Libère la ressource avec la scène (`dispose()` complet : géométries, matériaux, textures). */
+  own<T extends { dispose(): void }>(o: T): T {
+    return this.track(o);
+  }
+  /** Appelé à chaque image (jamais en `prefers-reduced-motion` : la boucle n'y tourne pas). */
+  addTick(fn: (dt: number) => void): () => void {
+    this.tickHandlers.add(fn);
+    return () => this.tickHandlers.delete(fn);
+  }
+  /** Rendu à la demande (nécessaire en `prefers-reduced-motion`, où il n'y a pas de boucle). */
+  render(): void {
+    this.renderer.render(this.scene, this.camera);
+  }
+  /** Cadrage instantané : point visé (plan XZ) et zoom caméra. */
+  setView(target: { x: number; z: number }, zoom: number): void {
+    this.lookAtPoint.set(target.x, 0, target.z);
+    this.camera.zoom = zoom;
+    this.camera.position.copy(this.lookAtPoint).add(this.cameraOffset);
+    this.camera.lookAt(this.lookAtPoint);
+    this.camera.updateProjectionMatrix();
+    this.render();
+  }
+  get view(): { x: number; z: number; zoom: number } {
+    return { x: this.lookAtPoint.x, z: this.lookAtPoint.z, zoom: this.camera.zoom };
   }
 
   private track<T extends { dispose(): void }>(o: T): T {
@@ -210,6 +254,7 @@ export class CityScene {
     const tick = (now: number) => {
       const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
       this.last = now;
+      for (const fn of this.tickHandlers) fn(dt);
       for (const c of this.clouds) {
         c.mesh.position.x += c.speed * dt;
         if (c.mesh.position.x > 30) c.mesh.position.x = -30;
@@ -231,7 +276,7 @@ export class CityScene {
     const zoomTo = opts.zoom ?? DEFAULT_ZOOM;
     const duration = this.reduceMotion ? REDUCED_MOTION_ZOOM_MS : (opts.durationMs ?? DEFAULT_ZOOM_MS);
     const zoomFrom = this.camera.zoom;
-    const lookAt = new Vector3(0, 0, 0);
+    const lookAt = this.lookAtPoint;
     const from = lookAt.clone();
     const to = new Vector3(target.x, 0, target.z);
     return new Promise<void>((resolve) => {
@@ -267,6 +312,7 @@ export class CityScene {
   dispose(): void {
     this.cancelZoom?.();
     cancelAnimationFrame(this.raf);
+    this.tickHandlers.clear();
     window.removeEventListener("resize", this.resize);
     for (const d of this.disposables) d.dispose();
     this.renderer.dispose();
