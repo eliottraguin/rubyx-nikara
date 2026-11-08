@@ -22,12 +22,17 @@ import { MapBus } from "@/game/map/bus";
 import { levelUpMessage } from "@/game/map/building";
 import { tripFrame, type TripPhase } from "@/game/map/trips";
 import { buildMapViewModel, modeLabel } from "@/game/map/viewmodel";
+import { isMockMode } from "@/lib/api";
+import { logout } from "@/lib/api/auth";
 import { ApiError, type GameState, type RoleId } from "@/lib/api/types";
 import { ROLE_LABEL, money } from "@/lib/format";
 import { useGame } from "@/lib/game-context";
 
 /** Largeur du panneau latéral en surimpression (28 rem à 16 px) : la caméra la déduit de son cadrage. */
 const PANEL_WIDTH = 448;
+
+/** Le dézoom du logout ne doit jamais retenir la déconnexion au-delà de ce délai (ms). */
+const FAREWELL_MAX_MS = 2500;
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -90,6 +95,8 @@ function MapView({ state }: { state: GameState | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [constructing, setConstructing] = useState(false);
   const [live, setLive] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const focusRef = useRef<string | null>(null);
   const lastFocusEl = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -305,6 +312,24 @@ function MapView({ state }: { state: GameState | null }) {
     }
   }
 
+  /** Déconnexion : dézoom de la ville (si la scène en a un), puis fin de session serveur, puis page de connexion. */
+  const signOut = useCallback(async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setLogoutError(null);
+    setMenuOpen(false);
+    try {
+      const zoom = bus.farewell?.().catch(() => undefined) ?? Promise.resolve();
+      const timeout = new Promise<void>((r) => setTimeout(r, FAREWELL_MAX_MS));
+      await Promise.all([logout(), Promise.race([zoom, timeout])]);
+      router.push("/connexion");
+    } catch (e) {
+      setLogoutError(e instanceof ApiError ? e.message : "La déconnexion a échoué.");
+      setLoggingOut(false);
+    }
+  }, [bus, loggingOut, router]);
+  const canSignOut = !isMockMode();
+
   const sentCount = planet ? new Set(tc.trips.filter((t) => t.planetId === planet.id).map((t) => t.role)).size : 0;
   const open = focusId !== null;
   const ownedRoles = (state?.agents ?? []).filter((a) => a.owned).map((a) => a.role);
@@ -364,9 +389,15 @@ function MapView({ state }: { state: GameState | null }) {
             <button type="button" className="btn btn-small" aria-pressed={view === "liste"} onClick={toggleList}>
               Afficher la ville
             </button>
+            {canSignOut ? (
+              <button type="button" className="btn btn-small" disabled={loggingOut} onClick={() => void signOut()}>
+                Se déconnecter
+              </button>
+            ) : null}
           </div>
         </div>
         {noticeMaquette}
+        {logoutError ? <Notice tone="warn" title="Déconnexion impossible.">{logoutError}</Notice> : null}
         {mapError ? (
           <Notice tone="warn" title="La ville n'a pas pu se charger.">
             Le jeu reste jouable avec la liste des lieux ci-dessous.{" "}
@@ -494,10 +525,23 @@ function MapView({ state }: { state: GameState | null }) {
                     Afficher en liste (sans la ville)
                   </button>
                 </li>
+                {canSignOut ? (
+                  <li>
+                    <button type="button" disabled={loggingOut} onClick={() => void signOut()}>
+                      Se déconnecter
+                    </button>
+                  </li>
+                ) : null}
               </ul>
             </nav>
           ) : null}
         </div>
+
+        {logoutError ? (
+          <div className="map-maquette hud-chip hud-warn" role="alert">
+            Déconnexion impossible : {logoutError}
+          </div>
+        ) : null}
 
         {vm.source === "maquette" ? (
           <div className="map-maquette hud-chip hud-warn" role="note">
