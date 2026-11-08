@@ -5,7 +5,7 @@ import { BasePanel } from "./BasePanel";
 
 const agents: AgentView[] = [
   { role: "scout", label: "Éclaireur", section: "prospection", owned: true, price: 0, unlock_condition: "Disponible dès le départ", unlocked: true, teaches: "t" },
-  { role: "triage", label: "Trieur de boîte", section: "clients", owned: false, price: 35, unlock_condition: "Faire une expédition à Hôtel de ville (Registre) avec un score d'au moins 50 sur 100", unlocked: false, teaches: "t" },
+  { role: "triage", label: "Trieur de boîte", section: "clients", owned: false, price: 35, unlock_condition: "Obtenez 2 clients pour débloquer ce trieur", unlocked: false, teaches: "t" },
   { role: "replier", label: "Rédacteur", section: "clients", owned: false, price: 45, unlock_condition: "ok", unlocked: true, teaches: "t" },
   { role: "ads", label: "Directeur de campagne", section: "pub", owned: false, price: 50, unlock_condition: "ok", unlocked: true, teaches: "t" },
 ];
@@ -19,7 +19,7 @@ describe("Garage : 4 rôles du hangar", () => {
     expect(screen.getByText("Verrouillé")).toBeInTheDocument();
     expect(screen.getByText("À acheter")).toBeInTheDocument();
     expect(screen.getByText("Fonds insuffisants")).toBeInTheDocument();
-    expect(screen.getByText(/Verrouillé : Faire une expédition à Hôtel de ville/)).toBeInTheDocument();
+    expect(screen.getByText(/Verrouillé : Obtenez 2 clients/)).toBeInTheDocument();
     expect(screen.getByText(/Fonds insuffisants : prix/)).toBeInTheDocument();
   });
 

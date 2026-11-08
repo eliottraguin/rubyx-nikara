@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "headline": "Voici ce que je propose de faire",
+  "banner": "Rien n'est envoyé ni publié sans vous. Vous recevez des brouillons à relire.",
+  "assistants": {
+    "assistant_prospection": "Assistant Prospection",
+    "assistant_clients": "Assistant Clients",
+    "assistant_pub": "Assistant Pub"
+  },
+  "agents": {
+    "scout": "L'éclaireur",
+    "replier": "Le rédacteur",
+    "triage": "Le trieur de boîte",
+    "ads": "Le directeur de campagne"
+  },
+  "steps": {
+    "scout_search": {
+      "title": "Chercher de nouveaux clients : {target}",
+      "you_get": "Des prospects ajoutés à votre carnet, que vous relisez."
+    },
+    "prospect_profile": {
+      "title": "Préparer la fiche client de {target}",
+      "you_get": "Une fiche client à relire."
+    },
+    "prospect_message": {
+      "title": "Écrire un premier message pour {target}",
+      "you_get": "Un brouillon que vous relisez et envoyez vous-même."
+    },
+    "conversation_triage": {
+      "title": "Résumer la conversation avec {target}",
+      "you_get": "Un résumé court de ce que le client a écrit."
+    },
+    "conversation_reply": {
+      "title": "Préparer une réponse à {target}",
+      "you_get": "Un brouillon de réponse que vous relisez avant tout envoi."
+    },
+    "ad_campaign": {
+      "title": "Préparer le kit de la campagne « {target} »",
+      "you_get": "Des textes et un plan prêts à publier par vous-même."
+    }
+  },
+  "quota_reached": "Vous avez utilisé toutes vos demandes à l'assistant pour cette partie.",
+  "in_progress": "Une demande à l'assistant est déjà en cours.",
+  "errors": {
+    "INSUFFICIENT_FUNDS": "Vous n'avez pas assez d'argent pour cette tâche.",
+    "MESSAGE_LIMIT": "Cette tâche a déjà été demandée le nombre maximal de fois pour cet élément.",
+    "ROLE_LOCKED": "Il vous manque l'agent qui ferait cette tâche : vous pouvez l'acheter dans votre immeuble.",
+    "INVALID_OUTPUT": "L'agent n'a pas réussi cette fois. Rien n'a été dépensé : vous pouvez réessayer.",
+    "LLM_UNAVAILABLE": "Le service est indisponible pour le moment. Rien n'a été dépensé : réessayez plus tard.",
+    "RATE_LIMITED": "Trop de demandes en même temps. Rien n'a été dépensé : réessayez dans un instant.",
+    "NOT_FOUND": "Cet élément n'existe plus.",
+    "default": "Cette tâche n'a pas pu se faire. Rien n'a été dépensé.",
+    "PROFILE_INCOMPLETE": "Votre fiche entreprise et cible est incomplète : renseignez au moins votre offre, vos secteurs cibles et votre zone.",
+    "PLANET_LOCKED": "Ce lieu n'est pas encore ouvert : continuez à chercher ailleurs pour l'ouvrir."
+  },
+  "not_available_yet": "Cette tâche n'est pas encore disponible.",
+  "plan_done": "Ce plan a déjà été lancé.",
+  "plan_rejected": "Ce plan a été annulé.",
+  "nothing_to_run": "Aucune tâche ne peut être lancée pour le moment.",
+  "results": {
+    "ad_campaign": "Le kit de campagne est prêt à relire.",
+    "conversation_triage": "Le résumé est prêt.",
+    "conversation_reply": "Le brouillon de réponse est prêt à relire. Rien n'a été envoyé.",
+    "prospect_profile": "La fiche client est prête à relire.",
+    "prospect_message": "Le brouillon de premier message est prêt à relire. Rien n'a été envoyé.",
+    "scout_search_none": "La recherche est terminée : aucun prospect ajouté à votre carnet.",
+    "scout_search_one": "La recherche est terminée : 1 prospect ajouté à votre carnet.",
+    "scout_search_many": "La recherche est terminée : {n} prospects ajoutés à votre carnet."
+  }
+}

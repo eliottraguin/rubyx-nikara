@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="page home">
       <h1>Trouvez de vrais clients avec des agents IA.</h1>
-      <p className="lead">Envoyez vos agents sur la carte, gardez les meilleurs prospects dans votre carnet.</p>
+      <p className="lead">Décrivez votre entreprise et votre cible : un bot cherche des clients pour vous, vous gardez les meilleurs prospects dans votre carnet.</p>
       <p>
         <Link className="btn btn-primary" href="/creer">
           Nouvelle partie

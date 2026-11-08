@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI02 — Rôles métier, outils, clarifications
 
 Fichiers : `data/roles/{writer,prospector,researcher,analyst,qa,lead}.json`, rôles système `data/roles/system/{client_evaluator,client_clarifier,coach}.json`, registre `data/roles/tools.json`. Schéma : `data/schemas/role.schema.json`.

@@ -1,5 +1,5 @@
 """Outils de test des moteurs d'économie et d'actions : faux fournisseur scripté, fabrique d'application,
-préparation directe de la base (la tentative est ouverte par BE02 ; ici on l'insère)."""
+préparation directe de la base."""
 
 from __future__ import annotations
 
@@ -16,7 +16,8 @@ from app.config import Settings
 from app.db import make_engine, make_session_factory
 from app.llm.base import LLMAdapter, LLMRequest, LLMResponse, LLMStatus, Usage
 from app.main import create_app
-from app.models import AgentOwnership, LedgerEntry, MissionAttempt, new_id
+from app.models import ActionRun, AgentOwnership, LedgerEntry, new_id
+from app.services import ledger
 
 
 class FakeLLM(LLMAdapter):
@@ -62,19 +63,6 @@ class FakeLLM(LLMAdapter):
         )
 
 
-def plan_json(*steps: dict, summary: str = "Plan de test") -> str:
-    return json.dumps({"steps": list(steps), "summary": summary})
-
-
-def step(role: str = "writer", task: str = "Tâche", source_ids: list[str] | None = None, depends_on: int | None = None) -> dict:
-    return {"role": role, "task": task, "source_ids": source_ids or [], "depends_on": depends_on}
-
-
-def lead_handler(plan: str) -> Callable[[LLMRequest, int], object]:
-    """Le chef renvoie `plan` ; les autres rôles répondent normalement."""
-    return lambda req, n: plan if (req.expected_schema or {}).get("title") == "LeadPlan" else "ok"
-
-
 class World:
     """Une application + une partie + accès direct à la base."""
 
@@ -116,35 +104,28 @@ class World:
                 db.add(AgentOwnership(session_id=self.sid, role=role, price_paid=0))
             db.commit()
 
-    def attempt(self, mission_id: str = "m2", unit_price: int = 1, status: str = "ACTIVE", spend_cap: int | None = None, attempt_no: int = 1, **kw) -> str:
+    def action(self, type: str = "test", status: str = "RUNNING") -> str:
+        """Une action nue de la partie (pour y rattacher une réservation)."""
         with self.sf() as db:
-            att = MissionAttempt(session_id=self.sid, mission_id=mission_id, unit_price=unit_price, status=status, spend_cap=spend_cap, attempt_no=attempt_no, **kw)
-            db.add(att)
+            row = ActionRun(session_id=self.sid, idempotency_key=new_id("k"), type=type, status=status)
+            db.add(row)
             db.commit()
-            return att.id
+            return row.id
 
-    def complete(self, mission_id: str) -> None:
-        self.attempt(mission_id, status="COMPLETED")
-
-    def get_attempt(self, attempt_id: str) -> MissionAttempt:
+    def win_clients(self, n: int) -> None:
+        """Porte à `n` le nombre de clients obtenus (écritures `client_reward` de 0 $ pour garder les soldes des tests ;
+        la source unique par prospect est celle du vrai gain). Remplace l'ancien déblocage par score (API-S4)."""
         with self.sf() as db:
-            return db.get(MissionAttempt, attempt_id)
+            for i in range(n):
+                ledger.post_entry(db, self.sid, 0, ledger.CATEGORY_CLIENT, f"client:{self.sid}:t{i}")
+            db.commit()
 
     # --- API ---
     def balance(self) -> dict:
         return self.client.get("/api/state").json()["balance"]
 
-    def send(self, attempt_id: str, role: str = "writer", text: str = "Rédige une annonce", key: dict | None = None, **extra):
-        return self.client.post(f"/api/attempts/{attempt_id}/messages", json={"role": role, "text": text, **extra}, headers=key or self.key())
-
-    def clarify(self, attempt_id: str, question: str = "Quels horaires ?", key: dict | None = None):
-        return self.client.post(f"/api/attempts/{attempt_id}/clarifications", json={"question": question}, headers=key or self.key())
-
     def buy(self, role: str, key: dict | None = None):
         return self.client.post("/api/agents/purchase", json={"role": role}, headers=key or self.key())
-
-    def confirm(self, action_id: str, key: dict | None = None):
-        return self.client.post(f"/api/actions/{action_id}/confirm", headers=key or self.key())
 
 
 def rules_copy(data_copy: Path, **limits: int) -> Settings:

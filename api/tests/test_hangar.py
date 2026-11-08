@@ -17,7 +17,7 @@ from app.errors import ApiError
 from app.main import create_app
 from app.models import AgentOwnership, LedgerEntry, TargetActionUse
 from app.rules_v2 import load_rules_v2
-from app.services import checks, target_quotas
+from app.services import checks, ledger, target_quotas
 
 from ._campaign_support import Player, make_settings
 from .actions_support import World
@@ -25,6 +25,7 @@ from .actions_support import World
 RULES = load_rules_v2(REPO_DIR / "data")
 REMOVED = ("qualifier", "profiler", "outreach")
 HANGAR = ["scout", "triage", "replier", "ads"]
+ASSISTANTS = ["assistant_prospection", "assistant_clients", "assistant_pub"]  # fournis au départ (docs/ASSISTANT.md)
 
 
 @pytest.fixture
@@ -50,15 +51,23 @@ def _hangar(p: Player) -> dict:
 
 # --- état et catalogue -------------------------------------------------------------------------------------------
 
-def test_state_exposes_exactly_the_four_hangar_roles(app):
+def test_state_exposes_the_four_hangar_roles_and_the_three_starting_assistants(app):
     p = Player(app)
     h = _hangar(p)
-    assert list(h) == HANGAR
+    assert list(h) == HANGAR + ASSISTANTS
+    assert [(h[r]["owned"], h[r]["unlocked"], h[r]["price"]) for r in ASSISTANTS] == [(True, True, 0)] * 3
+    assert [h[r]["section"] for r in ASSISTANTS] == ["prospection", "clients", "pub"]
     assert (h["scout"]["owned"], h["scout"]["unlocked"], h["scout"]["price"]) == (True, True, 0)
     assert [(h[r]["price"], h[r]["owned"], h[r]["unlocked"]) for r in HANGAR[1:]] == [(35, False, False), (45, False, False), (50, False, False)]
-    assert [h[r]["unlock_planet"] for r in HANGAR[1:]] == ["registre", "carte-locale", "linkedin"]
-    assert all(h[r]["unlock_min_score"] == 50 and h[r]["score_condition_waived"] is False for r in HANGAR[1:])
-    assert not set(REMOVED) & {a["role"] for a in p.state()["agents"]} and not set(REMOVED) & set(h)
+    assert [h[r]["unlock_clients"] for r in HANGAR[1:]] == [1, 2, 3]
+    assert all(h[r]["clients_condition_waived"] is False for r in HANGAR[1:])
+    assert [h[r]["unlock_condition"] for r in HANGAR[1:]] == [
+        "Obtenez 1 client pour débloquer ce trieur", "Obtenez 2 clients pour débloquer ce rédacteur",
+        "Obtenez 3 clients pour débloquer ce directeur de campagne",
+    ]
+    assert h["scout"]["unlock_clients"] is None and h["scout"]["unlock_condition"] is None
+    assert p.state()["clients_obtained"] == 0
+    assert not set(REMOVED) & set(h) and "agents" not in p.state()
 
 
 @pytest.mark.parametrize("role", REMOVED)
@@ -71,7 +80,6 @@ def test_removed_role_ids_are_accepted_nowhere(app, role):
         target_quotas.reserve(app.state.session_factory, RULES, p.session_id, role, "pro_1")
     with pytest.raises(Exception):
         RULES.agent(role)
-    assert p.http.post("/api/attempts/att_x/messages", json={"role": role, "text": "x"}, headers=p.key()).status_code in (404, 422)
 
 
 def test_scout_is_already_owned_and_cannot_be_bought(app):
@@ -82,28 +90,32 @@ def test_scout_is_already_owned_and_cannot_be_bought(app):
 
 # --- déblocage Tutoriel / Réel -----------------------------------------------------------------------------------
 
-def test_tutorial_unlock_requires_score_50_on_the_planet(app):
+def _client(app, p: Player, n: int) -> None:
+    """Écrit `n` gains de client distincts (source unique par prospect), comme le fait le passage à `gagne` (API-S4)."""
+    with app.state.session_factory() as db:
+        for i in range(n):
+            ledger.post_entry(db, p.session_id, RULES.client_reward, ledger.CATEGORY_CLIENT, f"client:{p.session_id}:pro_t{i}")
+        db.commit()
+
+
+def test_tutorial_unlock_requires_clients_obtained(app):
     p = Player(app, "beginner")
     _grant(app, p, 500)
     assert _buy(p, "triage").json()["error"]["code"] == "ROLE_LOCKED"
-    p.play("m1", 90)
-    assert _buy(p, "triage").json()["error"]["code"] == "ROLE_LOCKED"  # registre = lieu 2 : m1 ne suffit pas
-    p.play("m2", 49)  # échec : sous le seuil, aucune réussite
-    assert _hangar(p)["triage"]["unlocked"] is False
-    assert _buy(p, "triage").json()["error"]["code"] == "ROLE_LOCKED"
-    p.play("m2", 50, retry=True)
+    _client(app, p, 1)
     assert _hangar(p)["triage"]["unlocked"] is True
     r = _buy(p, "triage")
     assert r.status_code == 201 and (r.json()["role"], r.json()["price_paid"]) == ("triage", 35)
     assert _hangar(p)["triage"]["owned"] is True
     assert _buy(p, "triage").json()["error"]["code"] == "INVALID_STATE"
+    assert _buy(p, "replier").json()["error"]["code"] == "ROLE_LOCKED"
     assert _buy(p, "ads").json()["error"]["code"] == "ROLE_LOCKED"
 
 
-def test_real_mode_waives_the_score_but_keeps_the_price(app):
+def test_real_mode_waives_the_clients_condition_but_keeps_the_price(app):
     p = Player(app, "expert")
     h = _hangar(p)
-    assert all(h[r]["unlocked"] and h[r]["score_condition_waived"] for r in HANGAR[1:])
+    assert all(h[r]["unlocked"] and h[r]["clients_condition_waived"] for r in HANGAR[1:])
     r = _buy(p, "ads")  # 50 > 30 : seul le prix reste
     assert (r.status_code, r.json()["error"]["code"]) == (409, "INSUFFICIENT_FUNDS")
     _grant(app, p, 100)

@@ -603,6 +603,18 @@ def test_client_text_is_a_delimited_datum_and_cannot_break_out(world):
         assert ctx.count("<<<FIN FIL") == 1 and ctx.count("<<<FIL") == 1
 
 
+def _numbers(node) -> list:  # noqa: ANN001
+    if isinstance(node, bool):
+        return []
+    if isinstance(node, (int, float)):
+        return [node]
+    if isinstance(node, dict):
+        return [n for v in node.values() for n in _numbers(v)]
+    if isinstance(node, list):
+        return [n for v in node for n in _numbers(v)]
+    return []
+
+
 def test_obedient_model_cannot_leak_prompt_or_change_money(world):
     """Un modèle qui obéit à l'injection est arrêté par les contrôles ; toute « récompense » suggérée est ignorée."""
     cid = world.conversation(persona="p_prix_absent")
@@ -617,7 +629,9 @@ def test_obedient_model_cannot_leak_prompt_or_change_money(world):
     forced(world, lambda req, n: reply_json("Bonjour, je reviens vers vous. " + OPPOSITION, reward=999, score=100, gain=50, balance=9999) if req.purpose.startswith("conversation_reply") else None)
     r = world.reply(cid)
     assert r.status_code == 202
-    assert world.available() == 28 and "999" not in r.text
+    # la valeur suggérée n'apparaît nulle part comme NOMBRE de la réponse (un test sur le texte brut échouait ~3 % du temps :
+    # les identifiants hexadécimaux aléatoires contiennent parfois « 999 »)
+    assert world.available() == 28 and not {999, 9999} & set(_numbers(r.json()))
     with world.sf() as db:
         assert db.scalar(select(func.coalesce(func.sum(LedgerEntry.amount), 0)).where(LedgerEntry.amount > 0)) == 30
 

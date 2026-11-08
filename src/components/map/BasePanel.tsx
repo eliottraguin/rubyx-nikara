@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ErrorNote, Notice, Pill } from "@/components/ui";
 import { agentBlocker } from "@/game/map/dispatch";
 import type { AgentSection, AgentView, ApiError, GameState, RoleId } from "@/lib/api/types";
+import { clientsProgressText } from "@/lib/api/adapt";
 import { ROLE_LABEL, money } from "@/lib/format";
 
 export const SECTION_LABEL: Record<AgentSection, string> = { prospection: "Prospection", clients: "Clients", pub: "Pub" };
@@ -88,6 +89,11 @@ export function BasePanel({ state, busy, onBuy }: { state: GameState; busy: bool
                         Prix : <strong>{a.price === 0 ? "gratuit" : money(a.price)}</strong>
                         {a.owned ? null : <> · Condition : {a.unlock_condition}</>}
                       </p>
+                      {!a.owned && !a.unlocked && typeof a.unlock_clients === "number" ? (
+                        <p className="agent-meta" data-testid={`progress-${a.role}`}>
+                          Progression : {clientsProgressText(state.building?.clients_obtained ?? 0, a.unlock_clients)}
+                        </p>
+                      ) : null}
                       {a.owned ? null : pending === a.role ? (
                         <div className="confirm" role="group" aria-label={`Confirmer l'achat de ${ROLE_LABEL[a.role]}`}>
                           <p>

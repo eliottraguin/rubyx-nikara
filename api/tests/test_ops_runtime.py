@@ -21,29 +21,20 @@ from app.main import create_app
 from app.models import (
     ActionRun,
     AgentOwnership,
-    AppliedEvent,
     TargetActionUse,
-    ArtifactShare,
-    ArtifactVersion,
     Base,
-    Evaluation,
-    ExpeditionRecord,
     GameSession,
     LLMCall,
-    Message,
-    MissionAttempt,
-    NotebookEntry,
     Prospect,
     ProspectIdempotency,
     Reservation,
-    Submission,
     utcnow,
 )
 from tests.conftest import new_key
 
 SECRET = "demo-secret-0123456789"
 KEY = {"Idempotency-Key": "ops-key-00000001"}
-SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables if t.name != "mission_definitions"]
+SESSION_TABLES = [t.name for t in Base.metadata.sorted_tables]
 
 
 @pytest.fixture
@@ -54,38 +45,32 @@ def dclient(tmp_path: Path):
 
 
 def populate(db, sid: str, tag: str = "a") -> None:
-    """Remplit toutes les tables rattachées à une partie (parent/enfant de livrable compris)."""
-    att = MissionAttempt(session_id=sid, mission_id="m1", unit_price=0)
-    db.add(att)
-    db.flush()
-    parent = ArtifactVersion(attempt_id=att.id, type="text", content="v1", author="agent")
-    db.add(parent)
-    db.flush()
-    child = ArtifactVersion(attempt_id=att.id, type="text", content="v2", author="player", parent_id=parent.id)
-    db.add(child)
-    db.flush()
-    sub = Submission(attempt_id=att.id, artifact_version_id=child.id, brief_version=1, content_hash="h", rubric={})
-    db.add(sub)
-    db.flush()
-    db.add(Evaluation(submission_id=sub.id, model="mock", judge_version="j1", status="DONE"))
-    act = ActionRun(session_id=sid, attempt_id=att.id, idempotency_key=f"k-{tag}-0001", type="message")
+    """Remplit toutes les tables rattachées à une partie (parent/enfant de brouillon et de kit compris)."""
+    act = ActionRun(session_id=sid, idempotency_key=f"k-{tag}-0001", type="prospect_message")
     db.add(act)
     db.flush()
-    db.add(Reservation(session_id=sid, action_id=act.id, amount=1, attempt_id=att.id, expires_at=utcnow()))
-    db.add(Message(attempt_id=att.id, role="writer", author="player", text="bonjour", status="DONE", action_id=act.id))
-    db.add(LLMCall(action_id=act.id, role="writer", model="mock", usage={"input_tokens": 10, "output_tokens": 5, "measured": False}, usage_measured=False, duration_ms=4))
-    db.add(NotebookEntry(session_id=sid, title="t", prompt="p", role="writer"))
-    db.add(ArtifactShare(attempt_id=att.id, artifact_version_id=parent.id, role="writer", action_id=act.id))
-    db.add(AppliedEvent(attempt_id=att.id, event_id="e1", brief_version=1))
+    db.add(Reservation(session_id=sid, action_id=act.id, amount=1, expires_at=utcnow()))
+    db.add(LLMCall(action_id=act.id, role="scout", model="mock", usage={"input_tokens": 10, "output_tokens": 5, "measured": False}, usage_measured=False, duration_ms=4))
     db.add(TargetActionUse(session_id=sid, kind="prospect", target_id="pro_1", key="prospect_profile", used=1, reserved=0))
-    db.add(ExpeditionRecord(session_id=sid, attempt_id=att.id, source="annuaire", source_ref="ann_1", record={"entreprise": "X"}))
-    db.add(
-        Prospect(
-            session_id=sid, entreprise="X", entreprise_cle="x", source="annuaire", source_ref="ann_1", raisons_fit=[], pertinence=10,
-            fiabilite="simule", simule=True, instantane={}, expedition_id=att.id, rapport_version_id=parent.id, profile_version=1,
-        )
+    pro = Prospect(
+        session_id=sid, entreprise="X", entreprise_cle="x", source="annuaire", source_ref="ann_1", raisons_fit=[], pertinence=10,
+        fiabilite="simule", simule=True, instantane={}, search_id="src_x", profile_version=1,
     )
+    db.add(pro)
+    db.flush()
+    from app.models_drafts import ProspectDraft
+
+    d1 = ProspectDraft(session_id=sid, prospect_id=pro.id, kind="message", numero=1, auteur="agent", contenu={}, controles=[], profile_version=1)
+    db.add(d1)
+    db.flush()
+    db.add(ProspectDraft(session_id=sid, prospect_id=pro.id, kind="message", numero=2, parent_id=d1.id, auteur="joueur", contenu={}, controles=[], profile_version=1))
     db.add(ProspectIdempotency(session_id=sid, key_hash=f"h-{tag}", request_hash="r", status_code=200))
+    from app.models_assistant import AssistantPlan
+
+    db.add(AssistantPlan(session_id=sid, assistant="assistant_prospection", message="m", summary="s", steps=[]))
+    from app.models_search import Search
+
+    db.add(Search(session_id=sid, planet_id="annuaire", status="DONE", profile_version=1, simule=True))
     from app.models_pub import Campaign, CampaignRequest, CampaignVersion
 
     db.add(TargetActionUse(session_id=sid, kind="campaign", target_id="cmp_x", key="ads", used=1, reserved=0))
@@ -182,7 +167,7 @@ def test_snapshot_roundtrip(client, tmp_path):
         populate(db, game.id)
         before = count_rows(db)
         snap = demo_ops.export_snapshot(db)
-        assert snap["format"] == demo_ops.SNAPSHOT_FORMAT and snap["tables"]["artifact_versions"].__len__() == 2
+        assert snap["format"] == demo_ops.SNAPSHOT_FORMAT and len(snap["tables"]["prospect_drafts"]) == 2
         path = tmp_path / "snap.json"
         demo_ops.write_snapshot(path, snap)
         assert oct(path.stat().st_mode & 0o777) == "0o600"
@@ -247,7 +232,7 @@ def test_purge_by_retention(client, make_session):
         assert res["deleted"] == 2
         left = set(db.scalars(select(GameSession.id)))
         assert left == {ids["fresh"], demo.id}  # démo épargnée
-        orphans = db.execute(text("SELECT count(*) FROM messages WHERE attempt_id NOT IN (SELECT id FROM mission_attempts)")).scalar()
+        orphans = db.execute(text("SELECT count(*) FROM prospect_drafts WHERE prospect_id NOT IN (SELECT id FROM prospects)")).scalar()
         assert orphans == 0
         assert db.scalar(select(AgentOwnership.id).where(AgentOwnership.session_id == ids["old"])) is None
         assert storage.purge_sessions(db, 7, include_demo=True)["deleted"] == 1
@@ -303,7 +288,7 @@ def test_usage_report(dclient, make_session):
             ({"input_tokens": 30, "output_tokens": 10, "measured": False}, False, 1),
             (None, False, 2),
         ):
-            db.add(LLMCall(action_id=act.id, role="writer", model="mock", usage=usage, usage_measured=measured, duration_ms=10, attempts=att))
+            db.add(LLMCall(action_id=act.id, role="scout", model="mock", usage=usage, usage_measured=measured, duration_ms=10, attempts=att))
         db.commit()
     r = dclient.get("/api/ops/usage", headers={"X-Demo-Secret": SECRET})
     assert r.status_code == 200
@@ -312,7 +297,7 @@ def test_usage_report(dclient, make_session):
     assert (t["input_tokens_measured"], t["output_tokens_measured"]) == (100, 40)
     assert (t["input_tokens_estimated"], t["output_tokens_estimated"]) == (30, 10)
     assert t["estimate_flagged"] is True and t["total_tokens"] == 180
-    assert r.json()["by_model"]["mock"]["llm_calls"] == 3 and r.json()["by_role"]["writer"]["llm_calls"] == 3
+    assert r.json()["by_model"]["mock"]["llm_calls"] == 3 and r.json()["by_role"]["scout"]["llm_calls"] == 3
     assert "prompt" not in r.text.lower().replace("prompts", "")
 
 
@@ -398,6 +383,7 @@ def test_cli_demo_refuses_real_provider(monkeypatch, capsys, tmp_path):
     monkeypatch.setenv("RUBIX_DB_PATH", str(tmp_path / "r.db"))
     monkeypatch.setenv("RUBIX_LLM_PROVIDER", "real")
     monkeypatch.setenv("RUBIX_LLM_API_KEY", "cle-bidon-0123456789")
+    monkeypatch.setenv("RUBIX_LLM_BASE_URL", "https://relais.example.test")
     code = cli_main(["demo-init"])
     err = capsys.readouterr().err
     assert code == 1 and "fournisseur simulé" in err and "cle-bidon" not in err

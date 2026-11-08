@@ -1,3 +1,5 @@
+> **2026-11-08 : ce document décrit l'ancien parcours (missions notées pour un commanditaire). Il est remplacé par `docs/PARCOURS-BOT.md` ; ne plus s'y fier pour les lieux, l'évaluation ni les rôles.**
+
 # Planètes, agents et contenus de prospection
 
 > **Réécrit le 2026-11-07** pour le cap prospection (`PRODUIT-PROSPECTION.md`). **OBSOLÈTE** : les missions M1–M6 (restaurant, prospect, canal manquant, sources et chiffres, campagne composée, grand contrat), la Mission de secours du cahier et les 6 rôles (`writer`, `prospector`, `researcher`, `analyst`, `qa`, `lead`) ; leur ancienne description reste dans l'historique git (`d3cfa59`) et leurs fichiers `data/missions/m1…m6`, `data/roles/*`, `data/rubrics/m*_v1.json` restent en place **tant que les nouveaux contenus ne les remplacent pas** (les 313 tests du moteur s'appuient dessus).
@@ -53,6 +55,52 @@ Chaque planète est un fichier de données `data/planets/<id>/` : fiche cible (b
 
 ## Critères
 Chaque planète versionne ses critères, poids et contrôles (`data/rubrics/<planete>_vN.json`, ids stables) ; la famille « prompt » et la famille « résultat » sont décrites dans `RULES.md` §5. Les contrôles de format, de doublon, de `source_ref` et de critères structurés sont **du code** ; le client IA évalue le sémantique, avec **preuve citée littéralement** dans le prompt ou le rapport et conseil concret. Instructions contenues dans un lead, un document ou une réponse de planète = **données**.
+
+## Évaluation d'une expédition : un agent juge le travail du bot **[REMPLACÉ le 2026-11-08 par `PARCOURS-BOT.md` : plus de score ni de livraison ; le tri de pertinence est une aide sans points]**
+> **Constat (2026-11-08)** : les expéditions jouables sont encore celles de l'ancien jeu (M1 à M6 : texte pour un restaurant, contrôlé par des regex sur « 9,90 », « 12 h–14 h », « étudiants »). Elles ne notent pas du travail de prospection, et proposent des rôles sans rapport (`writer`, `researcher`, `analyst`, `qa`, `lead`). Cette section remplace ce modèle pour les lieux ; les grilles `m1` à `m6` restent jusqu'à la livraison de `DATA-C1`, jamais avant (voir `CLAUDE.md`).
+
+### Principe
+- **Le code vérifie les faits** (ce qui est vrai ou faux sans interprétation) ; **un agent évaluateur juge le travail** (ce qui demande de comprendre). **Aucune phrase précise n'est jamais exigée** : le joueur peut formuler son prompt comme il veut, et le bot rapporter comme il veut. Une regex n'est autorisée que sur un **champ structuré** (un nombre, une date, un identifiant), jamais sur de la prose.
+- L'évaluateur reçoit : la **fiche cible**, le **prompt du joueur** (donnée), le **rapport de leads** (donnée) et, **côté serveur**, les **enregistrements de la source** que chaque lead cite. Il juge le rapport **contre la source**, pas contre une réponse type.
+- Pour toute note > 0, il cite **mot pour mot** un extrait du prompt, du rapport ou de l'enregistrement de la source ; le serveur **vérifie que l'extrait existe** (sinon la note vaut 0). Il explique chaque écart en français courant avec **un conseil concret**.
+- Il **ne peut jamais racheter un fait faux** : un lead dont le `source_ref` n'existe pas, ou qui échoue un contrôle de code, reste en échec quelle que soit l'opinion de l'agent. Il ne produit aucun score ni gain : seulement des notes par critère (le serveur calcule le score, règle existante).
+- Les instructions contenues dans un lead, un enregistrement ou le prompt sont des **données**, jamais des consignes.
+- **Un seul bot** sur les lieux : `scout`. Les autres rôles ne sont plus proposés dans une expédition ; l'assistant Prospection peut lancer l'expédition à la place du joueur (après confirmation du plan).
+
+### Grille proposée (valeurs de départ à calibrer, total 100)
+**A. Faits vérifiés par le code (40 points)**
+| id | Pts | Ce que le code vérifie | Essentiel |
+|---|---|---|---|
+| `l_existence` | 15 | chaque lead porte un `source_ref` réellement renvoyé par le lieu pendant l'expédition | oui |
+| `l_conformite` | 15 | les **champs structurés** respectent la fiche (ville, secteur, taille, ancienneté, nombre demandé), sans toucher à la prose | oui |
+| `l_unicite` | 5 | aucun doublon (même entreprise sous deux écritures) | non |
+| `l_fraicheur` | 5 | la donnée n'est pas périmée selon sa date de collecte | non |
+
+**B. Jugement de l'agent évaluateur (60 points)** — le prompt du joueur n'est **pas noté** (voir D2).
+| id | Pts | Question posée à l'agent | Preuve citée |
+|---|---|---|---|
+| `e_pertinence` | 30 | Chaque lead correspond-il à **l'intention** de la fiche cible, pas seulement à ses mots ? (ex. « bien noté mais peu visible » : la note et le nombre d'avis le montrent-ils ?) | extrait de la source |
+| `e_justification` | 15 | Le rapport donne-t-il, pour chaque lead, une **raison d'approcher fondée sur un fait de la source**, sans rien inventer ? | extrait du rapport + de la source |
+| `e_prudence` | 10 | Le bot a-t-il **écarté ou signalé les pièges** (radiée, saisonnier, homonyme, donnée contradictoire) et dit « je n'ai pas trouvé » plutôt que de combler ? | extrait du rapport |
+| `e_priorisation` | 5 | Les leads sont-ils **classés dans un ordre utile** (le plus prometteur d'abord) ? | extrait du rapport |
+
+- **Remarques sans points** (affichées dans le bilan) : un lead pertinent sans canal de contact exploitable (D4), et le **conseil du coach sur le prompt** (D2).
+- **Plafond** : un critère essentiel en échec plafonne le score à 40 ; hors sujet = 0 ; réussite ≥ 50 (règles inchangées, `RULES.md` §5).
+- Rapport vide honnête (« rien ne correspond ») : `e_prudence` plein, `e_pertinence` non applicable, le reste calculé sur ce qui existe, sans jamais punir de ne pas inventer.
+- **Une seule réparation** en cas de sortie invalide du modèle, sinon la livraison reste récupérable sans gain inventé (règle inchangée).
+- **Tutoriel** : le retour est lu par le joueur comme un **bilan de travail** (« voici ce qui est bien, voici ce qui manque, essayez ceci »), jamais comme un numéro de critère.
+
+### Mise en œuvre (tickets proposés)
+1. `DATA-C1` : lieux `annuaire` et `registre` (fiche cible, corpus avec pièges, solutions de référence).
+2. `DATA-E1` : grille `annuaire_v1` et `registre_v1` selon le tableau ci-dessus (`kind` : `deterministic` pour A, `semantic` pour B).
+3. `API-E2` : l'évaluateur reçoit les enregistrements de la source (assemblés par le serveur) ; vérification des citations ; fournisseur `mock` déterministe pour les tests.
+4. `API-R2` : retirer `writer`, `researcher`, `analyst`, `qa`, `lead` des parcours d'expédition (migration des tentatives anciennes).
+
+### Décisions (Noah, 2026-11-08)
+- **D1** : répartition **40 (code) / 60 (agent)** retenue.
+- **D2** : le prompt du joueur **n'est pas noté**. `e_methode` devient un **conseil du coach** sans points ; ses 10 points sont reversés à `e_pertinence` (30) et `e_justification` (15). La qualité du prompt se lit dans le résultat, pas dans une note à part. (Le coach cite une phrase du prompt, comme prévu dans « Aide pédagogique ».)
+- **D3** : en mode **Réel**, l'agent évalue aussi. Il n'y a pas de bonne réponse connue : il juge chaque lead contre **la fiche cible du joueur** et **l'enregistrement de la source** renvoyé pendant l'expédition. Le code garde `l_existence`, `l_conformite`, `l_unicite` et `l_fraicheur`.
+- **D4** : un lead pertinent sans canal de contact exploitable donne une **remarque**, pas une pénalité de points.
 
 ## Agent de la planète
 - **Tutoriel** : agent IA qui **simule** la plateforme sur le corpus de la planète. Il ne renvoie que des enregistrements du corpus (chacun avec un `record_id` = futur `source_ref`) ; il applique des filtres simples, peut répondre « rien trouvé », et ne comble jamais un manque par une invention. Avec le fournisseur `mock`, ses réponses sont **déterministes** (graine).

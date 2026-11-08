@@ -1,7 +1,7 @@
 import { buildMapViewModel } from "@/game/map/viewmodel";
 import type { GameState } from "@/lib/api/types";
 
-/** Toit : état de l'immeuble (niveau et total gagné, calculés par le serveur ; affichage seul). */
+/** Toit : état de l'immeuble (niveau et clients obtenus, calculés par le serveur ; affichage seul). */
 export function ToitPanel({ state }: { state: GameState }) {
   const b = buildMapViewModel(state).building;
   return (

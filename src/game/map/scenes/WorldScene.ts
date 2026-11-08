@@ -64,7 +64,6 @@ interface PlaceNode {
   platform: Phaser.GameObjects.Text;
   pill: Phaser.GameObjects.Graphics;
   status: Phaser.GameObjects.Text;
-  pips: Phaser.GameObjects.Image[];
   hit: Phaser.GameObjects.Rectangle;
   roofY: number;
 }
@@ -309,8 +308,7 @@ export class WorldScene extends Phaser.Scene {
     const platform = this.text(13, { color: "#dff2f7" }).setText(`Plateforme : ${p.name}`).setPosition(0, 21);
     const pill = this.add.graphics();
     const status = this.text(13, { fontStyle: "bold", stroke: "#000000", strokeThickness: 0 });
-    const pips = [0, 1, 2].map((i) => this.add.image((i - 1) * 26, 70, TEX.pipOff).setScale(1 / S).setOrigin(0.5, 0));
-    const labels = this.add.container(p.world.x, p.world.y + south + 26, [name, platform, pill, status, ...pips]).setDepth(90000);
+    const labels = this.add.container(p.world.x, p.world.y + south + 26, [name, platform, pill, status]).setDepth(90000);
     status.setPosition(0, 44);
 
     const hitH = -roofY + 100;
@@ -324,7 +322,7 @@ export class WorldScene extends Phaser.Scene {
 
     const root = this.add.container(p.world.x, p.world.y, [halo, select, body, lock, hit]);
     root.setDepth(p.world.y + south);
-    return { id: p.id, vm: p, root, halo, body, lock, select, labels, name, platform, pill, status, pips, hit, roofY };
+    return { id: p.id, vm: p, root, halo, body, lock, select, labels, name, platform, pill, status, hit, roofY };
   }
 
   // ───────────── État -> affichage ─────────────
@@ -358,8 +356,6 @@ export class WorldScene extends Phaser.Scene {
     n.halo.setTint(hex(p.palette.glow)).setAlpha(locked ? 0 : p.status === "visited" ? 0.3 : 0.6);
     // Texte d'état + pastille (jamais la couleur seule : libellé toujours écrit).
     this.drawPill(n.pill, n.status, p.statusLabel, PILL_COLOR[p.status], 44);
-    const showPips = p.status === "visited";
-    n.pips.forEach((pip, i) => pip.setVisible(showPips).setTexture(i < p.stars ? TEX.pipOn : TEX.pipOff));
     // Sélection : losange doré autour du bâtiment, au sol.
     n.select.clear();
     const sel = this.selectedId === p.id;
@@ -564,7 +560,6 @@ export class WorldScene extends Phaser.Scene {
       const p = n.vm;
       lines = [p.title, `${p.district} · ${p.statusLabel}`, `Trajet : ${p.vehicleManner}`];
       if (p.status === "locked") lines.push(p.unlockText);
-      else if (p.maxReward !== null) lines.push(`Gain max ${p.maxReward} $`);
       anchor = { x: p.world.x, y: p.world.y + n.roofY - 24 };
     }
     this.tooltipText.setText(lines.join("\n"));

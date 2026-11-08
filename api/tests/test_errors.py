@@ -96,17 +96,10 @@ def test_mutations_require_idempotency_key(client, make_session):
     assert client.get("/api/state").status_code == 200  # la partie n'a pas été supprimée
 
 
-STUBS = [
-    ("POST", "/api/notebook"),
-    ("GET", "/api/notebook"),
-]
-
-
-@pytest.mark.parametrize("method,path", STUBS)
-def test_unimplemented_routes_return_501(client, method, path):
-    headers = new_key(9) if method == "POST" else {}
-    r = client.request(method, path, headers=headers)
-    assert_error_shape(r, "NOT_IMPLEMENTED", 501)
+def test_removed_notebook_routes_are_gone(client):
+    """Le carnet de prompts (`/api/notebook`, 501) est retiré avec l'ancien parcours (API-R2) : plus de route du tout."""
+    assert client.get("/api/notebook").status_code == 404
+    assert client.post("/api/notebook", headers=new_key(9)).status_code in (404, 405)
 
 
 def test_error_fixtures_match_catalog():

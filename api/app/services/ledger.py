@@ -21,7 +21,7 @@ from ..schemas.state import Balance
 CATEGORY_INITIAL = "initial_capital"
 CATEGORY_PURCHASE = "purchase"
 CATEGORY_COST = "action_cost"
-CATEGORY_REWARD = "reward"
+CATEGORY_CLIENT = "client_reward"  # gain unique par client obtenu (API-S4), source `client:<session>:<prospect>`
 
 
 def begin_immediate(db: Session) -> None:
@@ -61,24 +61,6 @@ def available(db: Session, session_id: str) -> int:
     return balance(db, session_id).available
 
 
-def attempt_spend(db: Session, attempt_id: str) -> int:
-    """Dépense comptabilisée d'une tentative (débits d'actions), toujours >= 0."""
-    total = db.scalar(
-        select(func.coalesce(func.sum(LedgerEntry.amount), 0)).where(
-            LedgerEntry.source_action.startswith(f"{CATEGORY_COST}:{attempt_id}:", autoescape=True)
-        )
-    )
-    return -total
-
-
-def attempt_reserved(db: Session, attempt_id: str) -> int:
-    return db.scalar(
-        select(func.coalesce(func.sum(Reservation.amount), 0)).where(
-            Reservation.attempt_id == attempt_id, Reservation.status == "ACTIVE"
-        )
-    )
-
-
 # --- écritures ------------------------------------------------------------------------------------
 
 
@@ -111,11 +93,9 @@ def reserve(
     action_id: str,
     amount: int,
     role: str | None,
-    attempt_id: str | None,
-    quota: int,
     ttl_seconds: int,
 ) -> Reservation:
-    """Réserve argent + quota. Le contrôle du solde disponible est fait ici (dans la transaction
+    """Réserve de l'argent. Le contrôle du solde disponible est fait ici (dans la transaction
     d'écriture de l'appelant)."""
     if amount < 0:
         raise ValueError("montant de réservation négatif")
@@ -126,8 +106,6 @@ def reserve(
         action_id=action_id,
         amount=amount,
         role=role,
-        attempt_id=attempt_id,
-        quota=quota,
         status="ACTIVE",
         expires_at=utcnow() + timedelta(seconds=ttl_seconds),
     )

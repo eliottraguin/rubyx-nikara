@@ -106,13 +106,12 @@ export const isTerminalAction = (a: Pick<ActionView, "status">) => TERMINAL.incl
  * Met à jour la liste de voyages d'après les actions ouvertes côté serveur :
  * - une action ouverte sans voyage (rechargement de page, autre onglet) en crée un, déjà sur place ;
  * - un voyage dont l'action n'est plus ouverte reçoit son instant de fin (début du retour).
- * `planetOfAttempt` associe une tentative à son lieu (via sa mission) ; `legMsOf` donne la durée cosmétique de trajet
- * du lieu (selon son véhicule).
+ * Le lieu d'une action vient de `planet_id` (recherche lancée depuis ce navigateur) ; `legMsOf` donne la durée
+ * cosmétique de trajet du lieu (selon son véhicule).
  */
 export function syncTrips(
   trips: readonly Trip[],
-  openActions: readonly Pick<ActionView, "id" | "attempt_id" | "role" | "status">[],
-  planetOfAttempt: (attemptId: string) => string | null,
+  openActions: readonly Pick<ActionView, "id" | "planet_id" | "role" | "status">[],
   now: number,
   reduced = false,
   legMsOf?: (planetId: string) => number | undefined,
@@ -130,7 +129,7 @@ export function syncTrips(
   });
   for (const a of open) {
     if (known.has(a.id)) continue;
-    const planetId = planetOfAttempt(a.attempt_id);
+    const planetId = a.planet_id ?? null;
     if (!planetId) continue;
     changed = true;
     // Déjà sur place : le départ est placé juste avant le début du dialogue.

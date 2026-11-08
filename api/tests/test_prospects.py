@@ -1,4 +1,7 @@
-"""Carnet de prospection : API-I1 (modèle, propriété, provenance), API-I2 (ajout), API-I3 (liste, détail, PATCH, suppression)."""
+"""Carnet de prospection : modèle, propriété, provenance, copie par le serveur, liste, détail, PATCH, suppression.
+
+Les prospects entrent au carnet par une recherche du bot (`test_searches.py`) ; ici `Expedition` (outil de test) les recopie
+au carnet avec le même constructeur de champs que la recherche."""
 
 from __future__ import annotations
 
@@ -13,8 +16,8 @@ from sqlalchemy import func, select, text
 from sqlalchemy.exc import DatabaseError
 
 from app.db import alembic_config
-from app.models import ExpeditionRecord, Prospect, utcnow
-from tests.prospects_support import Expedition, annuaire, copy_with_limits, k, lead, second_client, world
+from app.models import Prospect, utcnow
+from tests.prospects_support import Expedition, annuaire, copy_with_limits, give_reply, k, lead, second_client, world
 
 
 @pytest.fixture
@@ -77,10 +80,15 @@ def test_cross_session_access_is_indistinguishable_from_unknown(w):
         assert a.json() == b.json()
     assert other.get("/api/prospects").json()["items"] == []
     assert w.client.get(f"/api/prospects/{pid}").status_code == 200  # intact
-    # ajout depuis l'expédition d'un autre joueur : 404 comme une expédition inconnue
-    r = other.post("/api/prospects", json=e.body([0]), headers=k())
-    assert r.status_code == 404
-    assert other.post("/api/prospects", json={**e.body([0]), "expedition_id": "att_inconnue"}, headers=k()).json() == r.json()
+
+
+def test_no_browser_route_adds_a_prospect(w):
+    """Le navigateur ne fournit jamais le contenu d'un prospect, ni même une référence : seule une recherche du bot
+    (`POST /api/searches`) remplit le carnet. L'ancienne route d'ajout depuis une expédition est retirée."""
+    for body in ({"positions": [0]}, {"entreprise": "X"}, {"search_id": "src_x", "positions": [0]}):
+        r = w.client.post("/api/prospects", json=body, headers=k())  # 405 est rendu en INVALID_REQUEST (422)
+        assert r.status_code in (404, 405, 422) and "Méthode non autorisée" in r.text
+    assert count(w) == 0
 
 
 def test_requires_session_and_idempotency_key(w):
@@ -89,8 +97,6 @@ def test_requires_session_and_idempotency_key(w):
     anon = TestClient(w.app)
     assert anon.get("/api/prospects").status_code == 401
     assert anon.get("/api/prospects/export.csv").status_code == 401
-    e = Expedition(w)
-    assert w.client.post("/api/prospects", json=e.body([0])).status_code == 422  # pas d'Idempotency-Key
     assert w.client.patch("/api/prospects/x", json={"version": 1, "notes": "a"}).status_code == 422
     assert w.client.delete("/api/prospects/x").status_code == 422
     assert w.client.delete("/api/prospects").status_code == 422
@@ -99,47 +105,25 @@ def test_requires_session_and_idempotency_key(w):
 def test_deleting_the_game_purges_everything(w):
     e = Expedition(w)
     e.add([0, 1, 2])
-    assert count(w) == 3 and count(w, ExpeditionRecord) == 5
+    assert count(w) == 3
     assert w.client.delete("/api/session", headers=k()).status_code == 204
     with w.sf() as db:
-        for t in ("prospects", "expedition_records", "prospect_idempotency"):
+        for t in ("prospects", "prospect_idempotency"):
             assert db.scalar(text(f"SELECT count(*) FROM {t}")) == 0
 
 
 def test_fields_outside_whitelist_are_dropped(w):
-    from app.services.prospects import record_returned
-
     rec = annuaire(1, date_naissance="1980-01-01", email_personnel="a@b.fr", photo="x.png", avis_texte_libre="nul")
     e = Expedition(w, records=[("annuaire", rec)], leads=[lead(1)])  # insertion brute (non minimisée)
     pid = e.add([0]).json()["added"][0]["id"]
     snap = w.client.get(f"/api/prospects/{pid}").json()["instantane_source"]
     assert "date_naissance" not in snap and "email_personnel" not in snap and "photo" not in snap and "avis_texte_libre" not in snap
     assert snap["entreprise"] == "Boulangerie 1"
-    # et à l'enregistrement par le moteur (record_returned) : écarté avant stockage
-    with w.sf() as db:
-        att = w.get_attempt(e.attempt_id)
-        row = record_returned(db, w.app.state.sources_spec, att, "annuaire", "ann_0099", annuaire(99, date_naissance="1980-01-01", inconnu="x"))
-        db.commit()
-        assert "date_naissance" not in row.record and "inconnu" not in row.record
-        with pytest.raises(ValueError):
-            record_returned(db, w.app.state.sources_spec, att, "source_inconnue", "z", {})
-
-
-def test_prospects_max_limit_all_or_nothing(data_copy):
-    from tests.actions_support import World
-
-    w = World(copy_with_limits(data_copy, prospects_max=3))
-    try:
-        e = Expedition(w, n=5)
-        assert e.add([0, 1]).status_code == 201
-        r = e.add([2, 3])  # 2 + 2 > 3 : rien n'est écrit
-        assert r.status_code == 409 and r.json()["error"]["code"] == "INVALID_STATE"
-        assert count(w) == 2
-        assert e.add([2]).status_code == 201  # 3 : exactement la limite
-        assert e.add([3]).status_code == 409
-        assert e.add([0]).status_code == 200  # un doublon ne compte pas
-    finally:
-        w.close()
+    # la liste blanche de la source écarte aussi tout champ inconnu avant stockage
+    sources = w.app.state.sources_spec
+    snap = sources.minimize("annuaire", annuaire(99, date_naissance="1980-01-01", inconnu="x"))
+    assert "date_naissance" not in snap and "inconnu" not in snap
+    assert not sources.known("source_inconnue")
 
 
 def test_notes_max_chars_from_rules(data_copy):
@@ -167,104 +151,17 @@ def test_add_copies_from_server_records_not_from_the_lead(w):
     assert p["canal"] == {"type": "email_generique", "valeur": "contact1@exemple.test"}
     assert p["statut"] == "nouveau" and p["simule"] is True and p["fiabilite"] == "simule"
     assert p["source"] == "annuaire" and p["source_ref"] == "ann_0001" and p["collecte_le"] == "2026-10-01"
-    assert p["expedition_id"] == e.attempt_id and p["rapport_version_id"] == e.report_id and p["profile_version"] >= 1
+    assert p["search_id"] == e.search_id and "expedition_id" not in p and "rapport_version_id" not in p and p["profile_version"] >= 1
     assert p["version"] == 1 and p["possible_doublon"] is False and p["contacte_le"] is None
     assert p["pertinence"] <= 100 and p["raisons_fit"] == ["Secteur conforme"] and p["signal"] == "Ouverture récente"
 
 
 def test_browser_cannot_impose_content(w):
     e = Expedition(w)
-    for extra in ({"entreprise": "X"}, {"canal": {"type": "email_generique", "valeur": "x@y.z"}}, {"source_ref": "ann_0001"}, {"leads": [lead(1)]}):
-        r = w.client.post("/api/prospects", json={**e.body([0]), **extra}, headers=k())
-        assert r.status_code == 422, extra
-    assert count(w) == 0
-    # une version écrite par le joueur n'est jamais une source de prospect
-    mine = e.add_report([lead(1)], author="player")
-    r = w.client.post("/api/prospects", json={**e.body([0]), "rapport_version_id": mine}, headers=k())
-    assert r.status_code == 422 and count(w) == 0
-    # ni un document système du corpus
-    sysv = e.add_report([lead(1)], author="system")
-    assert w.client.post("/api/prospects", json={**e.body([0]), "rapport_version_id": sysv}, headers=k()).status_code == 422
     # patch : seuls statut et notes
     pid = e.add([0]).json()["added"][0]["id"]
     for extra in ({"entreprise": "X"}, {"pertinence": 100}, {"source_ref": "z"}, {"fiabilite": "verifie"}):
         assert w.client.patch(f"/api/prospects/{pid}", json={"version": 1, "notes": "a", **extra}, headers=k()).status_code == 422
-
-
-def test_invented_lead_refused(w):
-    leads = [
-        lead(1),
-        lead(2, source_ref="ann_9999"),  # n'a jamais été renvoyé
-        {"signal": "sans référence"},  # pas de source_ref
-        lead(3, source="linkedin"),  # source ne correspondant pas à l'enregistrement
-        lead(4, source_ref=""),
-        lead(5, source_ref=12),
-        lead(1, source="source_inconnue"),
-    ]
-    e = Expedition(w, leads=leads)
-    r = e.add(list(range(len(leads))) + [99])
-    assert r.status_code == 201
-    out = r.json()
-    assert [p["source_ref"] for p in out["added"]] == ["ann_0001"]
-    assert sorted(x["position"] for x in out["refused"]) == [1, 2, 3, 4, 5, 6, 99]
-    assert all(x["code"] == "LEAD_UNVERIFIED" for x in out["refused"])
-    assert count(w) == 1
-
-
-def test_record_of_another_expedition_is_not_verifiable(w):
-    e1 = Expedition(w, n=2)
-    e2 = Expedition(w, records=[("annuaire", annuaire(7))], leads=[lead(1)])  # ann_0001 n'a pas été renvoyé à e2
-    r = e2.add([0])
-    assert r.status_code == 200 and r.json()["refused"] == [{"position": 0, "code": "LEAD_UNVERIFIED"}] and r.json()["added"] == []
-    assert e1.add([0]).status_code == 201
-
-
-def test_all_refused_is_not_an_http_error_and_writes_nothing(w):
-    e = Expedition(w, leads=[lead(1, source_ref="nope")])
-    r = e.add([0])
-    assert r.status_code == 200 and r.json() == {"added": [], "already_present": [], "refused": [{"position": 0, "code": "LEAD_UNVERIFIED"}]}
-    assert count(w) == 0
-
-
-def test_dedup_is_idempotent_and_replayable(w):
-    e = Expedition(w)
-    key = k()
-    r1 = e.add([0, 1], headers=key)
-    assert r1.status_code == 201 and len(r1.json()["added"]) == 2
-    ids = [p["id"] for p in r1.json()["added"]]
-    r2 = e.add([0, 1], headers=key)  # rejeu : même résultat, aucune écriture
-    assert r2.status_code == 200 and [p["id"] for p in r2.json()["added"]] == ids
-    r3 = e.add([1, 2], headers=k())  # autre clé : le lead 1 est déjà au carnet
-    assert r3.status_code == 201 and r3.json()["already_present"] == [ids[1]] and len(r3.json()["added"]) == 1
-    r4 = e.add([0], headers=k())
-    assert r4.status_code == 200 and r4.json()["already_present"] == [ids[0]] and r4.json()["added"] == []
-    assert count(w) == 3
-    assert w.client.post("/api/prospects", json=e.body([3]), headers=key).status_code == 422  # même clé, autre corps
-    assert e.add([0, 0, 0]).json()["already_present"] == [ids[0]]  # positions répétées : une seule fois
-
-
-def test_same_report_twice_in_one_request_creates_one_prospect(w):
-    e = Expedition(w, leads=[lead(1), lead(1)])
-    out = e.add([0, 1]).json()
-    assert len(out["added"]) == 1 and len(out["already_present"]) == 1 and count(w) == 1
-
-
-def test_concurrent_adds_of_same_lead_create_one_prospect(w):
-    e = Expedition(w, n=3)
-    results: list = []
-    barrier = threading.Barrier(6)
-
-    def run():
-        barrier.wait()
-        results.append(e.add([0, 1]))
-
-    threads = [threading.Thread(target=run) for _ in range(6)]
-    [t.start() for t in threads]
-    [t.join() for t in threads]
-    assert all(r.status_code in (200, 201) for r in results), [r.text for r in results]
-    assert count(w) == 2
-    ids = {p["id"] for r in results for p in r.json()["added"]} | {i for r in results for i in r.json()["already_present"]}
-    assert len(ids) == 2
 
 
 def test_same_company_two_sources_flagged_as_possible_duplicate(w):
@@ -282,21 +179,6 @@ def test_record_without_required_fields_not_recevable(w):
     del bad["collecte_le"]
     e = Expedition(w, records=[("annuaire", bad)], leads=[lead(1)])
     assert e.add([0]).json()["refused"] == [{"position": 0, "code": "LEAD_UNVERIFIED"}]
-
-
-def test_report_not_structured_or_unknown(w):
-    e = Expedition(w)
-    with w.sf() as db:
-        from app.models import ArtifactVersion
-
-        art = ArtifactVersion(attempt_id=e.attempt_id, type="report", content="pas du json", author="agent")
-        db.add(art)
-        db.commit()
-        bad = art.id
-    assert w.client.post("/api/prospects", json={**e.body([0]), "rapport_version_id": bad}, headers=k()).status_code == 422
-    assert w.client.post("/api/prospects", json={**e.body([0]), "rapport_version_id": "art_x"}, headers=k()).status_code == 404
-    assert w.client.post("/api/prospects", json={**e.body([])}, headers=k()).status_code == 422
-    assert w.client.post("/api/prospects", json={**e.body([-1])}, headers=k()).json()["refused"] == [{"position": -1, "code": "LEAD_UNVERIFIED"}]
 
 
 def test_real_mode_reliability_and_relevance(settings):
@@ -361,6 +243,7 @@ def test_list_sort_is_stable_and_complete(w):
 def test_cursor_pagination_covers_everything_once(w, tri, ordre):
     seeded(w)
     pid = w.client.get("/api/prospects?tri=entreprise").json()["items"][2]["id"]
+    give_reply(w, pid)
     w.client.patch(f"/api/prospects/{pid}", json={"version": 1, "statut": "gagne"}, headers=k())
     base = f"/api/prospects?tri={tri}&limit=3" + (f"&ordre={ordre}" if ordre else "")
     full = [p["id"] for p in w.client.get(base.replace("limit=3", "limit=100")).json()["items"]]
@@ -426,7 +309,7 @@ def test_detail(w):
     d = w.client.get(f"/api/prospects/{added[0]['id']}").json()
     assert d["instantane_source"]["source_ref"] == "ann_0001" and d["fiches"] == [] and d["brouillons"] == []
     assert [h["statut"] for h in d["historique_statut"]] == ["nouveau"]
-    assert d["expedition_id"] == e.attempt_id and d["rapport_version_id"] == e.report_id
+    assert d["search_id"] == e.search_id
 
 
 def test_patch_status_notes_version_and_contacte_le(w):
@@ -441,6 +324,7 @@ def test_patch_status_notes_version_and_contacte_le(w):
     assert w.client.patch(url, json={"version": 1, "notes": "périmé"}, headers=k()).json()["error"]["code"] == "VERSION_CONFLICT"
     assert w.client.get(url).json()["notes"] == "=SOMME(A1)\nsuite"
     # transitions libres ; contacte_le inchangé quand on repasse à « contacté »
+    give_reply(w, pid)
     w.client.patch(url, json={"version": 2, "statut": "gagne"}, headers=k())
     d = w.client.patch(url, json={"version": 3, "statut": "contacte"}, headers=k()).json()
     assert d["contacte_le"] == first and d["version"] == 4
@@ -548,8 +432,7 @@ def test_logs_contain_no_personal_content(w, caplog):
     w.client.get("/api/prospects?q=SECRETE-xyz")
     w.client.get("/api/prospects/export.csv")
     w.client.delete(f"/api/prospects/{pid}", headers=k())
-    w.client.post("/api/prospects", json=e.body([0]), headers=k())
     blob = "\n".join(r.getMessage() + json.dumps({k_: str(v) for k_, v in r.__dict__.items() if k_ not in ("args", "msg")}, default=str) for r in caplog.records if r.name.startswith("rubix"))
-    assert any(getattr(r, "event", "") == "prospects_add" for r in caplog.records)  # le test observe bien les journaux du carnet
+    assert any(getattr(r, "event", "") in ("prospects_delete", "prospects_export") for r in caplog.records)  # le test observe bien les journaux du carnet
     for secret in ("NOTE-SECRETE", "Boulangerie", "contact1@exemple.test", "Jeanne", "Épicerie", "Zèbre", "ann_000"):
         assert secret not in blob, secret

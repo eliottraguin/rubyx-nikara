@@ -28,16 +28,16 @@ describe("niveaux de l'immeuble (lus uniquement dans l'état)", () => {
   });
 
   it("équivalent texte permanent", () => {
-    expect(buildingText(5, 112, 125)).toBe("Immeuble niveau 5 sur 10, 112 $ gagnés au total, prochain niveau à 125 $");
-    expect(buildingText(1, 0, 20)).toBe("Immeuble niveau 1 sur 10, 0 $ gagné au total, prochain niveau à 20 $");
-    expect(buildingText(10, 640, null)).toBe("Immeuble niveau 10 sur 10, 640 $ gagnés au total, niveau maximal atteint");
-    expect(buildingText(3, 50, null)).toBe("Immeuble niveau 3 sur 10, 50 $ gagnés au total");
+    expect(buildingText(5, 7, 11)).toBe("Immeuble niveau 5 sur 10, 7 clients obtenus, encore 4 clients pour le niveau suivant");
+    expect(buildingText(1, 0, 1)).toBe("Immeuble niveau 1 sur 10, 0 client obtenu, encore 1 client pour le niveau suivant");
+    expect(buildingText(10, 40, null)).toBe("Immeuble niveau 10 sur 10, 40 clients obtenus, niveau maximal atteint");
+    expect(buildingText(3, 2, null)).toBe("Immeuble niveau 3 sur 10, 2 clients obtenus");
   });
 
   it("buildingVM : niveau 1 par défaut sans état, valeurs serveur sinon", () => {
-    expect(buildingVM(undefined)).toMatchObject({ level: 1, source: "defaut", totalEarned: 0, nextLevelAt: null });
-    expect(buildingVM({ level: 4, total_earned: 90, next_level_at: 125 })).toMatchObject({ level: 4, source: "serveur", totalEarned: 90, nextLevelAt: 125 });
-    expect(buildingVM({ level: 4, total_earned: -9, next_level_at: 125 }).totalEarned).toBe(0);
+    expect(buildingVM(undefined)).toMatchObject({ level: 1, source: "defaut", clientsObtained: 0, nextLevelAt: null });
+    expect(buildingVM({ level: 4, clients_obtained: 5, next_level_at: 7 })).toMatchObject({ level: 4, source: "serveur", clientsObtained: 5, nextLevelAt: 7 });
+    expect(buildingVM({ level: 4, clients_obtained: -9, next_level_at: 7 }).clientsObtained).toBe(0);
   });
 
   it("annonce une montée de niveau, jamais une baisse", () => {

@@ -1,45 +1,11 @@
 {
   "version": "rules_v1",
-  "source": "docs/RULES.md (cahier des charges v1.1, sections 5, 6, 7, 10, 16)",
+  "source": "docs/RULES.md ; limites techniques des appels au fournisseur (l'ancien moteur d'expédition est retiré, 6e décision)",
   "initial_capital": 30,
-  "initial_stage": "m1",
-  "initial_agents": ["writer"],
-  "agents": [
-    {"id": "writer",     "label": "Rédacteur",           "price": 0,  "unlock_mission": null},
-    {"id": "prospector", "label": "Prospecteur",         "price": 20, "unlock_mission": "m1"},
-    {"id": "researcher", "label": "Chargé de veille",    "price": 35, "unlock_mission": "m2"},
-    {"id": "qa",         "label": "Responsable qualité", "price": 30, "unlock_mission": "m2"},
-    {"id": "analyst",    "label": "Analyste",            "price": 45, "unlock_mission": "m3"},
-    {"id": "lead",       "label": "Chef d'équipe",       "price": 80, "unlock_mission": "m5"}
+  "initial_agents": [
+    "scout"
   ],
-  "missions": [
-    {"id": "m1",     "label": "Mission 1", "max_reward": 20,  "unit_price": 0, "unlocks": ["prospector"],            "initially_available": true},
-    {"id": "m2",     "label": "Mission 2", "max_reward": 30,  "unit_price": 1, "unlocks": ["researcher", "qa"],      "initially_available": false},
-    {"id": "m3",     "label": "Mission 3", "max_reward": 40,  "unit_price": 1, "unlocks": ["analyst"],               "initially_available": false},
-    {"id": "m4",     "label": "Mission 4", "max_reward": 60,  "unit_price": 2, "unlocks": [],                        "initially_available": false},
-    {"id": "m5",     "label": "Mission 5", "max_reward": 90,  "unit_price": 2, "unlocks": ["lead"],                  "initially_available": false},
-    {"id": "m6",     "label": "Mission 6", "max_reward": 150, "unit_price": 3, "unlocks": [],                        "initially_available": false},
-    {"id": "rescue", "label": "Mission de secours", "max_reward": 10, "unit_price": 0, "unlocks": [],              "initially_available": true}
-  ],
-  "quotas": {
-    "messages_per_agent_per_attempt": 5,
-    "clarifications_per_attempt": 2,
-    "model_calls_per_attempt": 36,
-    "model_calls_reserved_for_evaluation": 2,
-    "max_plan_steps": 2
-  },
-  "scoring": {
-    "pass_score": 50,
-    "final_pass_score": 60,
-    "essential_failure_cap": 40,
-    "final_mission_id": "m6",
-    "final_max_spend": 30,
-    "final_min_contributing_roles": 2
-  },
   "limits": {
-    "prompt_max_chars": 4000,
-    "business_agent_max_output_tokens": 800,
-    "client_or_lead_max_output_tokens": 1200,
     "call_timeout_seconds": 45,
     "technical_retries": 1,
     "provider_concurrency": 5,

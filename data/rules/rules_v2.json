@@ -3,8 +3,12 @@
   "source": "docs/RULES.md (sections 1 à 14, cap prospection ; §2 5e décision : hangar à 4 rôles) ; docs/PRODUIT-CLIENTS-PUB.md ; docs/VILLE-ET-BATIMENT.md section 4",
   "supersedes": "rules_v1",
   "initial_capital": 30,
+  "client_reward": 20,
   "initial_agents": [
-    "scout"
+    "scout",
+    "assistant_prospection",
+    "assistant_clients",
+    "assistant_pub"
   ],
   "agents": [
     {
@@ -12,35 +16,52 @@
       "label": "Éclaireur",
       "section": "prospection",
       "price": 0,
-      "unlock_planet": null,
-      "unlock_min_score": null
+      "unlock_clients": null
     },
     {
       "id": "triage",
       "label": "Trieur de boîte",
       "section": "clients",
       "price": 35,
-      "unlock_planet": "registre",
-      "unlock_min_score": 50
+      "unlock_clients": 1
     },
     {
       "id": "replier",
       "label": "Rédacteur (fiche client, premier message, réponses)",
       "section": "clients",
       "price": 45,
-      "unlock_planet": "carte-locale",
-      "unlock_min_score": 50
+      "unlock_clients": 2
     },
     {
       "id": "ads",
       "label": "Directeur de campagne",
       "section": "pub",
       "price": 50,
-      "unlock_planet": "linkedin",
-      "unlock_min_score": 50
+      "unlock_clients": 3
+    },
+    {
+      "id": "assistant_prospection",
+      "label": "Assistant Prospection",
+      "section": "prospection",
+      "price": 0,
+      "unlock_clients": null
+    },
+    {
+      "id": "assistant_clients",
+      "label": "Assistant Clients",
+      "section": "clients",
+      "price": 0,
+      "unlock_clients": null
+    },
+    {
+      "id": "assistant_pub",
+      "label": "Assistant Pub",
+      "section": "pub",
+      "price": 0,
+      "unlock_clients": null
     }
   ],
-  "real_mode_waives_score_unlock": [
+  "real_mode_waives_clients_unlock": [
     "triage",
     "replier",
     "ads"
@@ -49,82 +70,46 @@
     {
       "id": "annuaire",
       "label": "Annuaire",
-      "max_reward": 20,
       "unit_price": 0,
       "requires_pass": null,
-      "initially_available": true,
-      "engine_mission": "m1"
+      "initially_available": true
     },
     {
       "id": "registre",
       "label": "Registre",
-      "max_reward": 30,
       "unit_price": 1,
       "requires_pass": "annuaire",
-      "initially_available": false,
-      "engine_mission": "m2"
+      "initially_available": false
     },
     {
       "id": "carte-locale",
       "label": "Carte locale",
-      "max_reward": 40,
       "unit_price": 1,
       "requires_pass": "registre",
-      "initially_available": false,
-      "engine_mission": "m3"
+      "initially_available": false
     },
     {
       "id": "linkedin",
       "label": "LinkedIn",
-      "max_reward": 60,
       "unit_price": 2,
       "requires_pass": "carte-locale",
-      "initially_available": false,
-      "engine_mission": "m4"
+      "initially_available": false
     },
     {
       "id": "glassdoor",
       "label": "Glassdoor",
-      "max_reward": 90,
       "unit_price": 2,
       "requires_pass": "linkedin",
-      "initially_available": false,
-      "engine_mission": "m5"
+      "initially_available": false
     },
     {
       "id": "constellation",
       "label": "Constellation",
-      "max_reward": 150,
       "unit_price": 3,
       "requires_pass": "glassdoor",
-      "initially_available": false,
-      "engine_mission": "m6"
-    },
-    {
-      "id": "secours",
-      "label": "Secours",
-      "max_reward": 10,
-      "unit_price": 0,
-      "requires_pass": null,
-      "initially_available": true,
-      "engine_mission": "rescue"
+      "initially_available": false
     }
   ],
-  "quotas": {
-    "messages_per_agent_per_attempt": 5,
-    "clarifications_per_attempt": 2,
-    "model_calls_per_attempt": 36,
-    "model_calls_reserved_for_evaluation": 2,
-    "max_plan_steps": 2
-  },
-  "scoring": {
-    "pass_score": 50,
-    "final_pass_score": 60,
-    "essential_failure_cap": 40,
-    "final_mission_id": "constellation",
-    "final_max_spend": 30,
-    "final_min_contributing_roles": 2
-  },
   "prospect_actions": {
     "prospect_profile": {
       "role": "replier",
@@ -212,7 +197,10 @@
     "draft_max_chars": 800,
     "campaigns_max": 20,
     "campaign_name_max_chars": 80,
-    "campaign_instruction_max_chars": 500
+    "campaign_instruction_max_chars": 500,
+    "searches_per_day": 10,
+    "search_precision_max_chars": 300,
+    "search_data_max_age_days": 365
   },
   "messaging": {
     "send_per_day": 20,
@@ -226,44 +214,82 @@
     "levels": [
       {
         "level": 1,
-        "min_total_earned": 0
+        "min_clients": 0
       },
       {
         "level": 2,
-        "min_total_earned": 20
+        "min_clients": 1
       },
       {
         "level": 3,
-        "min_total_earned": 45
+        "min_clients": 2
       },
       {
         "level": 4,
-        "min_total_earned": 80
+        "min_clients": 4
       },
       {
         "level": 5,
-        "min_total_earned": 125
+        "min_clients": 7
       },
       {
         "level": 6,
-        "min_total_earned": 180
+        "min_clients": 11
       },
       {
         "level": 7,
-        "min_total_earned": 250
+        "min_clients": 16
       },
       {
         "level": 8,
-        "min_total_earned": 340
+        "min_clients": 22
       },
       {
         "level": 9,
-        "min_total_earned": 450
+        "min_clients": 30
       },
       {
         "level": 10,
-        "min_total_earned": 600
+        "min_clients": 40
       }
     ]
+  },
+  "assistant": {
+    "plans_max": 5,
+    "max_steps": 3,
+    "instruction_max_chars": 300,
+    "summary_max_chars": 300,
+    "step_types": {
+      "scout_search": {
+        "assistant": "assistant_prospection",
+        "agent": "scout",
+        "target": "planet"
+      },
+      "prospect_profile": {
+        "assistant": "assistant_prospection",
+        "agent": "replier",
+        "target": "prospect"
+      },
+      "prospect_message": {
+        "assistant": "assistant_prospection",
+        "agent": "replier",
+        "target": "prospect"
+      },
+      "conversation_triage": {
+        "assistant": "assistant_clients",
+        "agent": "triage",
+        "target": "conversation"
+      },
+      "conversation_reply": {
+        "assistant": "assistant_clients",
+        "agent": "replier",
+        "target": "conversation"
+      },
+      "ad_campaign": {
+        "assistant": "assistant_pub",
+        "agent": "ads",
+        "target": "campaign"
+      }
+    }
   }
 }

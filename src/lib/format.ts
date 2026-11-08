@@ -1,10 +1,7 @@
 import type {
   ActionStatus,
-  AttemptStatus,
   ErrorCode,
-  MissionStatus,
   RoleId,
-  SubmissionStatus,
 } from "./api/types";
 
 /** Format monétaire unique : entiers de jeu. */
@@ -19,23 +16,6 @@ export const ROLE_LABEL: Record<RoleId, string> = {
   ads: "Directeur de campagne",
 };
 
-export const MISSION_STATUS_LABEL: Record<MissionStatus, string> = {
-  LOCKED: "Verrouillée",
-  AVAILABLE: "Disponible",
-  ACTIVE: "En cours",
-  EVALUATING: "Évaluation en attente",
-  COMPLETED: "Terminée",
-  FAILED: "Non réussie",
-};
-
-export const ATTEMPT_STATUS_LABEL: Record<AttemptStatus, string> = {
-  AVAILABLE: "Disponible",
-  ACTIVE: "En cours",
-  EVALUATING: "Évaluation en cours",
-  COMPLETED: "Terminée",
-  FAILED: "Non réussie",
-};
-
 export const ACTION_STATUS_LABEL: Record<ActionStatus, string> = {
   PENDING: "En file d'attente",
   RESERVED: "Coût réservé",
@@ -44,12 +24,6 @@ export const ACTION_STATUS_LABEL: Record<ActionStatus, string> = {
   PARTIAL: "Partielle",
   FAILED: "Échouée",
   AWAITING_CONFIRMATION: "À confirmer",
-};
-
-export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatus, string> = {
-  EVALUATING: "Évaluation en cours",
-  EVALUATION_PENDING: "Évaluation en attente",
-  EVALUATED: "Évaluée",
 };
 
 /** Messages par défaut (français) pour les codes stables, si l'API n'en fournit pas. */

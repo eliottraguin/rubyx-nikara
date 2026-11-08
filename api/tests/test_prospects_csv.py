@@ -10,7 +10,7 @@ import re
 import pytest
 
 from app.services import prospects_csv as out
-from tests.prospects_support import Expedition, annuaire, k, lead, second_client, world
+from tests.prospects_support import Expedition, annuaire, give_reply, k, lead, second_client, world
 from tests.test_prospects import w  # noqa: F401  (fixture)
 
 DANGEROUS = ["=", "+", "-", "@", "\t", "\r"]
@@ -35,8 +35,9 @@ def test_headers_format_and_no_store(w):  # noqa: F811
     assert rows[0] == [
         "id", "entreprise", "contact", "fonction", "canal_type", "canal", "raison_de_correspondance", "pertinence", "fiabilite",
         "origine", "simule", "statut", "notes", "ajoute_le", "contacte_le", "source_ref",
+        "etiquette_pertinence", "citation_pertinence",
     ]
-    assert len(rows) == 3 and all(len(x) == 16 for x in rows)
+    assert len(rows) == 3 and all(len(x) == 18 for x in rows)
     row = dict(zip(rows[0], rows[1]))
     assert row["simule"] == "oui" and row["origine"] == "annuaire" and row["source_ref"].startswith("ann_") and row["contacte_le"] == ""
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", row["ajoute_le"]) and row["pertinence"].isdigit()
@@ -68,7 +69,7 @@ def test_tab_and_cr_cells_neutralized_even_if_stored_raw(w):  # noqa: F811
             db.add(Prospect(
                 session_id=w.sid, entreprise=v, entreprise_cle=v, contact_nom=v, contact_fonction=v, canal_type=v, canal_valeur=v,
                 source=v, source_ref=v, raisons_fit=[v], signal=v, pertinence=50, fiabilite=v, simule=True, instantane={}, collecte_le=None,
-                expedition_id=v, rapport_version_id=v, profile_version=1, statut=v, notes=v,
+                search_id=v, profile_version=1, statut=v, notes=v,
             ))
         db.commit()
     rows = parse(w.client.get("/api/prospects/export.csv"))
@@ -139,7 +140,7 @@ def test_quotes_semicolons_and_newlines_roundtrip(w):  # noqa: F811
     assert row["entreprise"] == 'Dupont; "Fils" & Cie'
     assert row["notes"].startswith("'=HYPERLINK(") and "ligne 2; avec \"guillemets\"" in row["notes"]
     assert row["raison_de_correspondance"] == 'x | y | z"q'
-    assert len(rows) == 2 and len(rows[1]) == 16  # les sauts de ligne internes n'ont pas cassé les lignes
+    assert len(rows) == 2 and len(rows[1]) == 18  # les sauts de ligne internes n'ont pas cassé les lignes
 
 
 def test_phone_number_is_made_harmless(w):  # noqa: F811
@@ -154,6 +155,7 @@ def test_phone_number_is_made_harmless(w):  # noqa: F811
 def test_export_uses_same_filters_and_sort_as_list(w):  # noqa: F811
     e = Expedition(w, n=4)
     ids = [p["id"] for p in e.add([0, 1, 2, 3]).json()["added"]]
+    give_reply(w, ids[1])
     w.client.patch(f"/api/prospects/{ids[1]}", json={"version": 1, "statut": "gagne"}, headers=k())
     rows = parse(w.client.get("/api/prospects/export.csv?statut=gagne"))
     assert [r[0] for r in rows[1:]] == [ids[1]] and rows[1][11] == "gagne"

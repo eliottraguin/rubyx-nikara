@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI06 — Protocole de calibration du client évaluateur (prêt à exécuter, NON exécuté)
 
 **Aucune mesure n'a été faite.** Aucun résultat ci-dessous n'est un chiffre observé : les cases à remplir sont vides.

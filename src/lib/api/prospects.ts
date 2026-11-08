@@ -1,5 +1,8 @@
 import { mapErrorCode } from "./adapt";
 import { ApiError, type ErrorCode } from "./types";
+import { toPertinence, type Pertinence } from "./searches";
+
+export type { Pertinence };
 
 /** Carnet de prospection (`/api/prospects`). Types alignés sur `api/app/schemas/prospects.py`. Tout texte est non fiable : à rendre en TEXTE. */
 
@@ -31,7 +34,10 @@ export interface Prospect {
   source_ref: string;
   raisons_fit: string[];
   signal?: string | null;
-  pertinence: number;
+  /** Étiquette de pertinence (jamais un nombre). Champ absent ou inconnu : « à vérifier ». */
+  pertinence_etiquette: Pertinence;
+  /** Extrait littéral de la source qui justifie l'étiquette (texte NON FIABLE, à rendre en texte). */
+  pertinence_citation?: string | null;
   fiabilite: Fiabilite;
   simule: boolean;
   statut: string;
@@ -55,6 +61,7 @@ export interface ProspectQuery {
   tri?: ProspectTri;
   ordre?: ProspectOrdre;
   statut?: string;
+  etiquette?: Pertinence;
   q?: string;
   cursor?: string;
   limit?: number;
@@ -66,6 +73,7 @@ export function buildQuery(p: ProspectQuery, forExport = false): string {
   if (p.tri) u.set("tri", p.tri);
   if (p.ordre) u.set("ordre", p.ordre);
   if (p.statut) u.set("statut", p.statut);
+  if (p.etiquette) u.set("etiquette", p.etiquette);
   const q = p.q?.trim();
   if (q) u.set("q", q.slice(0, 100));
   if (!forExport) {
@@ -97,6 +105,13 @@ async function toError(res: Response): Promise<ApiError> {
     else if (res.status === 401) code = "NO_SESSION";
   }
   return new ApiError(code, message, res.status);
+}
+
+/** Lecture tolérante : l'API de tri de pertinence peut ne pas être livrée (champ absent ou nombre hérité => « à vérifier »). */
+export function adaptProspect<T extends object>(raw: T): T & { pertinence_etiquette: Pertinence; pertinence_citation: string | null } {
+  const r = raw as Record<string, unknown>;
+  const citation = typeof r.pertinence_citation === "string" && r.pertinence_citation.trim() ? r.pertinence_citation : null;
+  return { ...raw, pertinence_etiquette: toPertinence(r.pertinence_etiquette), pertinence_citation: citation };
 }
 
 export interface ProspectsClient {
@@ -134,9 +149,12 @@ export function createProspectsClient(opts: { fetch?: typeof fetch } = {}): Pros
   }
 
   return {
-    list: (p = {}) => send<ProspectList>("GET", `/prospects${buildQuery(p)}`),
-    get: (id) => send<ProspectDetail>("GET", `/prospects/${encodeURIComponent(id)}`),
-    patch: (id, body) => send<ProspectDetail>("PATCH", `/prospects/${encodeURIComponent(id)}`, body, true),
+    list: async (p = {}) => {
+      const r = await send<ProspectList>("GET", `/prospects${buildQuery(p)}`);
+      return { ...r, items: (r.items ?? []).map(adaptProspect) };
+    },
+    get: async (id) => adaptProspect(await send<ProspectDetail>("GET", `/prospects/${encodeURIComponent(id)}`)),
+    patch: async (id, body) => adaptProspect(await send<ProspectDetail>("PATCH", `/prospects/${encodeURIComponent(id)}`, body, true)),
     remove: (id) => send<void>("DELETE", `/prospects/${encodeURIComponent(id)}`, undefined, true),
     purge: () => send<void>("DELETE", "/prospects", undefined, true),
   };

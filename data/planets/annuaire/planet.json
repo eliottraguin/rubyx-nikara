@@ -1,0 +1,255 @@
+{
+  "id": "annuaire",
+  "version": 1,
+  "simule": true,
+  "label": "Bibliothèque publique",
+  "lieu_ville": "Bibliothèque publique",
+  "description": "Une bibliothèque de quartier tient un annuaire des commerces de proximité : nom, ville, adresse professionnelle et canaux génériques de la boutique. Ouvert dès le départ.",
+  "source": "annuaire",
+  "source_type": "annuaire_commerces",
+  "scope": "B2B",
+  "operations_autorisees": [
+    {
+      "id": "search",
+      "description": "Recherche par filtres structurés ; renvoie des enregistrements du corpus, jamais d'invention ; peut ne rien trouver.",
+      "filtres": [
+        {
+          "name": "ville",
+          "type": "string",
+          "match": "exact_insensible"
+        },
+        {
+          "name": "secteur",
+          "type": "string",
+          "match": "exact_insensible"
+        },
+        {
+          "name": "statut",
+          "type": "string",
+          "match": "exact"
+        },
+        {
+          "name": "effectif_tranche",
+          "type": "string",
+          "match": "exact"
+        }
+      ],
+      "max_resultats": 15
+    }
+  ],
+  "source_ref_field": "record_id",
+  "champs_renvoyes": [
+    {
+      "name": "record_id",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": true
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": true
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "personal_data": false,
+      "required": true
+    },
+    {
+      "name": "secteur",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 80,
+      "required": false
+    },
+    {
+      "name": "adresse_pro",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 200,
+      "required": false
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 80,
+      "required": false
+    },
+    {
+      "name": "code_postal",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 10,
+      "required": false
+    },
+    {
+      "name": "telephone_standard",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 30,
+      "required": false
+    },
+    {
+      "name": "email_generique",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": false
+    },
+    {
+      "name": "site_web",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 200,
+      "required": false
+    },
+    {
+      "name": "statut",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 40,
+      "required": false
+    },
+    {
+      "name": "effectif_tranche",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 40,
+      "required": false
+    }
+  ],
+  "champs_exclus_toujours": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "deblocage": {
+    "type": "ouvert"
+  },
+  "corpus": "corpus.json",
+  "reponses_tests": "answers.json",
+  "variantes": {
+    "beginner": {
+      "max_resultats": 10,
+      "pieges_inclus": [
+        "hors_zone",
+        "ferme_ou_radie",
+        "doublon"
+      ],
+      "indices": true
+    },
+    "expert": {
+      "max_resultats": 15,
+      "pieges_inclus": [
+        "hors_zone",
+        "ferme_ou_radie",
+        "doublon",
+        "secteur_voisin",
+        "taille_voisine",
+        "donnee_perimee",
+        "injection"
+      ],
+      "indices": false
+    }
+  },
+  "correspondance_secteurs": {
+    "secteur": {
+      "Boulangerie-pâtisserie": "commerce_distribution",
+      "Épicerie": "commerce_distribution",
+      "Fleuriste": "commerce_distribution",
+      "Librairie": "commerce_distribution",
+      "Boucherie-charcuterie": "commerce_distribution",
+      "Cave à vins": "commerce_distribution",
+      "Mercerie": "commerce_distribution",
+      "Papeterie": "commerce_distribution",
+      "Fromagerie": "commerce_distribution",
+      "Quincaillerie": "commerce_distribution",
+      "Bricolage": "commerce_distribution",
+      "Grande distribution": "commerce_distribution",
+      "Restaurant": "restauration_hotellerie",
+      "Crêperie": "restauration_hotellerie",
+      "Café-bar": "restauration_hotellerie",
+      "Traiteur": "restauration_hotellerie",
+      "Coiffure": "services_personne"
+    }
+  },
+  "tranches_effectif": [
+    {
+      "label": "1 à 5",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "label": "6 à 9",
+      "min": 6,
+      "max": 9
+    },
+    {
+      "label": "6 à 10",
+      "min": 6,
+      "max": 10
+    },
+    {
+      "label": "10 à 19",
+      "min": 10,
+      "max": 19
+    },
+    {
+      "label": "11 à 20",
+      "min": 11,
+      "max": 20
+    },
+    {
+      "label": "20 à 49",
+      "min": 20,
+      "max": 49
+    },
+    {
+      "label": "50 à 99",
+      "min": 50,
+      "max": 99
+    },
+    {
+      "label": "plus de 50",
+      "min": 51,
+      "max": null
+    },
+    {
+      "label": "100 à 199",
+      "min": 100,
+      "max": 199
+    },
+    {
+      "label": "200 à 249",
+      "min": 200,
+      "max": 249
+    },
+    {
+      "label": "250 à 499",
+      "min": 250,
+      "max": 499
+    },
+    {
+      "label": "500 et plus",
+      "min": 500,
+      "max": null
+    }
+  ],
+  "exemples": [
+    "planets/annuaire/examples/exemple_caisse_commerce.json",
+    "planets/annuaire/examples/exemple_emballages_restauration.json"
+  ],
+  "corpus_fictif": true,
+  "badge": "Simulé"
+}

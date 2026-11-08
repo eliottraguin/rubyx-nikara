@@ -7,23 +7,24 @@ import { buildingHref, type FloorId } from "@/game/building/floors";
 import { BotList, BuildingStatus, PlanetList } from "@/components/map/AccessibleLayer";
 import { AgentsPanel } from "@/components/map/AgentsPanel";
 import { BasePanel } from "@/components/map/BasePanel";
-import { useTrips, usePlanetAttempts } from "@/components/map/hooks";
+import { useTrips } from "@/components/map/hooks";
 import { MapHost } from "@/components/map/MapHost";
 import { PlanetDetail } from "@/components/map/PlanetDetail";
 import { AgentsSummary, PlanetPanel } from "@/components/map/PlanetPanel";
 import { SidePanel } from "@/components/map/SidePanel";
+import { lockedMessage } from "@/components/search/places";
+import { SearchLauncher } from "@/components/search/SearchLauncher";
+import { useSearch } from "@/components/search/useSearch";
+import { useTips } from "@/components/search/useTips";
 import { Loading, Notice } from "@/components/ui";
 import { botLine } from "@/game/map/bots";
 import { MapBus } from "@/game/map/bus";
 import { levelUpMessage } from "@/game/map/building";
-import { planetAttempt } from "@/game/map/dispatch";
-import { mergeCurrentAttempt } from "@/game/map/history";
 import { tripFrame, type TripPhase } from "@/game/map/trips";
-import { buildMapViewModel, instructionsRemaining, modeLabel } from "@/game/map/viewmodel";
-import { ApiError, type AttemptView, type GameState, type RoleId } from "@/lib/api/types";
+import { buildMapViewModel, modeLabel } from "@/game/map/viewmodel";
+import { ApiError, type GameState, type RoleId } from "@/lib/api/types";
 import { ROLE_LABEL, money } from "@/lib/format";
 import { useGame } from "@/lib/game-context";
-import { SafeMarkdown } from "@/lib/markdown";
 
 /** Largeur du panneau latéral en surimpression (28 rem à 16 px) : la caméra la déduit de son cadrage. */
 const PANEL_WIDTH = 448;
@@ -51,18 +52,6 @@ function useReducedMotion(): boolean {
 
 type View = "carte" | "liste";
 
-interface Report {
-  key: string;
-  planetId: string;
-  planetName: string;
-  attemptNo: number;
-  attemptId: string;
-  score: number;
-  passed: boolean;
-  payment: number;
-  feedback: string;
-}
-
 export function MapScreen() {
   const { state } = useGame();
   if (state === undefined) return <Loading label="Chargement de votre partie…" />;
@@ -81,7 +70,7 @@ function setUrlPlanet(id: string | null) {
 }
 
 function MapView({ state }: { state: GameState | null }) {
-  const { api, mutate, busy } = useGame();
+  const { mutate, busy, refresh } = useGame();
   const router = useRouter();
   const vm = useMemo(() => buildMapViewModel(state), [state]);
   const reduced = useReducedMotion();
@@ -101,7 +90,6 @@ function MapView({ state }: { state: GameState | null }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [constructing, setConstructing] = useState(false);
   const [live, setLive] = useState("");
-  const [report, setReport] = useState<Report | null>(null);
   const focusRef = useRef<string | null>(null);
   const lastFocusEl = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -136,6 +124,17 @@ function MapView({ state }: { state: GameState | null }) {
 
   // ───────────── Voyages des agents ─────────────
   const tc = useTrips(state, vm, reduced);
+  const { launch, bind } = tc;
+  const tips = useTips(!!state && state.session?.mode !== "expert");
+  // Recherche du bot : le voyage part quand le serveur accepte, rentre (ou tombe en panne) à la fin. Aucune règle ici.
+  const search = useSearch({
+    onStart: (planetId) => launch(planetId, "scout"),
+    onEnd: (tripId, ok) => {
+      if (tripId) bind(tripId, { id: `search-${tripId}`, type: "search", role: "scout", status: ok ? "SUCCEEDED" : "FAILED", reserved: 0, debited: 0 });
+    },
+    onDone: () => void refresh(),
+  });
+  const openConversation = useCallback((id: string) => router.push(buildingHref("courrier", { conversation: id })), [router]);
   useEffect(() => {
     bus.setTrips(tc.trips);
   }, [bus, tc.trips]);
@@ -274,52 +273,6 @@ function MapView({ state }: { state: GameState | null }) {
 
   const planet = focusId && focusId !== "base" ? (vm.planets.find((p) => p.id === focusId) ?? null) : null;
 
-  // ───────────── Données de la planète ouverte ─────────────
-  const cur = state?.attempt ?? null;
-  const dataSig = `${cur?.id}:${cur?.messages.length}:${cur?.status}:${cur?.submission?.status}:${cur?.artifacts.length}:${state?.balance.booked}`;
-  const fetched = usePlanetAttempts(api, planet?.missionId ?? null, dataSig);
-  const attempts: AttemptView[] = useMemo(() => mergeCurrentAttempt(fetched.attempts, cur, planet?.missionId ?? null), [fetched.attempts, cur, planet?.missionId]);
-  const active = planet ? planetAttempt(planet, cur, attempts) : null;
-
-  // ───────────── Actions ─────────────
-  const dispatchAgent = useCallback(
-    async (input: { role: RoleId; text: string; docIds: string[] }): Promise<ApiError | null> => {
-      if (!planet || !state) return new ApiError("INVALID_STATE", "Aucun lieu ouvert.");
-      // Le voyage visuel part au clic ; il est annulé si le serveur refuse l'envoi.
-      const tripId = tc.launch(planet.id, input.role);
-      let attempt = planetAttempt(planet, state.attempt, attempts);
-      if (!attempt || attempt.status !== "ACTIVE") {
-        const retry = planet.missionStatus === "FAILED" || planet.missionStatus === "COMPLETED";
-        const missionId = planet.missionId;
-        if (!missionId) {
-          tc.drop(tripId);
-          return new ApiError("INVALID_STATE", "Ce lieu n'est pas ouvrable pour le moment.");
-        }
-        const opened = await mutate((a) => (retry ? a.retryMission(missionId) : a.startMission(missionId)));
-        if (!opened.ok) {
-          tc.drop(tripId);
-          return opened.error;
-        }
-        attempt = opened.result.state.attempt;
-        if (!attempt || attempt.mission_id !== missionId) {
-          tc.drop(tripId);
-          return new ApiError("INVALID_STATE", "L'expédition n'a pas pu être ouverte.");
-        }
-      }
-      const quota = attempt.roles.find((r) => r.role === input.role);
-      const cost = quota ? (quota.free_credit ? 0 : quota.next_cost_max) : 0;
-      const attemptId = attempt.id;
-      const sent = await mutate((a) => a.sendMessage(attemptId, { role: input.role, text: input.text, document_ids: input.docIds, max_cost_confirmed: cost }));
-      if (!sent.ok) {
-        tc.drop(tripId);
-        return sent.error;
-      }
-      tc.bind(tripId, sent.result.action);
-      return null;
-    },
-    [planet, state, attempts, mutate, tc],
-  );
-
   const buyAgent = useCallback(
     async (role: RoleId): Promise<ApiError | null> => {
       const r = await mutate((a) => a.purchaseAgent(role));
@@ -328,37 +281,6 @@ function MapView({ state }: { state: GameState | null }) {
     },
     [mutate],
   );
-
-  const deliver = useCallback(
-    async (attempt: AttemptView, versionId: string): Promise<ApiError | null> => {
-      const r = await mutate((a) => a.submit(attempt.id, { artifact_version_id: versionId, brief_version: attempt.brief.version }));
-      if (!r.ok) return r.error;
-      setLive("Rapport livré : le serveur l'évalue.");
-      return null;
-    },
-    [mutate],
-  );
-
-  // Rapport d'expédition sur la carte : dès qu'une évaluation arrive (livraison depuis la carte ou ailleurs).
-  const evalKey = cur?.submission?.evaluation ? `${cur.id}:${cur.submission.id}` : null;
-  const lastEval = useRef<string | null | undefined>(undefined);
-  useEffect(() => {
-    if (lastEval.current === undefined) {
-      lastEval.current = evalKey; // première lecture : l'existant n'est pas « nouveau »
-      return;
-    }
-    if (!evalKey || evalKey === lastEval.current || !cur?.submission?.evaluation) {
-      lastEval.current = evalKey;
-      return;
-    }
-    lastEval.current = evalKey;
-    const ev = cur.submission.evaluation;
-    const p = vmRef.current.planets.find((x) => x.missionId === cur.mission_id);
-    if (!p) return;
-    setReport({ key: evalKey, planetId: p.id, planetName: p.title, attemptNo: cur.attempt_no, attemptId: cur.id, score: ev.score, passed: ev.passed, payment: ev.payment.credited, feedback: ev.client_feedback });
-    setLive(`Retour d'expédition à ${p.title} : score ${ev.score} sur 100${ev.payment.credited > 0 ? `, ${ev.payment.credited} dollars crédités` : ""}.`);
-    if (ev.payment.credited > 0) bus.emit("reward", p.id, ev.payment.credited);
-  }, [evalKey, cur, bus]);
 
   const showMap = view === "carte" && !mapError;
 
@@ -386,7 +308,6 @@ function MapView({ state }: { state: GameState | null }) {
   const sentCount = planet ? new Set(tc.trips.filter((t) => t.planetId === planet.id).map((t) => t.role)).size : 0;
   const open = focusId !== null;
   const ownedRoles = (state?.agents ?? []).filter((a) => a.owned).map((a) => a.role);
-  const left = instructionsRemaining(state);
   const toggleList = () => setView(view === "carte" ? "liste" : "carte");
 
   const noticeMaquette =
@@ -398,17 +319,7 @@ function MapView({ state }: { state: GameState | null }) {
 
   const detail =
     planet && state ? (
-      <PlanetDetail
-        ref={headingRef}
-        planet={planet}
-        attempts={attempts}
-        loading={fetched.loading && attempts.length === 0}
-        loadError={fetched.error}
-        onReload={fetched.reload}
-        active={active}
-        busy={busy}
-        onDeliver={deliver}
-      />
+      <PlanetDetail ref={headingRef} planet={planet} lockedText={lockedMessage(vm.planets, planet.id)} />
     ) : null;
 
   const agentsPanel =
@@ -418,51 +329,19 @@ function MapView({ state }: { state: GameState | null }) {
         key={planet.id}
         state={state}
         planet={planet}
-        attempt={active}
         trips={tc.trips}
         now={tc.now}
         reduced={reduced}
         busy={busy}
-        onDispatch={dispatchAgent}
         onBuy={buyAgent}
         onOpenBase={() => enterBuilding("accueil")}
       />
     ) : null;
 
-  const reportCard = report ? (
-    <section className="map-report" role="region" aria-label="Rapport d'expédition">
-      <h2 className="h4">Retour d&apos;expédition : {report.planetName}</h2>
-      <p>
-        Score <strong>{report.score} / 100</strong> — {report.passed ? "réussie" : "à retravailler"}.{" "}
-        {report.payment > 0 ? <strong>+{money(report.payment)} au coffre.</strong> : "Aucun gain crédité."}
-      </p>
-      {report.feedback ? (
-        <div className="report-feedback">
-          <SafeMarkdown text={report.feedback} />
-        </div>
-      ) : null}
-      <div className="row">
-        <button
-          type="button"
-          className="btn btn-small btn-primary"
-          onClick={() => {
-            openFocus(report.planetId);
-            setSheetOpen(false);
-            requestAnimationFrame(() => document.getElementById("planet-history")?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }));
-            setReport(null);
-          }}
-        >
-          Voir dans l&apos;historique
-        </button>
-        <button type="button" className="btn btn-small" onClick={() => setReport(null)}>
-          Fermer
-        </button>
-      </div>
-      <p className="help report-links">
-        Écran détaillé (secondaire) : <Link href={`/retour/${report.attemptId}`}>retour du client</Link>
-      </p>
-    </section>
-  ) : null;
+  const launcher =
+    planet && state ? (
+      <SearchLauncher key={`search-${planet.id}`} planets={vm.planets} planetId={planet.id} controller={search} tips={tips} onOpenConversation={openConversation} />
+    ) : null;
 
   const live$ = (
     <div className="sr-only" role="status" aria-live="polite">
@@ -506,11 +385,14 @@ function MapView({ state }: { state: GameState | null }) {
           </Notice>
         ) : null}
         <div className={`map-layout map-layout-list ${open ? "planet-open" : ""}`}>
-          <div className="map-main">{detail}</div>
+          <div className="map-main">
+            {detail}
+            {launcher ? <section className="card">{launcher}</section> : null}
+          </div>
           {open && state ? (
             <SidePanel
               title={planet ? `Bots vers ${planet.title}` : "Votre immeuble : garage et coffre"}
-              summary={planet ? (sentCount > 0 ? `${sentCount} en mission` : "Envoyer un bot") : money(state.balance.available)}
+              summary={planet ? (sentCount > 0 ? `${sentCount} en mission` : "Bots") : money(state.balance.available)}
               open={sheetOpen}
               onToggle={() => setSheetOpen((o) => !o)}
             >
@@ -554,11 +436,6 @@ function MapView({ state }: { state: GameState | null }) {
           <button type="button" className="hud-chip hud-btn" onClick={() => enterBuilding("accueil")} aria-label={`Coffre : ${vm.treasury === null ? "inconnu" : money(vm.treasury)}. Ouvrir votre immeuble.`}>
             <span className="hud-label">Coffre</span> <strong>{vm.treasury === null ? "—" : money(vm.treasury)}</strong>
           </button>
-          {left !== null ? (
-            <span className="hud-chip" aria-label={`${left} instruction${left > 1 ? "s" : ""} restante${left > 1 ? "s" : ""} sur l'expédition en cours`}>
-              <span className="hud-label">Instructions</span> <strong>{left}</strong>
-            </span>
-          ) : null}
           <button type="button" className="hud-chip hud-btn" onClick={() => enterBuilding("accueil")} aria-label="Garage : ouvrir votre immeuble.">
             <span className="hud-label">Garage</span> <strong>{vm.source === "serveur" ? `${vm.base.agentsOwned}/${vm.base.agentsTotal}` : "—"}</strong>
           </button>
@@ -610,9 +487,6 @@ function MapView({ state }: { state: GameState | null }) {
                   </button>
                 </li>
                 <li>
-                  <Link href="/carnet">Carnet et bilan</Link>
-                </li>
-                <li>
                   <Link href="/boutique">Boutique</Link>
                 </li>
                 <li>
@@ -647,8 +521,6 @@ function MapView({ state }: { state: GameState | null }) {
           </div>
         ) : null}
 
-        {reportCard}
-
         <div className="map-tools">
           <button type="button" className="map-tool" aria-label="Zoom avant" onClick={() => bus.emit("camera:zoom", 1.3)}>
             +
@@ -674,8 +546,11 @@ function MapView({ state }: { state: GameState | null }) {
             <div className="city-panel-body">
               {planet ? (
                 <>
-                  {agentsPanel}
                   {detail}
+                  <section className="card" aria-label="Chercher des clients">
+                    {launcher}
+                  </section>
+                  {agentsPanel}
                 </>
               ) : (
                 <>

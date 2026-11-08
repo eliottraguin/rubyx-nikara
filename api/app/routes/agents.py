@@ -18,7 +18,7 @@ router = APIRouter(tags=["économie"])
     responses={401: ERRORS[401], 409: ERRORS[409], 422: ERRORS[422]},
 )
 def purchase(payload: PurchaseIn, request: Request, response: Response, eng: Engine, session_id: SessionId, key: IdempotencyKey) -> PurchaseOut:
-    """Achète un rôle débloqué (réussite de la mission requise) si le solde disponible le permet.
+    """Achète un rôle débloqué (nombre de clients obtenus atteint, ou condition levée en Réel) si le solde disponible le permet.
     Le prix vient des règles serveur. Même `Idempotency-Key` : même résultat, aucun second débit (200)."""
     result, replay = purchase_agent(eng.sf, eng.rules, session_id, key, payload.role.value, request.app.state.rules_v2)
     if replay:

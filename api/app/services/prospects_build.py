@@ -1,4 +1,4 @@
-"""Construction d'un prospect à partir d'un lead de rapport et de l'enregistrement de la source (API-I2).
+"""Construction d'un prospect à partir d'un lead de rapport et de l'enregistrement de la source (recherche du bot, API-S1).
 
 Principe (règles 12 et 14) : **le contenu vient de l'enregistrement renvoyé par la source** (donnée serveur, minimisée par
 liste blanche), pas du lead écrit par le modèle ni, bien sûr, du navigateur. Du lead on ne garde que des textes libres

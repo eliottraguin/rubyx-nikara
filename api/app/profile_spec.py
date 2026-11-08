@@ -36,7 +36,7 @@ class ProfileSpec(_Spec):
     fields: dict[str, FieldSpec]
     sectors: list[dict[str, str]] = []
     free_entry_allowed: bool = True
-    examples: list[dict[str, Any]] = []  # fiches d'exemple du Tutoriel (data/profile/examples/), triées par nom de fichier
+    examples: list[dict[str, Any]] = []  # fiches d'exemple du Tutoriel (data/profile/examples/), puis celles de `data/planets/*/examples/`, triées par nom de fichier
 
     @property
     def field_names(self) -> list[str]:
@@ -51,4 +51,7 @@ def load_profile_spec(data_dir: Path) -> ProfileSpec:
     if ex_dir.is_dir():
         for path in sorted(ex_dir.glob("*.json")):
             examples.append(json.loads(path.read_text(encoding="utf-8")))
+    # fiches d'exemple des lieux : celles de l'annuaire donnent un Tutoriel qui trouve des prospects dès la première recherche
+    for path in sorted((data_dir / "planets").glob("*/examples/*.json")):
+        examples.append(json.loads(path.read_text(encoding="utf-8")))
     return ProfileSpec.model_validate({**raw, "examples": examples})

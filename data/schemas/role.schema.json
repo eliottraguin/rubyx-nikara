@@ -7,19 +7,13 @@
     "id": {
       "type": "string",
       "enum": [
-        "writer",
-        "prospector",
-        "researcher",
-        "analyst",
-        "qa",
-        "lead",
-        "client_evaluator",
-        "client_clarifier",
-        "coach",
         "scout",
         "triage",
         "replier",
-        "ads"
+        "ads",
+        "assistant_prospection",
+        "assistant_clients",
+        "assistant_pub"
       ]
     },
     "kind": {
@@ -118,14 +112,13 @@
       "type": "string",
       "enum": [
         "agent_response",
-        "lead_plan",
-        "evaluator_output",
         "free_text",
         "prospect_fiche",
         "prospect_message",
         "conversation_synthese",
         "conversation_reponse",
-        "ad_kit"
+        "ad_kit",
+        "assistant_plan"
       ]
     },
     "max_output_tokens_key": {

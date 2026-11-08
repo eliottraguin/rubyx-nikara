@@ -5,31 +5,21 @@ import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 
 from app import export_fixtures, export_openapi
-from app.config import REPO_DIR, Settings
+from app.config import Settings
 from app.db import alembic_config, make_engine, make_session_factory, run_migrations
 from app.main import create_app
-from app.models import (
-    ActionRun,
-    AgentOwnership,
-    ArtifactVersion,
-    Base,
-    Evaluation,
-    GameSession,
-    LedgerEntry,
-    MissionAttempt,
-    Submission,
-)
+from app.models import ActionRun, AgentOwnership, Base, GameSession, LedgerEntry
 
 from .conftest import new_key
 
-TABLES = {
-    "game_sessions", "agent_ownerships", "mission_definitions", "mission_attempts", "messages",
-    "artifact_versions", "submissions", "evaluations", "ledger_entries", "action_runs", "llm_calls",
-    "notebook_entries", "reservations", "artifact_shares", "applied_events",
+TABLES = {"game_sessions", "agent_ownerships", "ledger_entries", "action_runs", "llm_calls", "reservations"}
+RETIRED_TABLES = {  # ancien moteur d'expédition et d'évaluation (migration 0015)
+    "mission_definitions", "mission_attempts", "messages", "artifact_versions", "artifact_shares", "submissions", "evaluations",
+    "expedition_records", "notebook_entries", "applied_events",
 }
 
 
@@ -43,7 +33,7 @@ def db(settings: Settings):
 
 
 def _session(db) -> GameSession:
-    g = GameSession(token_hash=f"h{db.scalar(text('select random()'))}", mode="beginner", company={"name": "x"}, stage="m1", seed=1, rules_version="rules_v1")
+    g = GameSession(token_hash=f"h{db.scalar(text('select random()'))}", mode="beginner", company={"name": "x"}, seed=1, rules_version="rules_v1")
     db.add(g)
     db.commit()
     return g
@@ -55,6 +45,7 @@ def test_migrations_create_all_tables_and_are_idempotent(settings):
     with sqlite3.connect(settings.db_path) as c:
         names = {r[0] for r in c.execute("select name from sqlite_master where type='table'")}
     assert TABLES <= names
+    assert RETIRED_TABLES.isdisjoint(names)
     assert set(Base.metadata.tables) <= names
 
 
@@ -68,11 +59,36 @@ def test_migration_downgrade(settings):
     assert names <= {"alembic_version"}
 
 
+def test_migration_0011_drops_old_journey_tables_and_downgrades(settings):
+    """API-R2 : `notebook_entries` et `applied_events` disparaissent sur une base existante (parties conservées) ;
+    `submissions`/`evaluations` et `mission_attempts` sont retirées plus tard par la migration 0015 ; le retour arrière recrée les deux tables."""
+    from alembic import command
+
+    cfg = alembic_config(settings.database_url)
+    command.upgrade(cfg, "0010_assistant_plans")
+    with sqlite3.connect(settings.db_path) as c:
+        c.execute("insert into game_sessions (id, token_hash, mode, company, state, stage, seed, rules_version, created_at, updated_at) "
+                  "values ('ses_x','h','beginner','{}','ACTIVE','m1',1,'rules_v1','2026-01-01','2026-01-01')")
+        c.execute("insert into notebook_entries (id, session_id, title, prompt, role, created_at) values ('nbk_1','ses_x','t','p','writer','2026-01-01')")
+    command.upgrade(cfg, "head")
+    with sqlite3.connect(settings.db_path) as c:
+        names = {r[0] for r in c.execute("select name from sqlite_master where type='table'")}
+        assert {"notebook_entries", "applied_events"}.isdisjoint(names)
+        assert "game_sessions" in names and RETIRED_TABLES.isdisjoint(names)
+        assert c.execute("select count(*) from game_sessions").fetchone()[0] == 1
+    command.downgrade(cfg, "0010_assistant_plans")
+    with sqlite3.connect(settings.db_path) as c:
+        names = {r[0] for r in c.execute("select name from sqlite_master where type='table'")}
+        assert {"notebook_entries", "applied_events"} <= names
+    command.upgrade(cfg, "head")  # rejouable
+    assert set(Base.metadata.tables) <= {r[0] for r in sqlite3.connect(settings.db_path).execute("select name from sqlite_master where type='table'")}
+
+
 def test_unique_agent_ownership(db):
     g = _session(db)
-    db.add(AgentOwnership(session_id=g.id, role="qa", price_paid=30))
+    db.add(AgentOwnership(session_id=g.id, role="triage", price_paid=35))
     db.commit()
-    db.add(AgentOwnership(session_id=g.id, role="qa", price_paid=30))
+    db.add(AgentOwnership(session_id=g.id, role="triage", price_paid=35))
     with pytest.raises(IntegrityError):
         db.commit()
 
@@ -95,59 +111,27 @@ def test_unique_idempotency_key(db):
         db.commit()
 
 
-def test_unique_evaluation_per_submission_and_immutability(db):
-    g = _session(db)
-    att = MissionAttempt(session_id=g.id, mission_id="m1", unit_price=0)
-    db.add(att)
-    db.flush()
-    art = ArtifactVersion(attempt_id=att.id, type="text", content="v1", author="agent")
-    db.add(art)
-    db.flush()
-    sub = Submission(attempt_id=att.id, artifact_version_id=art.id, brief_version=1, content_hash="h", rubric={})
-    db.add(sub)
-    db.flush()
-    db.add(Evaluation(submission_id=sub.id, model="mock", judge_version="j1", status="DONE"))
-    db.commit()
-    db.add(Evaluation(submission_id=sub.id, model="mock", judge_version="j1", status="DONE"))
-    with pytest.raises(IntegrityError):
-        db.commit()
-    db.rollback()
-    # versions de livrable immuables, livraison figée (triggers)
-    with pytest.raises(Exception, match="immuable"):
-        db.execute(text("update artifact_versions set content='modifié'"))
-    db.rollback()
-    with pytest.raises(Exception, match="figée"):
-        db.execute(text("update submissions set content_hash='autre'"))
-    db.rollback()
-    db.execute(text("update submissions set status='DONE'"))  # le statut reste modifiable
-    db.commit()
-
-
 def test_rules_come_from_data_files(settings, data_copy):
     path = data_copy / "rules" / "rules_v1.json"
     rules = json.loads(path.read_text())
     rules["initial_capital"] = 77
-    next(a for a in rules["agents"] if a["id"] == "qa")["price"] = 31
     path.write_text(json.dumps(rules))
     custom = Settings(db_path=settings.db_path, data_dir=data_copy)
     with TestClient(create_app(custom)) as c:
         st = c.post("/api/sessions", json={"company_name": "X", "mode": "beginner"}, headers=new_key(1)).json()
     assert st["balance"]["available"] == 77
-    assert next(a for a in st["agents"] if a["role"] == "qa")["price"] == 31
 
 
 def test_reference_rules_values():
-    """Les données livrées reflètent docs/RULES.md."""
+    """Les données livrées reflètent docs/RULES.md ; `rules_v1` est réduit aux limites techniques (API-R3)."""
     s = Settings()
     from app.rules import load_rules
 
     r = load_rules(s.data_dir, s.rules_version)
-    assert r.initial_capital == 30
-    assert {a.id.value: a.price for a in r.agents} == {"writer": 0, "prospector": 20, "researcher": 35, "qa": 30, "analyst": 45, "lead": 80}
-    assert {m.id: (m.max_reward, m.unit_price) for m in r.missions} == {
-        "m1": (20, 0), "m2": (30, 1), "m3": (40, 1), "m4": (60, 2), "m5": (90, 2), "m6": (150, 3), "rescue": (10, 0),
-    }
-    assert r.quotas.messages_per_agent_per_attempt == 5
+    assert r.initial_capital == 30 and [a.value for a in r.initial_agents] == ["scout"]
+    assert set(r.limits.model_dump()) == {"call_timeout_seconds", "technical_retries", "provider_concurrency", "reservation_ttl_seconds"}
+    raw = json.loads((s.data_dir / "rules" / "rules_v1.json").read_text())
+    assert not {"missions", "quotas", "initial_stage"} & set(raw)  # plus de moteur d'expédition
 
 
 def test_fixtures_and_openapi_are_up_to_date(tmp_path):

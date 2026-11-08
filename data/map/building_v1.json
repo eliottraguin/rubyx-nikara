@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "comment": "Apparence COSMÉTIQUE de l'immeuble du joueur par niveau (1 à 10). Aucune règle de jeu : les seuils de total gagné et le niveau lui-même sont calculés par le serveur (building.level), jamais ici. Le niveau est purement visuel et ne débloque aucun droit.",
+  "comment": "Apparence COSMÉTIQUE de l'immeuble du joueur par niveau (1 à 10). Aucune règle de jeu : les seuils (nombre de clients obtenus) et le niveau lui-même sont calculés par le serveur (building.level), jamais ici. Le niveau est purement visuel et ne débloque aucun droit.",
   "max_level": 10,
   "px_per_floor": 12,
   "levels": [

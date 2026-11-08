@@ -5,20 +5,16 @@ import { BuildingView } from "./BuildingView";
 
 const state = {
   contract_version: "0.1",
-  session: { id: "s", mode: "beginner", company: "Atelier Test", stage: 1, rules_version: "r" },
+  session: { id: "s", mode: "beginner", company: "Atelier Test",rules_version: "r" },
   simulated_provider: true,
-  demo_enabled: false,
   balance: { booked: 30, reserved: 0, available: 30 },
-  stage: { index: 1, total: 6, label: "" },
-  next_action: "",
   agents: [
     { role: "scout", owned: true, price: 0, unlock_condition: "", unlocked: true, teaches: "t" },
     { role: "ads", owned: false, price: 45, unlock_condition: "x", unlocked: false, teaches: "t" },
   ],
-  missions: [],
+  planets: [],
   attempt: null,
   actions_in_progress: [],
-  bilan: {} as GameState["bilan"],
 } as unknown as GameState;
 
 const setup = (over: Partial<Parameters<typeof BuildingView>[0]> = {}) => {
@@ -82,5 +78,13 @@ describe("vue Immeuble", () => {
     fireEvent.keyDown(input, { key: "Escape" });
     expect(onLeave).toHaveBeenCalledTimes(1);
     input.remove();
+  });
+
+  it("Accueil : « Lancer une recherche » avec le choix du lieu, au clavier, sans mot technique", () => {
+    setup({ initialFloor: "accueil", state: { ...state, planets: [{ id: "annuaire", label: "Annuaire", status: "AVAILABLE", reason: null }] } });
+    expect(screen.getByRole("button", { name: "Lancer une recherche" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Lieu de la recherche/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Une précision/)).toBeInTheDocument();
+    expect(screen.getByRole("note", { name: /Voici votre cible/ })).toBeInTheDocument(); // bulle du Tutoriel
   });
 });

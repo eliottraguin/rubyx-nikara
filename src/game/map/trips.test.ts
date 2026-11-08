@@ -54,19 +54,18 @@ describe("durée de trajet selon le véhicule du lieu", () => {
   });
 
   it("une action ouverte inconnue crée un voyage déjà sur place avec la durée du lieu", () => {
-    const open = [{ id: "act_1", attempt_id: "att_1", role: "scout" as const, status: "RUNNING" as const }];
-    const out = syncTrips([], open, () => "annuaire", T0, false, () => 3500);
+    const open = [{ id: "act_1", planet_id: "annuaire", role: "scout" as const, status: "RUNNING" as const }];
+    const out = syncTrips([], open, T0, false, () => 3500);
     expect(out[0]).toMatchObject({ legMs: 3500, startedAt: T0 - 3500 });
     expect(tripFrame(out[0]!, T0).phase).toBe("dialogue");
   });
 });
 
 describe("synchronisation avec les actions ouvertes du serveur", () => {
-  const planetOf = (id: string) => (id === "att_1" ? "annuaire" : null);
-  const open = [{ id: "act_1", attempt_id: "att_1", role: "scout" as const, status: "RUNNING" as const }];
+  const open = [{ id: "act_1", planet_id: "annuaire", role: "scout" as const, status: "RUNNING" as const }];
 
   it("crée un voyage déjà sur place pour une action ouverte inconnue (rechargement de page)", () => {
-    const out = syncTrips([], open, planetOf, T0);
+    const out = syncTrips([], open, T0);
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({ planetId: "annuaire", role: "scout", actionId: "act_1", doneAt: null });
     expect(tripFrame(out[0]!, T0).phase).toBe("dialogue");
@@ -74,22 +73,22 @@ describe("synchronisation avec les actions ouvertes du serveur", () => {
 
   it("ne duplique pas un voyage déjà lié à l'action", () => {
     const existing = [trip({ actionId: "act_1" })];
-    expect(syncTrips(existing, open, planetOf, T0)).toBe(existing);
+    expect(syncTrips(existing, open, T0)).toBe(existing);
   });
 
   it("termine le voyage dont l'action n'est plus ouverte", () => {
-    const out = syncTrips([trip({ actionId: "act_1" })], [], planetOf, T0 + 5);
+    const out = syncTrips([trip({ actionId: "act_1" })], [], T0 + 5);
     expect(out[0]!.doneAt).toBe(T0 + 5);
   });
 
   it("ignore une action sans planète connue et une action à confirmer", () => {
-    expect(syncTrips([], [{ id: "x", attempt_id: "att_9", role: "scout", status: "RUNNING" }], planetOf, T0)).toEqual([]);
-    expect(syncTrips([], [{ id: "y", attempt_id: "att_1", role: "ads", status: "AWAITING_CONFIRMATION" }], planetOf, T0)).toEqual([]);
+    expect(syncTrips([], [{ id: "x", role: "scout", status: "RUNNING" }], T0)).toEqual([]);
+    expect(syncTrips([], [{ id: "y", planet_id: "annuaire", role: "ads", status: "AWAITING_CONFIRMATION" }], T0)).toEqual([]);
   });
 
   it("n'attend pas l'action d'un voyage qui n'en a pas encore (envoi en cours)", () => {
     const pending = [trip()];
-    expect(syncTrips(pending, [], planetOf, T0)).toBe(pending);
+    expect(syncTrips(pending, [], T0)).toBe(pending);
   });
 
   it("retire les voyages rentrés", () => {

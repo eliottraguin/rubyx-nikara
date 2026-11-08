@@ -31,8 +31,7 @@ Les tests échouent si `api/openapi.json` ou `data/fixtures/` sont périmés : r
 | `RUBIX_LLM_PROVIDER` | `mock` (seule valeur disponible) |
 | `RUBIX_COOKIE_SECURE` | `0` (mettre `1` derrière HTTPS) |
 | `RUBIX_CORS_ORIGINS` | vide (liste séparée par des virgules, ex. `http://localhost:3000`) |
-| `RUBIX_AUTO_EVALUATE` | `1` : chaque livraison est évaluée par le serveur (BE06) ; `0` : laissée en `EVALUATING` |
-| `RUBIX_DEMO_SECRET` | vide = mode démo **inactif** (`POST /api/demo/events` répond 404). Sinon secret attendu dans l'en-tête `X-Demo-Secret` |
+| `RUBIX_DEMO_SECRET` | vide = routes d'exploitation `/api/demo/*` **inactives** (404). Sinon secret attendu dans l'en-tête `X-Demo-Secret` |
 
 ## Arborescence
 ```
@@ -42,9 +41,9 @@ api/app/rules.py         chargement/validation de data/rules/
 api/app/errors.py        codes stables, statuts HTTP, messages français
 api/app/deps.py          base, propriété de session (cookie), Idempotency-Key
 api/app/models.py        tables SQLAlchemy ; api/migrations/ schéma réel
-api/app/schemas/         Pydantic : entités, état, évaluateur, plan du chef, erreurs
+api/app/schemas/         Pydantic : entités, état, erreurs
 api/app/llm/             interface adaptateur + mock
-api/app/routes/          health, sessions, stubs (501)
+api/app/routes/          health, sessions, agents, messages, prospects, conversations, campagnes, profil
 api/app/services/        création de partie, état, solde, immeuble (building), fiche entreprise (profile)
 api/tests/               pytest
 data/rules/ data/fixtures/

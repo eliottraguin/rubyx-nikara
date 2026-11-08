@@ -18,19 +18,21 @@ export interface CourrierPanelProps {
   state: GameState;
   /** Injectable pour les tests ; par défaut le client HTTP de la messagerie. */
   api?: ConversationsApi;
+  /** Conversation à ouvrir d'emblée (bouton « Contacter » d'une recherche). */
+  initialConversationId?: string | null;
 }
 
 /**
  * Salle du courrier (section Clients) : une conversation par prospect du carnet, synthèse `triage`, brouillon `replier`.
  * Tutoriel : clients simulés, envoi simulé. Réel : aucun envoi (jalon O). Tout texte reçu ou généré est rendu en texte.
  */
-export function CourrierPanel({ state, api: injected }: CourrierPanelProps) {
+export function CourrierPanel({ state, api: injected, initialConversationId = null }: CourrierPanelProps) {
   const api = useMemo(() => injected ?? createConversationsApi(), [injected]);
   const tutoriel = state.session?.mode !== "expert";
   const [list, setList] = useState<ConversationList | null>(null);
   const [prospects, setProspects] = useState<ProspectChoice[]>([]);
   const [bac, setBac] = useState<Bac | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(initialConversationId);
   const [pick, setPick] = useState("");
   const [problem, setProblem] = useState<CourrierProblem | null>(null);
   const [creating, setCreating] = useState(false);

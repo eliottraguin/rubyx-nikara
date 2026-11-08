@@ -52,7 +52,7 @@ def test_incoherent_values_are_reported(tmp_path, bad, fragment):
 def test_all_problems_listed_and_secrets_never_echoed(tmp_path):
     with pytest.raises(ConfigError) as exc:
         Settings.from_env(env(tmp_path, RUBIX_LLM_PROVIDER="real", RUBIX_DEMO_SECRET=SECRET[:5], RUBIX_RETENTION_DAYS="0"))
-    assert len(exc.value.problems) == 3
+    assert len(exc.value.problems) == 4
     assert SECRET[:5] not in str(exc.value)
 
 

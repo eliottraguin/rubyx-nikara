@@ -221,7 +221,7 @@ def test_generate_creates_a_checked_kit_and_debits_once_without_gain(world):
     r = generate(world, c["id"])
     assert r.status_code == 202, r.text
     out = r.json()
-    assert out["type"] == "ad_campaign" and out["status"] == "SUCCEEDED" and out["attempt_id"] is None and out["debited"] == 4
+    assert out["type"] == "ad_campaign" and out["status"] == "SUCCEEDED" and "attempt_id" not in out and out["debited"] == 4
     assert balance(world) == before - 4
     assert sorted(a for a, _ in ledger_rows(world) if a != 30) == [-4] and all(a <= 30 for a, _ in ledger_rows(world))  # aucun gain
     got = world.client.get(f"/api/campaigns/{c['id']}").json()
@@ -639,7 +639,7 @@ def test_injection_in_the_profile_and_instruction_has_no_effect(tmp_path):
         assert [a for a, k in ledger_rows(w) if k == "reward"] == []
         assert w.client.get(f"/api/campaigns/{c['id']}").json()["generations_remaining"] == 4
         with w.sf() as db:
-            assert {o.role for o in db.scalars(select(AgentOwnership).where(AgentOwnership.session_id == w.sid))} == {"ads", "writer"}
+            assert {o.role for o in db.scalars(select(AgentOwnership).where(AgentOwnership.session_id == w.sid))} == {"ads", "scout"}
     finally:
         w.close()
 

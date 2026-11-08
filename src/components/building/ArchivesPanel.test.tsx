@@ -5,7 +5,7 @@ import type { Prospect, ProspectDetail, ProspectsClient } from "@/lib/api/prospe
 import { ArchivesPanel } from "./ArchivesPanel";
 
 const mk = (id: string, over: Partial<Prospect> = {}): Prospect => ({
-  id, entreprise: `Ent ${id}`, source: "annuaire", source_ref: "r", raisons_fit: ["Proche"], pertinence: 80, fiabilite: "verifie", simule: false,
+  id, entreprise: `Ent ${id}`, source: "annuaire", source_ref: "r", raisons_fit: ["Proche"], pertinence_etiquette: "correspond", pertinence_citation: "« 6 salariés »", fiabilite: "verifie", simule: false,
   statut: "nouveau", notes: "", collecte_le: "2026-01-02T00:00:00Z", possible_doublon: false, cree_le: "2026-01-03T00:00:00Z", version: 1, ...over,
 });
 const detail = (p: Prospect): ProspectDetail => ({ ...p, historique_statut: [{ statut: "nouveau", le: "2026-01-03T00:00:00Z" }] });
@@ -49,6 +49,31 @@ describe("Archives", () => {
     await waitFor(() => expect(c.list).toHaveBeenLastCalledWith(expect.objectContaining({ statut: "contacte", q: "bar" })));
     const link = screen.getByRole("link", { name: "Exporter en CSV" });
     expect(link.getAttribute("href")).toBe("/api/prospects/export.csv?tri=date_ajout&ordre=desc&statut=contacte&q=bar");
+  });
+
+  it("étiquette de pertinence en texte (jamais un nombre) et filtre par correspondance", async () => {
+    const c = fake([mk("a"), mk("b", { pertinence_etiquette: "hors_cible" })]);
+    render(<ArchivesPanel client={c} />);
+    const table = await screen.findByRole("table");
+    expect(within(table).getByText("Correspond")).toBeInTheDocument();
+    expect(within(table).getByText("Hors cible")).toBeInTheDocument();
+    expect(table.textContent).not.toMatch(/\/ 100/);
+    const group = screen.getByRole("group", { name: "Filtrer par correspondance" });
+    expect(within(group).getAllByRole("button").map((b) => b.textContent)).toEqual(["Toutes les correspondances", "Correspond", "À vérifier", "Hors cible"]);
+    fireEvent.click(within(group).getByRole("button", { name: "Hors cible" }));
+    await waitFor(() => expect(c.list).toHaveBeenLastCalledWith(expect.objectContaining({ etiquette: "hors_cible" })));
+    expect(screen.getByRole("link", { name: "Exporter en CSV" }).getAttribute("href")).toContain("etiquette=hors_cible");
+  });
+
+  it("fiche prospect : étiquette et citation de la source en texte seul ; sans citation, message prudent", async () => {
+    const c = fake([mk("a", { pertinence_citation: "<b>gras</b>" }), mk("b", { pertinence_citation: null, pertinence_etiquette: "a_verifier" })]);
+    const { container } = render(<ArchivesPanel client={c} />);
+    fireEvent.click((await screen.findAllByRole("button", { name: /Ouvrir la fiche/ }))[0]!);
+    await screen.findByText("Citation de la source");
+    expect(screen.getByText("<b>gras</b>")).toBeInTheDocument();
+    expect(container.querySelector("b")).toBeNull();
+    fireEvent.click(screen.getAllByRole("button", { name: /Ouvrir la fiche/ })[1]!);
+    await screen.findByText(/Pas de citation de la source/);
   });
 
   it("détail : marquer contacté envoie la version ; texte API jamais interprété en HTML", async () => {

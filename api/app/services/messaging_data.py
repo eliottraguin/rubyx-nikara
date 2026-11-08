@@ -57,6 +57,8 @@ class MessagingData:
     check_labels: dict[str, dict[str, str]]
     synthese_checks: list[RubricCheck]
     reponse_checks: list[RubricCheck]
+    fiche_checks: list[RubricCheck] = field(default_factory=list)  # `prospect_fiche_v1` (vide si la grille est absente)
+    message_checks: list[RubricCheck] = field(default_factory=list)  # `prospect_message_v1`
     _persona_by_id: dict[str, Persona] = field(default_factory=dict, repr=False)
 
     def persona(self, persona_id: str | None) -> Persona | None:
@@ -83,6 +85,10 @@ class MessagingData:
 def _rubric(path: Path) -> list[RubricCheck]:
     raw = json.loads(path.read_text(encoding="utf-8"))
     return [RubricCheck(id=c["id"], essential=bool(c["essential"]), kind=c["kind"], label=c["label"]) for c in raw["checks"]]
+
+
+def _optional_rubric(path: Path) -> list[RubricCheck]:
+    return _rubric(path) if path.is_file() else []
 
 
 def load_messaging_data(data_dir: Path) -> MessagingData:
@@ -112,6 +118,8 @@ def load_messaging_data(data_dir: Path) -> MessagingData:
         check_labels=labels["labels"],
         synthese_checks=_rubric(data_dir / "rubrics" / "conversation_synthese_v1.json"),
         reponse_checks=_rubric(data_dir / "rubrics" / "conversation_reponse_v1.json"),
+        fiche_checks=_optional_rubric(data_dir / "rubrics" / "prospect_fiche_v1.json"),
+        message_checks=_optional_rubric(data_dir / "rubrics" / "prospect_message_v1.json"),
     )
     data._persona_by_id = {p.id: p for p in personas}
     return data

@@ -31,7 +31,9 @@ export function stepFloor(index: number, delta: -1 | 1): number {
   return Math.min(FLOORS.length - 1, Math.max(0, index + delta));
 }
 
-export const buildingHref = (id?: FloorId): string => {
+export const buildingHref = (id?: FloorId, opts: { conversation?: string } = {}): string => {
   const f = FLOORS.find((x) => x.id === id);
-  return f ? `/immeuble?etage=${f.slug}` : "/immeuble";
+  if (!f) return "/immeuble";
+  const conv = opts.conversation ? `&conversation=${encodeURIComponent(opts.conversation)}` : "";
+  return `/immeuble?etage=${f.slug}${conv}`;
 };

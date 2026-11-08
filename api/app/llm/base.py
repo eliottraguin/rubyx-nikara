@@ -27,8 +27,7 @@ class LLMRequest(BaseModel):
     allowed_tools: list[str] = Field(default_factory=list)
     expected_schema: dict[str, Any] | None = None
     max_output_tokens: int = Field(gt=0)
-    # BE06 : intention de l'appel (`agent`, `evaluation`, `evaluation_repair`, `clarification`) et indices pour le
-    # fournisseur SIMULÉ (ids de critères, etc.). Un fournisseur réel n'a pas à les envoyer comme consigne : tout
+    # Intention de l'appel (`agent`, `client_sim`, `conversation_*`, …) et indices pour le fournisseur SIMULÉ. Un fournisseur réel n'a pas à les envoyer comme consigne : tout
     # ce qui doit être lu par le modèle est dans `context`.
     purpose: str = "agent"
     metadata: dict[str, Any] = Field(default_factory=dict)

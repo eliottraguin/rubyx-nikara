@@ -8,9 +8,9 @@ import { floorFromSlug, type Floor } from "@/game/building/floors";
 import type { ApiError, RoleId } from "@/lib/api/types";
 import { useGame } from "@/lib/game-context";
 
-function Building({ slug }: { slug: string | null }) {
+function Building({ slug, conversation }: { slug: string | null; conversation: string | null }) {
   const router = useRouter();
-  const { mutate, busy, state } = useGame();
+  const { mutate, busy, state, refresh } = useGame();
   const buy = useCallback(
     async (role: RoleId): Promise<ApiError | null> => {
       const r = await mutate((a) => a.purchaseAgent(role));
@@ -29,9 +29,9 @@ function Building({ slug }: { slug: string | null }) {
     }
   }, []);
   if (!state) return null;
-  return <BuildingView state={state} busy={busy} initialFloor={floorFromSlug(slug)?.id ?? null} onBuy={buy} onLeave={() => router.push("/carte")} onFloorChange={onFloorChange} />;
+  return <BuildingView state={state} busy={busy} initialFloor={floorFromSlug(slug)?.id ?? null} initialConversationId={conversation} onSearchDone={() => void refresh()} onBuy={buy} onLeave={() => router.push("/carte")} onFloorChange={onFloorChange} />;
 }
 
-export function BuildingScreen({ floor }: { floor: string | null }) {
-  return <RequireSession>{() => <Building slug={floor} />}</RequireSession>;
+export function BuildingScreen({ floor, conversation = null }: { floor: string | null; conversation?: string | null }) {
+  return <RequireSession>{() => <Building slug={floor} conversation={conversation} />}</RequireSession>;
 }

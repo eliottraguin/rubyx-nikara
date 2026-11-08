@@ -52,7 +52,6 @@ class GameSession(Base):
     mode: Mapped[str] = mapped_column(String, nullable=False)
     company: Mapped[dict] = mapped_column(JSON, nullable=False)
     state: Mapped[str] = mapped_column(String, nullable=False, default="ACTIVE")
-    stage: Mapped[str] = mapped_column(String, nullable=False)
     seed: Mapped[int] = mapped_column(Integer, nullable=False)
     rules_version: Mapped[str] = mapped_column(String, nullable=False)
     # Idempotence de la création (migration 0004) : empreintes (jamais la clé en clair) ; unique => pas de 2e partie
@@ -86,49 +85,12 @@ class AgentOwnership(Base):
     purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
-class MissionDefinition(Base):
-    """Copie en base d'une définition de mission (la source reste data/missions/)."""
-
-    __tablename__ = "mission_definitions"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    version: Mapped[str] = mapped_column(String, primary_key=True)
-    mode: Mapped[str] = mapped_column(String, primary_key=True)
-    brief: Mapped[str] = mapped_column(Text, nullable=False)
-    corpus: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    criteria: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    max_reward: Mapped[int] = mapped_column(Integer, nullable=False)
-    unit_price: Mapped[int] = mapped_column(Integer, nullable=False)
-    events: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    prerequisites: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-
-
-class MissionAttempt(Base):
-    __tablename__ = "mission_attempts"
-    __table_args__ = (UniqueConstraint("session_id", "mission_id", "attempt_no"), Index("ix_mission_attempts_session_id", "session_id"))
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("att"))
-    session_id: Mapped[str] = _fk("game_sessions.id")
-    mission_id: Mapped[str] = mapped_column(String, nullable=False)
-    brief_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    status: Mapped[str] = mapped_column(String, nullable=False, default="ACTIVE")
-    spend_cap: Mapped[int | None] = mapped_column(Integer)
-    message_counts: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
-    clarifications_used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    model_calls: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    attempt_no: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    unit_price: Mapped[int] = mapped_column(Integer, nullable=False)  # figé à l'ouverture
-    open_key_hash: Mapped[str | None] = mapped_column(String)  # empreinte de l'Idempotency-Key d'ouverture (rejeu de retry)
-    profile_version: Mapped[int | None] = mapped_column(Integer)  # version de la fiche entreprise à l'ouverture (figée, API-H2)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
-
-
 class ActionRun(Base):
     __tablename__ = "action_runs"
     # Clé d'idempotence unique PAR SESSION (migration 0002) : une clé d'une autre partie ne collisionne jamais.
     __table_args__ = (UniqueConstraint("session_id", "idempotency_key"), Index("ix_action_runs_session_id", "session_id"))
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("act"))
     session_id: Mapped[str] = _fk("game_sessions.id")
-    attempt_id: Mapped[str | None] = mapped_column(String, ForeignKey("mission_attempts.id", ondelete="CASCADE"))
     idempotency_key: Mapped[str] = mapped_column(String, nullable=False)
     request_hash: Mapped[str | None] = mapped_column(String)  # empreinte de la requête : même clé + autre requête = refus
     confirm_keys: Mapped[list] = mapped_column(JSON, nullable=False, default=list, server_default="[]")  # clés des confirmations déjà reçues
@@ -139,64 +101,6 @@ class ActionRun(Base):
     error: Mapped[dict | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
-
-
-class Message(Base):
-    __tablename__ = "messages"
-    __table_args__ = (Index("ix_messages_attempt_id", "attempt_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("msg"))
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    role: Mapped[str] = mapped_column(String, nullable=False)
-    author: Mapped[str] = mapped_column(String, nullable=False)  # player | agent
-    text: Mapped[str] = mapped_column(Text, nullable=False)
-    linked_artifact_ids: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    action_id: Mapped[str | None] = mapped_column(String, ForeignKey("action_runs.id", ondelete="SET NULL"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class ArtifactVersion(Base):
-    """Immuable : un trigger SQLite refuse tout UPDATE (voir migration)."""
-
-    __tablename__ = "artifact_versions"
-    __table_args__ = (Index("ix_artifact_versions_attempt_id", "attempt_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("art"))
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    type: Mapped[str] = mapped_column(String, nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
-    parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("artifact_versions.id", ondelete="CASCADE"))
-    author: Mapped[str] = mapped_column(String, nullable=False)  # agent | player
-    sources: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    contributions: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class Submission(Base):
-    __tablename__ = "submissions"
-    __table_args__ = (Index("ix_submissions_attempt_id", "attempt_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("sub"))
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    artifact_version_id: Mapped[str] = mapped_column(String, ForeignKey("artifact_versions.id", ondelete="CASCADE"), nullable=False)
-    brief_version: Mapped[int] = mapped_column(Integer, nullable=False)
-    content_hash: Mapped[str] = mapped_column(String, nullable=False)
-    rubric: Mapped[dict] = mapped_column(JSON, nullable=False)  # grille figée
-    status: Mapped[str] = mapped_column(String, nullable=False, default="EVALUATING")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class Evaluation(Base):
-    __tablename__ = "evaluations"
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("evl"))
-    submission_id: Mapped[str] = mapped_column(String, ForeignKey("submissions.id", ondelete="CASCADE"), unique=True, nullable=False)
-    model: Mapped[str] = mapped_column(String, nullable=False)
-    judge_version: Mapped[str] = mapped_column(String, nullable=False)
-    criteria: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    score: Mapped[int | None] = mapped_column(Integer)
-    evidence: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    # BE06 : rapport serveur (retour client, réussite, paiement, plafond essentiel…). Jamais écrit par le modèle.
-    report: Mapped[dict | None] = mapped_column(JSON)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
 class LedgerEntry(Base):
@@ -227,20 +131,8 @@ class LLMCall(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
-class NotebookEntry(Base):
-    __tablename__ = "notebook_entries"
-    __table_args__ = (Index("ix_notebook_entries_session_id", "session_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("nbk"))
-    session_id: Mapped[str] = _fk("game_sessions.id")
-    title: Mapped[str] = mapped_column(String, nullable=False)
-    prompt: Mapped[str] = mapped_column(Text, nullable=False)
-    role: Mapped[str] = mapped_column(String, nullable=False)
-    mission_id: Mapped[str | None] = mapped_column(String)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
 class Reservation(Base):
-    """Réservation d'argent + quota avant appel ; échéance et réconciliation."""
+    """Réservation d'argent avant appel ; échéance et réconciliation. Le quota par cible est dans `TargetActionUse`."""
 
     __tablename__ = "reservations"
     __table_args__ = (Index("ix_reservations_session_id", "session_id"),)
@@ -249,33 +141,8 @@ class Reservation(Base):
     action_id: Mapped[str] = mapped_column(String, ForeignKey("action_runs.id", ondelete="CASCADE"), nullable=False)
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
     role: Mapped[str | None] = mapped_column(String)
-    attempt_id: Mapped[str | None] = mapped_column(String, ForeignKey("mission_attempts.id", ondelete="CASCADE"))
-    quota: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # messages réservés
     status: Mapped[str] = mapped_column(String, nullable=False, default="ACTIVE")  # ACTIVE | SETTLED | RELEASED
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class ArtifactShare(Base):
-    """Journal des partages de pièces vers un rôle."""
-
-    __tablename__ = "artifact_shares"
-    __table_args__ = (Index("ix_artifact_shares_attempt_id", "attempt_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("shr"))
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    artifact_version_id: Mapped[str] = mapped_column(String, ForeignKey("artifact_versions.id", ondelete="CASCADE"), nullable=False)
-    role: Mapped[str] = mapped_column(String, nullable=False)
-    action_id: Mapped[str | None] = mapped_column(String, ForeignKey("action_runs.id", ondelete="SET NULL"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-
-
-class AppliedEvent(Base):
-    __tablename__ = "applied_events"
-    __table_args__ = (UniqueConstraint("attempt_id", "event_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("evt"))
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    event_id: Mapped[str] = mapped_column(String, nullable=False)
-    brief_version: Mapped[int] = mapped_column(Integer, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
@@ -298,21 +165,6 @@ class TargetActionUse(Base):
     key: Mapped[str] = mapped_column(String, nullable=False)
     used: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     reserved: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-
-
-class ExpeditionRecord(Base):
-    """Enregistrement **renvoyé par une source pendant une expédition** (déjà minimisé par liste blanche). C'est la seule
-    référence de vérification d'un `source_ref` (règle 12) : écrit par le serveur (moteur d'expédition), jamais par le navigateur."""
-
-    __tablename__ = "expedition_records"
-    __table_args__ = (UniqueConstraint("attempt_id", "source", "source_ref"), Index("ix_expedition_records_session_id", "session_id"))
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("rec"))
-    session_id: Mapped[str] = _fk("game_sessions.id")
-    attempt_id: Mapped[str] = _fk("mission_attempts.id")
-    source: Mapped[str] = mapped_column(String, nullable=False)
-    source_ref: Mapped[str] = mapped_column(String, nullable=False)
-    record: Mapped[dict] = mapped_column(JSON, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
 class Prospect(Base):
@@ -338,12 +190,14 @@ class Prospect(Base):
     raisons_fit: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
     signal: Mapped[str | None] = mapped_column(String)
     pertinence: Mapped[int] = mapped_column(Integer, nullable=False)  # calculé par le serveur
+    pertinence_etiquette: Mapped[str | None] = mapped_column(String)  # correspond | a_verifier | hors_cible (null : jamais triée = « à vérifier »)
+    pertinence_citation: Mapped[str | None] = mapped_column(String)  # extrait littéral de la source, vérifié par le serveur
+    pertinence_champ: Mapped[str | None] = mapped_column(String)  # champ de la source dont la citation est tirée
     fiabilite: Mapped[str] = mapped_column(String, nullable=False)  # verifie | partiel | simule
     simule: Mapped[bool] = mapped_column(Boolean, nullable=False)
     instantane: Mapped[dict] = mapped_column(JSON, nullable=False)  # copie minimisée de l'enregistrement de la source
     collecte_le: Mapped[str | None] = mapped_column(String)  # date de collecte (ISO) de l'enregistrement
-    expedition_id: Mapped[str] = mapped_column(String, nullable=False)
-    rapport_version_id: Mapped[str] = mapped_column(String, nullable=False)
+    search_id: Mapped[str] = mapped_column(String, nullable=False)  # recherche (`searches.id`) d'origine ; pas de FK : provenance immuable
     profile_version: Mapped[int] = mapped_column(Integer, nullable=False)
     statut: Mapped[str] = mapped_column(String, nullable=False, default="nouveau")
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")

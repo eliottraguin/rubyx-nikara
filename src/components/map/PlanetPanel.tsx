@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { money } from "@/lib/format";
 import type { MapViewModel, PlanetVM } from "@/game/map/viewmodel";
 import { StatusIcon } from "./StatusIcon";
 
@@ -12,8 +10,7 @@ export function PlanetPanel({ planet, vm }: { planet: PlanetVM | null; vm: MapVi
           Choisissez un lieu
         </h2>
         <p className="muted">
-          Cliquez un lieu sur la carte ou dans la liste pour voir sa fiche : ce qu&apos;on y apprend, la récompense,
-          le coût par instruction et la condition de déblocage.
+          Cliquez un lieu sur la carte ou dans la liste pour voir sa fiche : ce qu&apos;on y cherche et ce qu&apos;il faut faire pour l&apos;ouvrir.
         </p>
       </section>
     );
@@ -35,30 +32,14 @@ export function PlanetPanel({ planet, vm }: { planet: PlanetVM | null; vm: MapVi
       </p>
       <p className="big-ish">{planet.tagline}</p>
       <p className="muted">{planet.blurb}</p>
-      <dl className="facts">
-        <div>
-          <dt>Gain maximum</dt>
-          <dd>{planet.maxReward !== null ? money(planet.maxReward) : "—"}</dd>
-        </div>
-        <div>
-          <dt>Coût par instruction</dt>
-          <dd>{planet.unitPrice === null ? "—" : planet.unitPrice === 0 ? "gratuit" : money(planet.unitPrice)}</dd>
-        </div>
-        <div>
-          <dt>Meilleur paiement</dt>
-          <dd>{planet.bestPayment > 0 ? money(planet.bestPayment) : "aucun"}</dd>
-        </div>
-      </dl>
       {planet.status === "locked" ? (
         <p className="note note-warn" role="note">
-          <strong>Verrouillée.</strong> Condition de déblocage : {planet.unlockText}
+          <strong>Pas encore ouvert.</strong> Trouvez d&apos;abord des prospects pertinents au lieu précédent.
         </p>
-      ) : live && planet.missionId ? (
-        <Link className="btn btn-primary" href="/bureau">
-          Ouvrir la commande au bureau
-        </Link>
+      ) : live ? (
+        <p className="help">Ouvrez ce lieu pour y chercher des clients : la recherche est gratuite.</p>
       ) : (
-        <p className="help">Aperçu : créez une partie pour lancer une expédition.</p>
+        <p className="help">Aperçu : créez une partie pour lancer une recherche.</p>
       )}
       {!live ? <p className="help">Lieux en aperçu « maquette » : les états viendront du serveur.</p> : null}
     </section>
