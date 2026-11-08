@@ -7,6 +7,17 @@ import styles from './login.module.css';
 
 type AuthMode = 'login' | 'register';
 
+const FALLBACK_ERRORS: Record<number, string> = {
+  401: 'Email ou mot de passe incorrect.',
+  409: 'Un compte existe déjà avec cet email.',
+  422: 'Vérifiez votre email et votre mot de passe (8 caractères minimum).',
+};
+
+function extractError(response: Response): string {
+  const fallback = FALLBACK_ERRORS[response.status] ?? 'Une erreur est survenue. Réessayez.';
+  return fallback;
+}
+
 export default function LoginPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<AuthMode>('login');
@@ -15,90 +26,96 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const isLogin = mode === 'login';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError('');
     setLoading(true);
 
     try {
-      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
-      const response = await fetch(endpoint, {
+      const response = await fetch(`/api/auth/${isLogin ? 'login' : 'register'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
         credentials: 'include',
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        setError(data.detail || 'Authentication failed');
+        setError(extractError(response));
         return;
       }
-
-      const data = await response.json();
-      localStorage.setItem('auth_token', data.token);
+      // Session lives in the httpOnly auth_token cookie set by the API.
       router.push('/');
-    } catch (err) {
-      setError('Network error. Please try again.');
+    } catch {
+      setError('Impossible de joindre le serveur. Vérifiez votre connexion.');
     } finally {
       setLoading(false);
     }
   };
 
+  const switchMode = () => {
+    setMode(isLogin ? 'register' : 'login');
+    setError('');
+  };
+
   return (
-    <div className={styles.container}>
-      <div ref={containerRef} className={styles.scene}>
+    <main className={styles.container}>
+      <div ref={containerRef} className={styles.scene} aria-hidden="true">
         <LoginScene containerRef={containerRef} />
       </div>
       <div className={styles.form_overlay}>
-        <div className={styles.form_container}>
-          <h1>Prospect Tycoon</h1>
-          <form onSubmit={handleSubmit}>
+        <section className={styles.form_container} aria-labelledby="auth-title">
+          <h1 id="auth-title">{isLogin ? 'Connexion' : 'Créer mon entreprise'}</h1>
+          <p className={styles.subtitle}>
+            {isLogin
+              ? 'Retrouvez votre entreprise et vos commandes en cours.'
+              : 'Créez votre compte pour lancer votre entreprise.'}
+          </p>
+          <form onSubmit={handleSubmit} noValidate={false}>
             <div className={styles.form_group}>
               <label htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="your@email.com"
+                placeholder="vous@exemple.fr"
               />
             </div>
             <div className={styles.form_group}>
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Mot de passe</label>
               <input
                 id="password"
                 type="password"
+                autoComplete={isLogin ? 'current-password' : 'new-password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={8}
-                placeholder="At least 8 characters"
+                minLength={isLogin ? undefined : 8}
+                placeholder={isLogin ? 'Votre mot de passe' : '8 caractères minimum'}
               />
             </div>
-            {error && <div className={styles.error}>{error}</div>}
+            <div role="alert" aria-live="assertive">
+              {error && <div className={styles.error}>{error}</div>}
+            </div>
             <button type="submit" disabled={loading} className={styles.submit_button}>
-              {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+              {loading ? 'Chargement…' : isLogin ? 'Se connecter' : 'Créer mon entreprise'}
             </button>
           </form>
           <div className={styles.toggle}>
             <p>
-              {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === 'login' ? 'register' : 'login');
-                  setError('');
-                }}
-              >
-                {mode === 'login' ? 'Sign up' : 'Sign in'}
+              {isLogin ? 'Pas encore d’entreprise ? ' : 'Déjà un compte ? '}
+              <button type="button" onClick={switchMode}>
+                {isLogin ? 'Créer mon entreprise' : 'Se connecter'}
               </button>
             </p>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
