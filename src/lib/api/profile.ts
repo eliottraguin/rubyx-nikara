@@ -178,9 +178,9 @@ export function createProfileApi(opts: { fetch?: typeof fetch } = {}): ProfileAp
   };
 }
 
-/** Point d'accès unique côté interface : mock hors `NEXT_PUBLIC_API_MODE=http`, chargé à la demande. */
+/** Point d'accès unique côté interface : mock explicite, chargé à la demande. */
 export function createProfileApiForMode(): ProfileApi {
-  if (process.env.NEXT_PUBLIC_API_MODE === "http") return createProfileApi();
+  if (process.env.NEXT_PUBLIC_API_MODE !== "mock") return createProfileApi();
   let mock: Promise<ProfileApi> | null = null;
   const load = () => (mock ??= import("@/mocks/profile").then((m) => m.createMockProfileApi()));
   return { get: async () => (await load()).get(), save: async (v, n) => (await load()).save(v, n) };
