@@ -1,0 +1,22 @@
+{
+  "id": "rewards_v1",
+  "prospection": {
+    "reward_kind": "clients",
+    "bandes": [
+      { "score_min": 80, "bonus": 2 },
+      { "score_min": 50, "bonus": 1 },
+      { "score_min": 0, "bonus": 0 }
+    ]
+  },
+  "clients": {
+    "reward_kind": "argent",
+    "base": 20,
+    "min": 5,
+    "formule": "round(base * score / 100)"
+  },
+  "pub": {
+    "reward_kind": "visibilite",
+    "base": 10,
+    "formule": "round(base * score / 100)"
+  }
+}

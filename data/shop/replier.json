@@ -1,0 +1,29 @@
+{
+  "role": "replier",
+  "items": [
+    {
+      "id": "replier_t1",
+      "tier": 1,
+      "label": "Rédacteur",
+      "price": 45,
+      "effects": { "duration_multiplier": 1.0, "quality_bonus": 0 },
+      "unlock_clients": 2
+    },
+    {
+      "id": "replier_t2",
+      "tier": 2,
+      "label": "Rédacteur senior",
+      "price": 90,
+      "effects": { "duration_multiplier": 0.7, "quality_bonus": 5 },
+      "unlock_clients": 4
+    },
+    {
+      "id": "replier_t3",
+      "tier": 3,
+      "label": "Rédacteur spécialisé B2B",
+      "price": 150,
+      "effects": { "duration_multiplier": 0.5, "quality_bonus": 10 },
+      "unlock_clients": 11
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "version": "company_levels_v1",
+  "levels": [
+    { "level": 1, "objectifs": { "clients_min": 0, "argent_min": 0, "reputation_min": 0 }, "apparence": "immeuble_niveau_1" },
+    { "level": 2, "objectifs": { "clients_min": 1, "argent_min": 50, "reputation_min": 10 }, "apparence": "immeuble_niveau_2" },
+    { "level": 3, "objectifs": { "clients_min": 2, "argent_min": 80, "reputation_min": 20 }, "apparence": "immeuble_niveau_3" },
+    { "level": 4, "objectifs": { "clients_min": 4, "argent_min": 150, "reputation_min": 30 }, "apparence": "immeuble_niveau_4" },
+    { "level": 5, "objectifs": { "clients_min": 7, "argent_min": 260, "reputation_min": 40 }, "apparence": "immeuble_niveau_5" },
+    { "level": 6, "objectifs": { "clients_min": 11, "argent_min": 420, "reputation_min": 50 }, "apparence": "immeuble_niveau_6" },
+    { "level": 7, "objectifs": { "clients_min": 16, "argent_min": 620, "reputation_min": 60 }, "apparence": "immeuble_niveau_7" },
+    { "level": 8, "objectifs": { "clients_min": 22, "argent_min": 880, "reputation_min": 70 }, "apparence": "immeuble_niveau_8" },
+    { "level": 9, "objectifs": { "clients_min": 30, "argent_min": 1200, "reputation_min": 80 }, "apparence": "immeuble_niveau_9" },
+    { "level": 10, "objectifs": { "clients_min": 40, "argent_min": 1600, "reputation_min": 90 }, "apparence": "immeuble_niveau_10" }
+  ]
+}
