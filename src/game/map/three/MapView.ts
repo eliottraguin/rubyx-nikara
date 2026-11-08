@@ -62,6 +62,7 @@ export class MapView {
     this.city.start();
     bus.farewell = () => this.farewell();
     bus.enterBuilding = () => this.enterBuilding();
+    bus.enterNav = (id) => this.enterNav(id);
     if (bus.vm) this.applyVM(bus.vm);
     this.applySelected(bus.selectedId);
     this.fitLabels();
@@ -178,6 +179,13 @@ export class MapView {
     return this.city.zoomToDistrict({ target: { x: hq.x, z: hq.z }, zoom: ENTER_ZOOM, durationMs: 1300 });
   }
 
+  /** Même mécanique que `enterBuilding`, vers la boutique ou l'évaluateur. Résolu même si l'id est inconnu. */
+  private enterNav(id: string): Promise<void> {
+    const lm = this.world.landmarks.nav.get(id);
+    if (!lm) return Promise.resolve();
+    return this.city.zoomToDistrict({ target: { x: lm.x, z: lm.z }, zoom: ENTER_ZOOM, durationMs: 1300 });
+  }
+
   /** Dézoom au logout : la caméra remonte à la vue d'ensemble de la page de connexion. */
   private farewell(): Promise<void> {
     return this.city.zoomToDistrict({ target: { x: 0, z: 0 }, zoom: 0.78, durationMs: 1400 });
@@ -264,6 +272,7 @@ export class MapView {
     this.disposed = true;
     this.bus.farewell = null;
     this.bus.enterBuilding = null;
+    this.bus.enterNav = null;
     for (const off of this.unsubs) off();
     for (const fn of this.cleanups) fn();
     this.world.dispose();

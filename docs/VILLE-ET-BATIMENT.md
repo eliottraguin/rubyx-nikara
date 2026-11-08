@@ -5,6 +5,8 @@
 > Ce document remplace, pour **tout ce qui est visuel et navigation**, le thème spatial de `PRODUIT-PROSPECTION.md` (§1, §4, §5, §9), `UX.md` et `CARTE-TECH.md`. **Aucune règle serveur ne change** : économie, quotas, score, déblocages, idempotence et fiabilité restent ceux de `RULES.md`. Le thème est une **peau** posée sur le même moteur.
 >
 > Ce que le joueur fait ne change pas : prospecter (`PRODUIT-PROSPECTION.md`), parler aux clients et faire de la pub (`PRODUIT-CLIENTS-PUB.md`). Les valeurs chiffrées vivent dans `data/` ; les points ouverts dans `OPEN-QUESTIONS.md` (section « Ville et bâtiment »).
+>
+> **Précision (ticket GR3-66, 2026-11-08).** La **boutique** et l'**évaluateur** ne sont plus dans l'immeuble : ce sont désormais des **bâtiments de la ville**, cliquables (silhouette distincte, anneau, étiquette), avec un lien depuis le HUD et le mode liste (`data/map/city_v1.json` → `buildings`). L'étage Accueil garde la fiche entreprise, le garage et le coffre ; le contenu des deux écrans vient des tickets GR3-67 (boutique) et GR3-68 (évaluateur).
 
 ## 1. Vision
 **Style graphique (décision Noah) : « un peu comme Les Sims, en réaliste ».** Une ville et un immeuble **semi-réalistes** : proportions crédibles, matières et éclairage doux, **personnages animés qui vivent leur journée** (ils tapent, lisent le courrier, téléphonent, marchent), et une **coupe d'immeuble à murs ouverts** comme le mode construction des Sims. Ce n'est **ni du pixel art ni du dessin minimaliste**. Conséquence sur les assets : §12.
@@ -129,7 +131,7 @@ TOIT        ▲ héliport · atelier des drones          (vue sur la ville)
 ├───────────────────────────────┤
 │ Étage 1  ARCHIVES             │  carnet de prospection · fiches clients
 ├───────────────────────────────┤
-│ RDC      ACCUEIL ET GARAGE    │  fiche entreprise · hangar · boutique · coffre
+│ RDC      ACCUEIL ET GARAGE    │  fiche entreprise · hangar · coffre
 └───────────────────────────────┘
 ```
 
@@ -139,10 +141,10 @@ TOIT        ▲ héliport · atelier des drones          (vue sur la ville)
 | **3 · Studio pub** | Bureaux de création, tableau d'inspiration, drones en maintenance ; l'agent `ads` à sa table | Campagnes, génération du kit (coût max, n/5), **Copier**, **Exporter** ; bandeau « Rien n'a été publié ni dépensé » |
 | **2 · Salle du courrier** | Bureaux de tri et de rédaction, tubes pneumatiques, **boîte aux lettres** ; chaque conversation est une **enveloppe** ; les agents `triage` et `replier` travaillent | Conversations, synthèse, brouillons, **départ du courrier** (§8) |
 | **1 · Archives** | Rangées de classeurs : **un tiroir par statut** (nouveau, contacté, en discussion, gagné, perdu, écarté) avec son **compteur** | Carnet de prospection (liste, tri, filtres, export CSV), fiches prospects, fiche client, brouillon de premier message |
-| **RDC · Accueil et garage** | Réception (la **fiche entreprise** sur le comptoir), **coffre** (trésorerie), garage où attendent les bots, **panneau de niveau** de l'immeuble | Fiche entreprise et cible, hangar et boutique d'agents, « Mes données », carnet de prompts |
+| **RDC · Accueil et garage** | Réception (la **fiche entreprise** sur le comptoir), **coffre** (trésorerie), garage où attendent les bots, **panneau de niveau** de l'immeuble | Fiche entreprise et cible, achat d'agents (garage), « Mes données », carnet de prompts |
 
 - **Scène animée Phaser** (décision Noah) : la coupe est une **scène Phaser** (`BuildingScene`) où les agents et le personnel **vivent** : ils tapent, trient les enveloppes, téléphonent, vont d'un étage à l'autre par l'ascenseur. Les animations sont **cosmétiques** et suivent l'état serveur (un agent « travaille » seulement s'il a une action en cours). Murs ouverts façon Sims ; **rotation de la caméra** par quarts de tour en option (`OPEN-QUESTIONS.md` n° 56).
-- Les **agents achetés** sont **visibles à leur poste**. Un agent **non acheté** laisse un **bureau vide** avec une étiquette « À recruter » qui mène à la boutique (message expliquant le prix).
+- Les **agents achetés** sont **visibles à leur poste**. Un agent **non acheté** laisse un **bureau vide** avec une étiquette « À recruter » (message expliquant le prix, achat depuis le garage ou la boutique de la ville).
 - **Tous les contenus** (listes, fils de conversation, kits, formulaires) sont des **panneaux React** posés sur la coupe : texte **sélectionnable et copiable**, rendu **texte sans HTML**, accessibles au clavier. La coupe est **l'illustration et la navigation**, jamais le contenu.
 - Mode **Tutoriel** : tampon « SIMULÉ » sur les enveloppes et badge « Mode simulé » permanent. Mode **Réel** : badge « Données réelles ».
 
@@ -167,7 +169,7 @@ L'idée : **le courrier suit un circuit lisible**, du réception à l'envoi, et 
 **Pourquoi ce choix** : une métaphore concrète (courrier, tri, rédaction, départ) fait comprendre le **circuit** et rend visible la règle essentielle (**les agents rédigent, le joueur décide et envoie**) sans écran technique. Alternatives étudiées et écartées : une seule grande pièce (lisible mais sans hiérarchie), un hall à trois portes (trop proche d'un menu, peu « jeu »).
 
 ## 9. Plein écran et navigation
-- La **carte occupe tout l'écran**. Interface minimale en **surimpression** : **barre d'état** (trésorerie, instructions restantes, badge de mode), bouton **menu** (Entrer dans l'immeuble, Carnet, Boutique, Mes données, réglages), **panneau latéral** (lieu, prompt, rapport) qui se superpose sans réduire la carte.
+- La **carte occupe tout l'écran**. Interface minimale en **surimpression** : **barre d'état** (trésorerie, instructions restantes, badge de mode), bouton **menu** (Entrer dans l'immeuble, Carnet, Mes données, réglages), **panneau latéral** (lieu, prompt, rapport) qui se superpose sans réduire la carte. La **boutique** et l'**évaluateur** sont des bâtiments cliquables de la ville (clic → zoom court → page dédiée), avec un lien HUD et un lien en mode liste pour le clavier.
 - **Cible : ordinateur** (décision Noah : « toujours ordi »). Le jeu n'est **pas conçu pour téléphone** ; sur un petit écran, l'appli propose le **mode liste** (déjà responsive), sans la ville ni la coupe.
 - **Caméra** : glisser pour déplacer, molette ou pincer pour zoomer (plage bornée, la ville ne sort jamais de l'écran), double-clic sur l'immeuble ou touche `H` pour **recentrer sur votre siège**.
 - **Trois sections** (décision précédente) : elles deviennent **trois endroits** de la même ville : **Prospection** = la ville ; **Clients** = étage du courrier ; **Pub** = studio. Le carnet vit aux **Archives**. Un **raccourci** du menu ouvre directement chacun (sans passer par la caméra).

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { buildingHref, type FloorId } from "@/game/building/floors";
-import { BotList, BuildingStatus, PlanetList } from "@/components/map/AccessibleLayer";
+import { BotList, BuildingStatus, NavBuildingLinks, PlanetList } from "@/components/map/AccessibleLayer";
 import { AgentsPanel } from "@/components/map/AgentsPanel";
 import { BasePanel } from "@/components/map/BasePanel";
 import { useTrips } from "@/components/map/hooks";
@@ -31,6 +31,9 @@ const PANEL_WIDTH = 448;
 
 /** Plafond d'attente du zoom vers l'immeuble : on navigue au plus tard à ce délai. */
 const ENTER_MAX_MS = 2000;
+
+/** Bâtiments de la ville sans lien avec la prospection : clic (ou lien HUD/liste) -> zoom court -> page dédiée. */
+const NAV_BUILDINGS: Record<string, string> = { boutique: "/boutique", evaluateur: "/evaluateur" };
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -214,6 +217,24 @@ function MapView({ state }: { state: GameState | null }) {
     [bus, router],
   );
 
+  /** Boutique / évaluateur : même mécanique que l'entrée dans l'immeuble (zoom court, plafond de durée, navigation). */
+  const enteringNavRef = useRef(false);
+  const enterNav = useCallback(
+    (id: string) => {
+      const href = NAV_BUILDINGS[id];
+      if (!href || enteringNavRef.current) return;
+      enteringNavRef.current = true;
+      setMenuOpen(false);
+      const zoom = bus.enterNav?.(id).catch(() => undefined) ?? Promise.resolve();
+      const timeout = new Promise<void>((r) => setTimeout(r, ENTER_MAX_MS));
+      void Promise.race([zoom, timeout]).then(() => {
+        enteringNavRef.current = false;
+        router.push(href);
+      });
+    },
+    [bus, router],
+  );
+
   const closeFocus = useCallback(() => {
     if (!focusRef.current) return;
     focusRef.current = null;
@@ -234,13 +255,14 @@ function MapView({ state }: { state: GameState | null }) {
     const offs = [
       bus.on("planet:select", (id) => {
         if (id === "base") enterBuilding();
+        else if (id && id in NAV_BUILDINGS) enterNav(id);
         else if (id) openFocus(id);
       }),
       bus.on("scene:ready", () => setReady(true)),
       bus.on("building:construction", setConstructing),
     ];
     return () => offs.forEach((off) => off());
-  }, [bus, openFocus, enterBuilding]);
+  }, [bus, openFocus, enterBuilding, enterNav]);
 
   // Lien direct (?planete=annuaire) : ouvre la vue une fois la carte prête.
   useEffect(() => {
@@ -424,6 +446,7 @@ function MapView({ state }: { state: GameState | null }) {
               <PlanetList vm={vm} selectedId={null} onSelect={openFocus} />
               <BotList vm={vm} ownedRoles={ownedRoles} trips={tc.trips} now={tc.now} reduced={reduced} />
               <AgentsSummary vm={vm} />
+              <NavBuildingLinks />
             </div>
           )}
         </div>
@@ -457,6 +480,12 @@ function MapView({ state }: { state: GameState | null }) {
           </button>
           <button type="button" className="hud-chip hud-btn" onClick={() => enterBuilding("accueil")} aria-label="Garage : ouvrir votre immeuble.">
             <span className="hud-label">Garage</span> <strong>{vm.source === "serveur" ? `${vm.base.agentsOwned}/${vm.base.agentsTotal}` : "—"}</strong>
+          </button>
+          <button type="button" className="hud-chip hud-btn" onClick={() => enterNav("boutique")} aria-label="Boutique : ouvrir la boutique d'agents.">
+            Boutique
+          </button>
+          <button type="button" className="hud-chip hud-btn" onClick={() => enterNav("evaluateur")} aria-label="Évaluateur : ouvrir le bâtiment de l'évaluateur.">
+            Évaluateur
           </button>
           <span className="hud-chip" title={vm.simulated ? "Les réponses des bots et des lieux sont simulées" : "Données réelles"}>
             <span className="hud-label">Mode</span> <strong>{modeLabel(state?.session?.mode)}</strong>
@@ -506,7 +535,14 @@ function MapView({ state }: { state: GameState | null }) {
                   </button>
                 </li>
                 <li>
-                  <Link href="/boutique">Boutique</Link>
+                  <button type="button" onClick={() => enterNav("boutique")}>
+                    Boutique
+                  </button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => enterNav("evaluateur")}>
+                    Évaluateur
+                  </button>
                 </li>
                 <li>
                   <button type="button" onClick={toggleList}>
@@ -531,6 +567,7 @@ function MapView({ state }: { state: GameState | null }) {
             </button>
             <PlanetList vm={vm} selectedId={planet?.id ?? null} onSelect={openFocus} />
             <BotList vm={vm} ownedRoles={ownedRoles} trips={tc.trips} now={tc.now} reduced={reduced} />
+            <NavBuildingLinks />
           </aside>
         ) : null}
 

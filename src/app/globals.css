@@ -446,6 +446,7 @@ body:has(.map-fullscreen) main { flex: 1 1 auto; min-height: 0; padding: 0; posi
 .map-drawer { position: absolute; left: .75rem; top: 3.4rem; bottom: 11rem; z-index: 4; width: min(21rem, calc(100% - 1.5rem)); overflow: auto; background: rgba(255, 255, 255, .96); color: var(--ink); border-radius: var(--radius); padding: .8rem; box-shadow: 0 8px 28px rgba(0, 0, 0, .3); display: grid; gap: .9rem; align-content: start; }
 .planet-item-sub { flex-basis: 100%; font-size: .82rem; color: var(--muted); }
 .bot-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.nav-building-list { list-style: none; margin: 0; padding: 0; display: flex; gap: .5rem; flex-wrap: wrap; }
 .bot-item { padding: .35rem .6rem; border-radius: 8px; background: var(--accent-soft); }
 .bot-en_route, .bot-sur_place, .bot-retour { background: var(--info-soft); }
 .bot-en_panne { background: var(--bad-soft); color: var(--bad); }

@@ -278,7 +278,6 @@
     { "id": "b03", "x": -20, "y": -2, "w": 4, "h": 4, "district": "upper-west", "style": "brick", "floors": 9 },
     { "id": "b04", "x": -20, "y": 4, "w": 4, "h": 4, "district": "soho", "style": "brick", "floors": 4 },
     { "id": "b05", "x": -20, "y": 10, "w": 4, "h": 4, "district": "soho", "style": "brick", "floors": 4 },
-    { "id": "b06", "x": -20, "y": 16, "w": 4, "h": 4, "district": "soho", "style": "brick", "floors": 3 },
     { "id": "b10", "x": -14, "y": -20, "w": 4, "h": 4, "district": "upper-west", "style": "brick", "floors": 7 },
     { "id": "b11", "x": -14, "y": -14, "w": 4, "h": 4, "district": "upper-west", "style": "brick", "floors": 7 },
     { "id": "b12", "x": -14, "y": -8, "w": 4, "h": 4, "district": "upper-west", "style": "brick", "floors": 7 },
@@ -288,7 +287,6 @@
     { "id": "b22", "x": -8, "y": -8, "w": 4, "h": 4, "district": "bryant-park", "style": "stone", "floors": 3 },
     { "id": "b23", "x": -8, "y": -2, "w": 4, "h": 4, "district": "bryant-park", "style": "stone", "floors": 3 },
     { "id": "b25", "x": -8, "y": 10, "w": 4, "h": 4, "district": "city-hall", "style": "stone", "floors": 4 },
-    { "id": "b26", "x": -8, "y": 16, "w": 4, "h": 4, "district": "city-hall", "style": "stone", "floors": 5 },
     { "id": "b34", "x": -2, "y": 4, "w": 4, "h": 4, "district": "city-hall", "style": "concrete", "floors": 2 },
     { "id": "b35", "x": -2, "y": 10, "w": 4, "h": 4, "district": "city-hall", "style": "stone", "floors": 4 },
     { "id": "b36", "x": -2, "y": 16, "w": 4, "h": 4, "district": "city-hall", "style": "stone", "floors": 7 },
@@ -370,6 +368,30 @@
       "floors": 20,
       "street_node": "n72",
       "helipad": { "x": 18, "y": -12 }
+    }
+  ],
+  "buildings": [
+    {
+      "id": "boutique",
+      "name": "Boutique",
+      "kind": "shop",
+      "district": "soho",
+      "grid": { "x": -18, "y": 18 },
+      "footprint": { "w": 4, "h": 4 },
+      "floors": 2,
+      "street_node": "n07",
+      "route": "/boutique"
+    },
+    {
+      "id": "evaluateur",
+      "name": "Évaluateur",
+      "kind": "academy",
+      "district": "city-hall",
+      "grid": { "x": -6, "y": 18 },
+      "footprint": { "w": 4, "h": 4 },
+      "floors": 2,
+      "street_node": "n37",
+      "route": "/evaluateur"
     }
   ]
 }
