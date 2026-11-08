@@ -279,19 +279,25 @@ def test_registre_unlocks_only_on_matching_prospects(app):
     assert planets(c)["registre"]["status"] == "AVAILABLE"
 
 
-def test_tutorial_annuaire_example_sheet_finds_matching_prospects_then_unlocks_registre(app):
-    examples = app.state.profile_spec.examples
-    annuaire = {e["id"] for e in examples if e["id"] in ("exemple_caisse_commerce", "exemple_emballages_restauration")}
-    assert annuaire == {"exemple_caisse_commerce", "exemple_emballages_restauration"}  # proposées au Tutoriel
-    wanted = {"exemple_caisse_commerce", "exemple_emballages_restauration"}
-    name = next(n for n in (f"Entreprise {i}" for i in range(500)) if examples[int(hashlib.sha256(n.encode()).hexdigest()[:8], 16) % len(examples)]["id"] in wanted)
-    c = TestClient(app)
-    assert c.post("/api/sessions", json={"company_name": name, "mode": "beginner"}, headers=k()).status_code == 201
-    assert planets(c)["registre"]["status"] == "LOCKED"
-    s = search(c).json()  # sans rien saisir : la fiche d'exemple suffit
-    assert s["status"] == "DONE" and s["matching"] >= 3, s
-    assert planets(c)["registre"]["status"] == "AVAILABLE"
-    assert search(c, "registre").status_code == 202
+def test_tutorial_start_sheet_always_finds_matching_prospects_then_unlocks_registre(app):
+    spec = app.state.profile_spec
+    assert {e["id"] for e in spec.start_examples} == {"exemple_caisse_commerce", "exemple_emballages_restauration"}
+    assert len(spec.examples) > len(spec.start_examples)  # les autres exemples restent proposés au sélecteur
+    seen: set[str] = set()
+    for i in range(40):  # quel que soit le nom d'entreprise, la fiche de départ trouve des prospects dans le premier lieu
+        name = f"Entreprise {i}"
+        pick = spec.start_examples[int(hashlib.sha256(name.encode()).hexdigest()[:8], 16) % len(spec.start_examples)]["id"]
+        seen.add(pick)
+        if i >= 6 and seen == {"exemple_caisse_commerce", "exemple_emballages_restauration"}:
+            break
+        c = TestClient(app)
+        assert c.post("/api/sessions", json={"company_name": name, "mode": "beginner"}, headers=k()).status_code == 201
+        assert planets(c)["registre"]["status"] == "LOCKED"
+        s = search(c).json()  # sans rien saisir : la fiche de départ suffit
+        assert s["status"] == "DONE" and s["matching"] >= 3, (name, pick, s)
+        assert planets(c)["registre"]["status"] == "AVAILABLE"
+        assert search(c, "registre").status_code == 202
+    assert seen == {"exemple_caisse_commerce", "exemple_emballages_restauration"}  # les deux fiches de départ ont été éprouvées
 
 
 # ------------------------------------------------------------------ sécurité du contexte

@@ -64,9 +64,10 @@ def initial_data(spec: ProfileSpec | None, mode: str, company_name: str, legacy_
     if spec is None:
         return {"entreprise_nom": company_name, "offre": legacy_profile or ""}
     data = _empty(spec)
-    if mode == "beginner" and spec.examples:
-        idx = int(hashlib.sha256(company_name.encode()).hexdigest()[:8], 16) % len(spec.examples)
-        example = spec.examples[idx]
+    pool = spec.start_examples or spec.examples  # le Tutoriel démarre sur une fiche qui trouve des prospects dans le premier lieu
+    if mode == "beginner" and pool:
+        idx = int(hashlib.sha256(company_name.encode()).hexdigest()[:8], 16) % len(pool)
+        example = pool[idx]
         for name in spec.fields:
             if name in example and name != "cible_taille":
                 data[name] = example[name]

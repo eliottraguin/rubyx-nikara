@@ -290,6 +290,11 @@ def test_step11_opted_out_prospect_cannot_become_a_client(searched: Journey):
     j.app.state.actions.llm = RecMock(client_says("Merci de ne plus me contacter, arrêtez les messages, stop."))
     pid = j.prospects()[0]["id"]
     cid = j.contact(pid)
+    with j.app.state.session_factory() as db:  # client qui répond (le tirage de la graine peut donner un client silencieux)
+        from app.models import Conversation
+
+        db.get(Conversation, cid).persona_id = "p_interesse"
+        db.commit()
     out = j.check(j.say(cid, "Bonjour, nous proposons une caisse sur tablette."), 200).json()
     assert out["etat"] == "desinscrit", out
     r = j.set_status(pid, "gagne")
