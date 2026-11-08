@@ -71,3 +71,12 @@ describe("MapBus.farewell", () => {
     await expect(bus.farewell()).resolves.toBeUndefined();
   });
 });
+
+describe("MapBus.enterBuilding", () => {
+  it("est absent par défaut et posé par la scène", async () => {
+    const bus = new MapBus();
+    expect(bus.enterBuilding).toBeNull();
+    bus.enterBuilding = () => Promise.resolve();
+    await expect(bus.enterBuilding()).resolves.toBeUndefined();
+  });
+});

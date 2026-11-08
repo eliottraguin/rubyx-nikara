@@ -471,6 +471,7 @@ body:has(.map-fullscreen) main { flex: 1 1 auto; min-height: 0; padding: 0; posi
 .building-body { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
 @media (min-width: 900px) { .building-body { grid-template-columns: 22rem minmax(0, 1fr); } }
 .floor-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.building-canvas { display: block; width: 100%; height: 18rem; border-radius: .5rem; margin-bottom: 1rem; }
 .planet-item.floor-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .floor-panel:focus-visible { outline: 3px solid #9fc2ff; outline-offset: 2px; }
 

@@ -55,6 +55,11 @@ export class MapBus {
    * ou n'existe plus. L'appelant ne doit jamais en dépendre pour naviguer (course contre un délai).
    */
   farewell: (() => Promise<void>) | null = null;
+  /**
+   * Posé par la scène : zoom animé vers l'immeuble du joueur avant d'ouvrir la vue bureau. Résolu à la fin ;
+   * `null` sans scène 3D. L'appelant navigue toujours (course contre un délai), jamais bloquant.
+   */
+  enterBuilding: (() => Promise<void>) | null = null;
   private handlers = new Map<keyof MapEvents, Set<(...a: never[]) => void>>();
 
   on<K extends keyof MapEvents>(event: K, fn: Handler<K>): () => void {

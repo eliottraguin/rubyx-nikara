@@ -33,6 +33,8 @@ const PANEL_WIDTH = 448;
 
 /** Le dézoom du logout ne doit jamais retenir la déconnexion au-delà de ce délai (ms). */
 const FAREWELL_MAX_MS = 2500;
+/** Plafond d'attente du zoom vers l'immeuble : on navigue au plus tard à ce délai. */
+const ENTER_MAX_MS = 2000;
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -78,6 +80,7 @@ function MapView({ state }: { state: GameState | null }) {
   const { mutate, busy, refresh } = useGame();
   const router = useRouter();
   const vm = useMemo(() => buildMapViewModel(state), [state]);
+  const enteringRef = useRef(false);
   const reduced = useReducedMotion();
   const [bus] = useState(() => {
     const b = new MapBus();
@@ -196,10 +199,18 @@ function MapView({ state }: { state: GameState | null }) {
   /** Entrer dans l'immeuble : la vue « Immeuble » (étages) est une route à part, au clavier comme à la souris. */
   const enterBuilding = useCallback(
     (floor?: FloorId) => {
+      if (enteringRef.current) return;
+      enteringRef.current = true;
       setMenuOpen(false);
-      router.push(buildingHref(floor));
+      // Zoom caméra vers l'immeuble, puis navigation (repli DOM `/immeuble` inchangé). Jamais bloquant : course contre un délai.
+      const zoom = bus.enterBuilding?.().catch(() => undefined) ?? Promise.resolve();
+      const timeout = new Promise<void>((r) => setTimeout(r, ENTER_MAX_MS));
+      void Promise.race([zoom, timeout]).then(() => {
+        enteringRef.current = false;
+        router.push(buildingHref(floor));
+      });
     },
-    [router],
+    [bus, router],
   );
 
   const closeFocus = useCallback(() => {
