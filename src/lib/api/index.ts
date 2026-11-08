@@ -6,12 +6,12 @@ export * from "./types";
 let client: ApiClient | null = null;
 
 /**
- * Point d'accès unique à l'API. NEXT_PUBLIC_API_MODE=mock|http (défaut : mock).
+ * Point d'accès unique à l'API. NEXT_PUBLIC_API_MODE=mock|http (défaut : http).
  * Le mock est chargé dynamiquement pour ne pas alourdir le mode http.
  */
 export async function loadApi(): Promise<ApiClient> {
   if (client) return client;
-  if (process.env.NEXT_PUBLIC_API_MODE === "http") {
+  if (process.env.NEXT_PUBLIC_API_MODE !== "mock") {
     client = createHttpClient();
   } else {
     const { createMockClient } = await import("@/mocks/client");
@@ -20,4 +20,4 @@ export async function loadApi(): Promise<ApiClient> {
   return client;
 }
 
-export const isMockMode = () => process.env.NEXT_PUBLIC_API_MODE !== "http";
+export const isMockMode = () => process.env.NEXT_PUBLIC_API_MODE === "mock";

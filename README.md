@@ -17,7 +17,17 @@ cp .env.example .env   # puis renseigner les variables
 pnpm dev
 ```
 
-L'application est disponible sur <http://localhost:3000> (page vierge pour l'instant).
+Lancez également l'API dans un second terminal :
+
+```bash
+cd api
+uv sync
+uv run uvicorn app.main:app --port 8000
+```
+
+L'application est disponible sur <http://localhost:3000>. L'interface utilise l'API par défaut ; le fournisseur IA peut rester simulé. Le mode `NEXT_PUBLIC_API_MODE=mock` est une maquette distincte qui ne prend pas en charge les étages Archives, Courrier et Pub.
+
+L'API migre sa base au démarrage. Avant de démarrer une nouvelle version sur une base existante, vérifiez les migrations et sauvegardez vos données. Pour utiliser une nouvelle base sans toucher à l'ancienne, indiquez par exemple `RUBIX_DB_PATH=$PWD/var/rubix-current.db` depuis `api/`.
 
 ## Scripts
 

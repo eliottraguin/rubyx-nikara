@@ -253,9 +253,9 @@ export function createAssistantApi(opts: AssistantClientOptions = {}): Assistant
   };
 }
 
-/** Point d'accès unique côté interface : mock hors `NEXT_PUBLIC_API_MODE=http`, chargé à la demande. */
+/** Point d'accès unique côté interface : mock explicite, chargé à la demande. */
 export function createAssistantApiForMode(): AssistantApi {
-  if (process.env.NEXT_PUBLIC_API_MODE === "http") return createAssistantApi();
+  if (process.env.NEXT_PUBLIC_API_MODE !== "mock") return createAssistantApi();
   let mock: Promise<AssistantApi> | null = null;
   const load = () => (mock ??= import("@/mocks/assistant").then((m) => m.createMockAssistantApi()));
   return {

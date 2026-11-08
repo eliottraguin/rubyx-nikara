@@ -12,6 +12,7 @@ import { useSearch } from "@/components/search/useSearch";
 import { useAssistant } from "@/components/assistant/useAssistant";
 import { useTips } from "@/components/search/useTips";
 import type { ApiError, GameState, RoleId } from "@/lib/api/types";
+import { isMockMode } from "@/lib/api";
 
 export interface BuildingViewProps {
   state: GameState;
@@ -116,7 +117,9 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
   }
 
   let panel: ReactNode = null;
-  if (open === "toit") panel = <ToitPanel state={state} />;
+  if (isMockMode() && (open === "pub" || open === "courrier" || open === "archives")) {
+    panel = <p role="status">Cet étage nécessite une partie connectée à l&apos;API. Lancez l&apos;API et créez une partie en mode HTTP.</p>;
+  } else if (open === "toit") panel = <ToitPanel state={state} />;
   else if (open === "pub") panel = <PubPanel state={state} />;
   else if (open === "courrier") panel = <CourrierPanel key={conversationId ?? "liste"} state={state} initialConversationId={conversationId} />;
   else if (open === "archives") panel = <ArchivesPanel state={state} />;

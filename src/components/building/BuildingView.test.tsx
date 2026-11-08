@@ -59,6 +59,19 @@ describe("vue Immeuble", () => {
     expect(screen.getByText("Rien n'a été publié ni dépensé.")).toBeInTheDocument();
   });
 
+  it("indique les étages indisponibles dans la maquette mock", () => {
+    vi.stubEnv("NEXT_PUBLIC_API_MODE", "mock");
+    try {
+      const { list } = setup({ initialFloor: "pub" });
+      for (const name of [/Studio pub/, /Salle du courrier/, /Archives/]) {
+        fireEvent.click(within(list).getByRole("button", { name }));
+        expect(screen.getByText(/Cet étage nécessite une partie connectée/)).toBeInTheDocument();
+      }
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("Toit : niveau et total gagné ; Accueil : agents du hangar", () => {
     const { list } = setup({ initialFloor: "toit" });
     expect(screen.getByTestId("toit-text")).toHaveTextContent("Immeuble niveau 1 sur 10");
