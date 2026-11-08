@@ -40,3 +40,9 @@ Toutes les routes métier passent par `SessionId`/`CurrentSession` (cookie de pa
 | B1 | Bloquant | IP client derrière proxy (`--proxy-headers` + liste blanche) + test | Backend / déploiement |
 | B2 | Bloquant | `Secure` obligatoire en prod (garde de config) | Backend |
 | A1–A4 | Avant ouverture publique | Compteur d'inscriptions, expiration des jetons, verrou (email, IP), cookie de partie résiduel | Backend |
+
+## Mise à jour (suite à la demande de correction)
+**Corrigé sur la branche** : A2 (plafond de 5 inscriptions réussies par IP et par 15 min, test ajouté) ; cookie de compte avec `max_age` 30 j ; `docs/CONTRACTS.md` complété (règle 10) ; README : consigne proxy (B1, côté déploiement) et `Secure` (B2).
+**Correction à la revue** : `qa-seed` est déjà refusé quand `RUBIX_COOKIE_SECURE=1` (`--allow-prod` pour forcer) ; le risque restant est un déploiement HTTPS sans ce drapeau, donc B2.
+**Reste ouvert** : B1 (réglage uvicorn/proxy, pas de code), B2 (garde de config en prod : pas de notion d'environnement dans `Settings`), A1, expiration serveur des jetons (migration `expires_at`), cookie de partie résiduel.
+**Avis sur un seul jeton de compte par utilisateur** : acceptable pour la démo (rotation simple, vol de cookie limité par la connexion suivante), mais mauvaise UX (2e appareil déconnecte le 1er) et pas de « déconnecter partout ». Cible : table `user_sessions` (un jeton haché par appareil, `expires_at`, révocation individuelle) avant ouverture publique.

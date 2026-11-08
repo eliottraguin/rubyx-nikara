@@ -19,6 +19,7 @@
 | Route | Effet | Section |
 |---|---|---|
 | `POST /api/sessions` | Crée une partie ; retourne l'état initial + cookie. Rejouable par `Idempotency-Key` | Conventions |
+| `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me` | Comptes joueurs (ADR 0001) : corps `{email, password}` (12–128 car.), réponse `{user_id, email, has_game}` ; cookie de compte `rubix_session_user` (HttpOnly, SameSite=Lax, 30 j) en plus du cookie de partie, jetons renouvelés à chaque connexion. Erreurs : `INVALID_CREDENTIALS` (401, message unique), `RATE_LIMITED` (429), `INVALID_REQUEST` (422, dont `Origin` non autorisé), `SESSION_REQUIRED` (`/me` sans compte). `Idempotency-Key` : oui (sauf `/me`) | ADR 0001, `docs/SECURITE-AUTH.md` |
 | `GET /api/state` | État complet utile à l'UI (solde, hangar, lieux, `target_profile`, `building`, `clients_obtained`, actions en cours) | 8 |
 | `DELETE /api/session` | Supprime la partie et ses contenus personnels | 4 |
 | `GET /api/health` | Santé (`HealthOut`) ; `GET /api/ready` hors schéma | |

@@ -150,3 +150,14 @@ def test_forged_or_revoked_account_cookie_does_not_attach(client, make_session):
         make_session(other)
     with client.app.state.session_factory() as db:
         assert all(g.user_id is None for g in db.scalars(select(GameSession)))
+
+
+def test_signup_is_rate_limited_per_ip_even_on_success(client):
+    from app.services.auth import MAX_SIGNUPS_IP
+
+    codes = []
+    for i in range(MAX_SIGNUPS_IP + 1):
+        r = client.post("/api/auth/signup", json={"email": f"rl{i}@example.com", "password": "correct horse battery"}, headers={"Idempotency-Key": f"signup-rl-{i}-xxxx"})
+        codes.append(r.status_code)
+    assert codes[:MAX_SIGNUPS_IP] == [201] * MAX_SIGNUPS_IP
+    assert codes[-1] == 429

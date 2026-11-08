@@ -21,6 +21,7 @@ from ..models import AuthAttempt, GameSession, User, utcnow
 MIN_PASSWORD = 12
 MAX_PASSWORD = 128
 MAX_FAILURES = 10  # échecs par email (empreinte) et par fenêtre
+MAX_SIGNUPS_IP = 5  # inscriptions réussies par IP (empreinte) et par fenêtre
 MAX_FAILURES_IP = 30  # échecs par IP (empreinte) et par fenêtre
 WINDOW = timedelta(minutes=15)
 _EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,255}\.[^@\s.]{2,}$")
@@ -81,6 +82,12 @@ def signup(db: Session, email_raw: str, password: str, anonymous_game: GameSessi
     email = normalize_email(email_raw)
     check_password_policy(password)
     _check_throttle(db, email, ip)
+    signup_key = hash_token(f"signup:{ip}") if ip else None
+    if signup_key:
+        since = utcnow() - WINDOW
+        n = db.scalar(select(func.count()).select_from(AuthAttempt).where(AuthAttempt.key_hash == signup_key, AuthAttempt.created_at >= since))
+        if n >= MAX_SIGNUPS_IP:
+            raise ApiError(ErrorCode.RATE_LIMITED, "Trop d'inscriptions depuis cette adresse ; réessayez dans quelques minutes.")
     user = User(email=email, password_hash=_hasher.hash(password))
     db.add(user)
     try:
@@ -94,6 +101,8 @@ def signup(db: Session, email_raw: str, password: str, anonymous_game: GameSessi
         anonymous_game.user_id = user.id
         game, token = anonymous_game, _new_token(anonymous_game)
     user_token = _new_user_token(user)
+    if signup_key:
+        db.add(AuthAttempt(key_hash=signup_key))  # compté aussi en cas de succès (purgé avec la fenêtre)
     db.commit()
     return user, game, token, user_token
 

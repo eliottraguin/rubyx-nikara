@@ -16,6 +16,8 @@ from .common import ERRORS
 
 router = APIRouter(tags=["auth"])
 
+USER_COOKIE_MAX_AGE = 30 * 24 * 3600  # le cookie de compte expire côté navigateur (l'expiration serveur du jeton reste à faire)
+
 
 class Credentials(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
@@ -46,7 +48,7 @@ def _set_cookie(request: Request, response: Response, token: str) -> None:
 
 
 def _set_user_cookie(request: Request, response: Response, token: str) -> None:
-    response.set_cookie(user_cookie_name(request), token, httponly=True, samesite="lax", secure=request.app.state.settings.cookie_secure, path="/")
+    response.set_cookie(user_cookie_name(request), token, httponly=True, samesite="lax", secure=request.app.state.settings.cookie_secure, path="/", max_age=USER_COOKIE_MAX_AGE)
 
 
 def _client_ip(request: Request) -> str | None:
