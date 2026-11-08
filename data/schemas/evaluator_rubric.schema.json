@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluator_rubric",
+  "title": "Grille de notation de l'évaluateur (data/evaluator/rubrics_*.json, ticket C4)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "criteres": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "poids": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "essentiel": {
+            "type": "boolean"
+          }
+        },
+        "required": ["id", "label", "poids"],
+        "additionalProperties": false
+      }
+    },
+    "note_min": {
+      "type": "integer"
+    },
+    "note_max": {
+      "type": "integer"
+    }
+  },
+  "required": ["id", "criteres", "note_min", "note_max"],
+  "additionalProperties": false
+}
