@@ -62,3 +62,12 @@ describe("bus React <-> scène", () => {
     expect(bus.insetRight).toBe(448);
   });
 });
+
+describe("MapBus.farewell", () => {
+  it("est absent par défaut et posé/retiré par la scène", async () => {
+    const bus = new MapBus();
+    expect(bus.farewell).toBeNull();
+    bus.farewell = () => Promise.resolve();
+    await expect(bus.farewell()).resolves.toBeUndefined();
+  });
+});
