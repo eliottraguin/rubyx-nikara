@@ -35,6 +35,8 @@ const MAX_ZOOM = 4;
 const DRAG_THRESHOLD = 5;
 const ROTATE_SPEED = 0.008;
 const BASE_ID = "base";
+/** Zoom final de la transition vers le bureau (au-delà du zoom de focus 2.4 : l'immeuble remplit l'écran). */
+const ENTER_ZOOM = 4;
 const STATUS_TINT: Record<PlanetStatus, string> = {
   locked: "#8a8f98",
   available: "#e8c46a",
@@ -107,6 +109,7 @@ export class MapView {
     this.bindPointer();
     this.city.start();
     bus.farewell = () => this.farewell();
+    bus.enterBuilding = () => this.enterBuilding();
     if (bus.vm) this.applyVM(bus.vm);
     this.applySelected(bus.selectedId);
     bus.emit("scene:ready");
@@ -201,6 +204,16 @@ export class MapView {
   }
 
   /**
+   * Zoom continu vers l'immeuble du joueur (transition ville -> bureau). `zoomToDistrict` raccourcit déjà la durée
+   * en animations réduites (zoom court, sans coupure brute). Ne navigue pas : l'appelant enchaîne (router.push).
+   */
+  private enterBuilding(): Promise<void> {
+    const t = this.pickables.get(BASE_ID);
+    if (!t) return Promise.resolve();
+    return this.city.zoomToDistrict({ target: { x: t.group.position.x, z: t.group.position.z }, zoom: ENTER_ZOOM });
+  }
+
+  /**
    * Dézoom au logout : la caméra remonte à la vue très haute (zoom 1) de la scène de connexion, avec la même
    * animation (`zoomToDistrict`, raccourcie en animations réduites). Ne navigue pas : l'appelant enchaîne.
    */
@@ -288,6 +301,7 @@ export class MapView {
     if (this.disposed) return;
     this.disposed = true;
     this.bus.farewell = null;
+    this.bus.enterBuilding = null;
     for (const off of this.unsubs) off();
     for (const fn of this.cleanups) fn();
     this.pickables.clear();
