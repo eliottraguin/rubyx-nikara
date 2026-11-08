@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import { ShortcutsMenu } from "@/components/building/ShortcutsMenu";
 import { isMockMode } from "@/lib/api";
 import { money } from "@/lib/format";
@@ -40,7 +41,7 @@ const SECONDARY = [{ href: "/boutique", label: "Boutique" }];
 const SECONDARY_PREFIXES = ["/boutique"];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { state, connectionLost, refresh } = useGame();
+  const { state, connectionLost, refresh, account, api, setState, setAccount, farewellRef } = useGame();
   const path = usePathname();
   const [motionOff, toggleMotion] = useMotionPref();
   const session = state?.session;
@@ -108,6 +109,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <label className="motion">
               <input type="checkbox" checked={motionOff} onChange={toggleMotion} /> Réduire les animations
             </label>
+            <SignOutButton
+              account={account}
+              session={state === undefined ? undefined : state?.session ?? null}
+              api={api}
+              farewellRef={farewellRef}
+              onDone={() => {
+                setState(null);
+                setAccount(null);
+              }}
+            />
           </div>
         </div>
       </header>

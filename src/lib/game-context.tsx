@@ -10,7 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ApiError, loadApi, type ActionView, type ApiClient, type GameState, type MutationResult } from "./api";
+import { ApiError, isMockMode, loadApi, type ActionView, type ApiClient, type GameState, type MutationResult } from "./api";
+import { getAccount, type Account } from "./api/auth";
 
 const TERMINAL = ["SUCCEEDED", "PARTIAL", "FAILED"];
 
@@ -18,6 +19,14 @@ interface Ctx {
   api: ApiClient | null;
   /** undefined = chargement initial ; null = aucune partie ; sinon état serveur. */
   state: GameState | null | undefined;
+  /** Compte connecté (`/api/auth/me`) : undefined = chargement initial, null = aucun compte. */
+  account: Account | null | undefined;
+  setAccount: (a: Account | null) => void;
+  /**
+   * Posée par la vue carte pendant son montage (dézoom `bus.farewell` avant déconnexion) ; `null` sur les autres
+   * écrans ou sans scène 3D, pour une navigation immédiate.
+   */
+  farewellRef: { current: (() => Promise<void>) | null };
   /** Statut courant des actions longues (réponse de GET /api/actions/{id}). */
   live: Record<string, ActionView>;
   connectionLost: boolean;
@@ -43,10 +52,31 @@ function toApiError(e: unknown): ApiError {
 export function GameProvider({ children }: { children: ReactNode }) {
   const [api, setApi] = useState<ApiClient | null>(null);
   const [state, setStateRaw] = useState<GameState | null | undefined>(undefined);
+  // Mode simulé : les comptes ne sont pas branchés (LoginScreen) ; `account` reste `null`, jamais `undefined`.
+  const [account, setAccount] = useState<Account | null | undefined>(() => (isMockMode() ? null : undefined));
+  const farewellRef = useRef<(() => Promise<void>) | null>(null);
   const [live, setLive] = useState<Record<string, ActionView>>({});
   const [connectionLost, setConnectionLost] = useState(false);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
+
+  // Compte connecté (`/api/auth/me`), hors mode simulé. `getAccount` renvoie déjà `null` sur 401 (pas de compte) ;
+  // une autre erreur (réseau, 500) laisse `account` à `undefined` plutôt que de la confondre avec « pas de compte » :
+  // un compte réel pris pour anonyme déclencherait la suppression destructrice de la partie (« Quitter la partie »).
+  useEffect(() => {
+    if (isMockMode()) return;
+    let cancelled = false;
+    getAccount()
+      .then((a) => {
+        if (!cancelled) setAccount(a);
+      })
+      .catch(() => {
+        /* erreur indéterminée : on ne bascule jamais en "pas de compte" par défaut */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const refresh = useCallback(async () => {
     if (!api) return undefined;
@@ -143,8 +173,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<Ctx>(
-    () => ({ api, state, live, connectionLost, busy, refresh, mutate, setState: setStateRaw }),
-    [api, state, live, connectionLost, busy, refresh, mutate],
+    () => ({ api, state, account, setAccount, farewellRef, live, connectionLost, busy, refresh, mutate, setState: setStateRaw }),
+    [api, state, account, live, connectionLost, busy, refresh, mutate],
   );
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
