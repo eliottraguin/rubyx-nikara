@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { BuildingView } from "@/components/building/BuildingView";
@@ -11,6 +12,7 @@ import { useGame } from "@/lib/game-context";
 function Building({ slug }: { slug: string | null }) {
   const router = useRouter();
   const { mutate, busy, state } = useGame();
+  const sceneContainerRef = useRef<HTMLDivElement>(null);
   const buy = useCallback(
     async (role: RoleId): Promise<ApiError | null> => {
       const r = await mutate((a) => a.purchaseAgent(role));
@@ -29,7 +31,7 @@ function Building({ slug }: { slug: string | null }) {
     }
   }, []);
   if (!state) return null;
-  return <BuildingView state={state} busy={busy} initialFloor={floorFromSlug(slug)?.id ?? null} onBuy={buy} onLeave={() => router.push("/carte")} onFloorChange={onFloorChange} />;
+  return <BuildingView state={state} busy={busy} initialFloor={floorFromSlug(slug)?.id ?? null} onBuy={buy} onLeave={() => router.push("/carte")} onFloorChange={onFloorChange} sceneContainerRef={sceneContainerRef} />;
 }
 
 export function BuildingScreen({ floor }: { floor: string | null }) {

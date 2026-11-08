@@ -7,6 +7,7 @@ import { CourrierPanel } from "./CourrierPanel";
 import { PubPanel } from "./PubPanel";
 import { ToitPanel } from "./ToitPanel";
 import { AccueilPanel } from "./AccueilPanel";
+import { BuildingInteriorScene } from "./BuildingInteriorScene";
 import type { ApiError, GameState, RoleId } from "@/lib/api/types";
 
 export interface BuildingViewProps {
@@ -19,6 +20,8 @@ export interface BuildingViewProps {
   onLeave: () => void;
   /** Appelé quand l'étage ouvert change (mise à jour de l'URL). */
   onFloorChange?: (floor: Floor | null) => void;
+  /** Container for Three.js scene (optional, for interior view). */
+  sceneContainerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
 function targetIsField(t: EventTarget | null): boolean {
@@ -26,11 +29,12 @@ function targetIsField(t: EventTarget | null): boolean {
 }
 
 /** Vue « Immeuble » : liste des étages (flèches, Entrée, Échap) et panneau de l'étage ouvert. Texte brut uniquement. */
-export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave, onFloorChange }: BuildingViewProps) {
+export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave, onFloorChange, sceneContainerRef }: BuildingViewProps) {
   const initialIdx = initialFloor ? FLOORS.findIndex((f) => f.id === initialFloor) : -1;
   const [open, setOpen] = useState<FloorId | null>(initialIdx >= 0 ? FLOORS[initialIdx]!.id : null);
   const [cursor, setCursor] = useState(Math.max(0, initialIdx));
   const [live, setLive] = useState("");
+  const [sceneError, setSceneError] = useState<string | null>(null);
   const btns = useRef<(HTMLButtonElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const leave = useRef(onLeave);
@@ -82,6 +86,17 @@ export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave,
 
   return (
     <div className="building-view">
+      {sceneContainerRef && (
+        <>
+          <div ref={sceneContainerRef} className="building-canvas" />
+          <BuildingInteriorScene
+            containerRef={sceneContainerRef}
+            selectedFloor={open}
+            onFloorSelect={(floorId) => openFloor(FLOORS.findIndex((f) => f.id === floorId))}
+            onError={setSceneError}
+          />
+        </>
+      )}
       <div className="building-head">
         <h1 className="h2">Votre immeuble{state.session?.company ? ` : ${state.session.company}` : ""}</h1>
         <button type="button" className="btn btn-small" onClick={onLeave}>
@@ -120,6 +135,11 @@ export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave,
           {panel ?? <p className="muted">Choisissez un étage pour l&apos;ouvrir.</p>}
         </div>
       </div>
+      {sceneError && (
+        <div className="building-error">
+          <p>Erreur de rendu 3D: {sceneError}</p>
+        </div>
+      )}
       <p className="sr-only" role="status" aria-live="polite" data-testid="building-live">
         {live}
       </p>
