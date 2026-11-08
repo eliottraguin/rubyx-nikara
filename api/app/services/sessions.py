@@ -45,7 +45,7 @@ def _aware(dt: datetime) -> datetime:
 
 
 def _add_game(
-    db: Session, rules: Rules, payload: SessionCreate, key_hash: str | None, req_hash: str | None, profile_spec: ProfileSpec | None = None
+    db: Session, rules: Rules, payload: SessionCreate, key_hash: str | None, req_hash: str | None, profile_spec: ProfileSpec | None = None, user_id: str | None = None
 ) -> tuple[GameSession, str]:
     """Insère partie, capital initial (écriture de ledger) et agents initiaux, sans commit. Retourne (partie, jeton en clair)."""
     token = secrets.token_urlsafe(32)
@@ -58,6 +58,7 @@ def _add_game(
         rules_version=rules.version,
         creation_key_hash=key_hash,
         creation_request_hash=req_hash,
+        user_id=user_id,
     )
     db.add(game)
     db.flush()
@@ -100,7 +101,7 @@ def _creation_replay(db: Session, key_hash: str, req_hash: str, current_token: s
 
 
 def create_session_idempotent(
-    db: Session, rules: Rules, payload: SessionCreate, key: str, current_token: str | None, profile_spec: ProfileSpec | None = None
+    db: Session, rules: Rules, payload: SessionCreate, key: str, current_token: str | None, profile_spec: ProfileSpec | None = None, user_id: str | None = None
 ) -> tuple[GameSession, str | None, bool]:
     """Création rejouable par `Idempotency-Key`. Retourne (partie, jeton à poser en cookie ou None, rejeu)."""
     key_hash = hash_token(key)
@@ -109,7 +110,7 @@ def create_session_idempotent(
     if replay is not None:
         return replay[0], replay[1], True
     try:
-        game, token = _add_game(db, rules, payload, key_hash, req_hash, profile_spec)
+        game, token = _add_game(db, rules, payload, key_hash, req_hash, profile_spec, user_id)
         db.commit()
     except IntegrityError:  # deux créations simultanées avec la même clé : l'unicité n'en laisse passer qu'une
         db.rollback()

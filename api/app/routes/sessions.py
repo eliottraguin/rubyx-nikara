@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request, Response
 from sqlalchemy import delete
 
-from ..deps import DB, CurrentSession, IdempotencyKey
+from ..deps import DB, CurrentSession, IdempotencyKey, OptionalUser
 from ..models import GameSession
 from ..schemas.state import GameState, SessionCreate
 from ..services import sessions as svc
@@ -13,12 +13,12 @@ router = APIRouter(tags=["session"])
 
 
 @router.post("/api/sessions", response_model=GameState, status_code=201, responses={422: ERRORS[422]})
-def create_session(payload: SessionCreate, request: Request, response: Response, db: DB, key: IdempotencyKey) -> GameState:
+def create_session(payload: SessionCreate, request: Request, response: Response, db: DB, key: IdempotencyKey, user: OptionalUser) -> GameState:
     """Crée une partie : 30 $ de jeu, rédacteur possédé, cookie de session opaque.
-    Rejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e."""
+    Rattachée au compte connecté (cookie de compte), sinon anonyme. Rejouable : la même `Idempotency-Key` avec la même requête renvoie la même partie (200), jamais une 2e."""
     app = request.app
     cookie_name = app.state.settings.cookie_name
-    game, token, replayed = svc.create_session_idempotent(db, app.state.rules, payload, key, request.cookies.get(cookie_name), app.state.profile_spec)
+    game, token, replayed = svc.create_session_idempotent(db, app.state.rules, payload, key, request.cookies.get(cookie_name), app.state.profile_spec, user.id if user else None)
     if replayed:
         response.status_code = 200
     if token is not None:

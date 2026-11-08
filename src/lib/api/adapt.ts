@@ -56,7 +56,7 @@ export interface WireAction {
 
 // --- Erreurs --------------------------------------------------------------------------------------------------------
 
-/** Les 13 codes émis par api/app/errors.py. */
+/** Les 14 codes émis par api/app/errors.py. */
 export const API_ERROR_CODES = [
   "INSUFFICIENT_FUNDS",
   "MESSAGE_LIMIT",
@@ -68,6 +68,7 @@ export const API_ERROR_CODES = [
   "INVALID_REQUEST",
   "RATE_LIMITED",
   "SESSION_REQUIRED",
+  "INVALID_CREDENTIALS",
   "NOT_FOUND",
   "NOT_IMPLEMENTED",
   "INTERNAL_ERROR",

@@ -1,4 +1,4 @@
-"""`uv run python -m app.cli <commande>` : exploitation (config, check, demo-*, backup, restore, purge, usage).
+"""`uv run python -m app.cli <commande>` : exploitation (config, check, demo-*, qa-seed, backup, restore, purge, usage).
 
 Sortie JSON sur stdout ; erreurs lisibles sur stderr (code 1 : opération refusée, 2 : configuration invalide)."""
 
@@ -14,6 +14,7 @@ from ..db import make_engine, make_session_factory, run_migrations
 from ..llm import get_adapter
 from ..rules import load_rules
 from . import demo as demo_ops
+from . import qa_seed
 from . import storage
 from .health import check_state
 
@@ -84,6 +85,26 @@ def cmd_demo_init(settings: Settings, args) -> int:  # noqa: ANN001
             else:
                 res["cookie"] = "non affiché (option --print-token)"
             _out(res)
+    finally:
+        engine.dispose()
+    return 0
+
+
+def cmd_qa_seed(settings: Settings, args) -> int:  # noqa: ANN001
+    if settings.cookie_secure and not args.allow_prod:
+        raise storage.OpsError("Comptes de test refusés : RUBIX_COOKIE_SECURE=1 indique un déploiement HTTPS ; réservé au dev/démo (--allow-prod pour forcer).")
+    try:
+        password = qa_seed.resolve_password()
+    except qa_seed.QaSeedError as exc:
+        raise storage.OpsError(str(exc)) from exc
+    out_path = Path(args.file) if args.file else settings.db_path.parent / "qa-accounts.json"
+    rules = load_rules(settings.data_dir, settings.rules_version)
+    engine, sf = _session(settings, migrate=True)
+    try:
+        with sf() as db:
+            accounts = qa_seed.seed_accounts(db, rules, password)
+        qa_seed.write_accounts(out_path, accounts)
+        _out({"ok": True, "file": str(out_path), "accounts": [{k: a[k] for k in ("label", "email", "company", "mode")} for a in accounts]})
     finally:
         engine.dispose()
     return 0
@@ -166,6 +187,11 @@ def build_parser() -> argparse.ArgumentParser:
     d.add_argument("--print-token", action="store_true", help="affiche le cookie de la partie de démo")
     d.add_argument("--allow-real", action="store_true", help="autorise la démo avec le fournisseur réel")
     d.set_defaults(fn=cmd_demo_init)
+
+    q = sub.add_parser("qa-seed", help="crée/réinitialise 3 comptes de test QA (dev/démo) ; identifiants écrits dans un fichier 0600 hors dépôt")
+    q.add_argument("--file", help="fichier des identifiants ; défaut : qa-accounts.json à côté de la base (api/var/, ignoré par git)")
+    q.add_argument("--allow-prod", action="store_true", help="autorise malgré RUBIX_COOKIE_SECURE=1")
+    q.set_defaults(fn=cmd_qa_seed)
 
     e = sub.add_parser("demo-export", help="exporte un snapshot JSON de la partie de démo")
     e.add_argument("file")

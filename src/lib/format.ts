@@ -38,6 +38,7 @@ export const ERROR_MESSAGE: Record<ErrorCode, string> = {
   VALIDATION: "Les informations saisies ne sont pas valides.",
   RATE_LIMITED: "Le service est saturé. Patientez un instant puis réessayez.",
   NO_SESSION: "Aucune partie en cours.",
+  INVALID_CREDENTIALS: "Email ou mot de passe incorrect.",
   NOT_FOUND: "Ressource introuvable dans votre partie.",
   NOT_IMPLEMENTED: "Cette fonction n'est pas encore disponible sur le serveur.",
   INTERNAL_ERROR: "Erreur interne du serveur. Réessayez dans un instant.",

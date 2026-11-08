@@ -147,7 +147,7 @@ def test_double_send_of_a_generation_with_the_same_key_has_no_duplicate_effect(t
 
 # ------------------------------------------------------------------ propriété de session sur TOUTES les routes (T13)
 
-PUBLIC = {("GET", "/api/health"), ("GET", "/api/ready"), ("POST", "/api/sessions")}
+PUBLIC = {("GET", "/api/health"), ("GET", "/api/ready"), ("POST", "/api/sessions"), ("POST", "/api/auth/signup"), ("POST", "/api/auth/login"), ("POST", "/api/auth/logout")}  # logout : idempotent, sans cookie rien à révoquer
 SECRET_ROUTES = {"/api/demo/reset", "/api/ops/usage"}  # protégées par un secret serveur, cachées (404)
 BODIES = {
     "/api/agents/purchase": {"role": "triage"},

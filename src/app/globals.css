@@ -492,3 +492,6 @@ body:has(.map-fullscreen) main { flex: 1 1 auto; min-height: 0; padding: 0; posi
 .plan-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
 .assistant-history { margin-top: 1rem; }
 .assistant-history .hist-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }
+
+/* Page de connexion : formulaire lisible par-dessus la scène décorative (CityBackdrop). */
+.login-card { padding: 1.4rem 1.5rem; box-shadow: 0 8px 28px rgba(20, 40, 60, .22); }

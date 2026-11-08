@@ -51,8 +51,13 @@ data/rules/ data/fixtures/
 
 ## Comportements à connaître
 - **Session** : cookie `rubix_session` opaque (HttpOnly, SameSite=Lax), seul le hachage SHA-256 est stocké. La partie est déduite du cookie uniquement ; l'id public `ses_…` n'est jamais un jeton. Sans cookie valide : `401 SESSION_REQUIRED`.
+- **Comptes et proxy (déploiement)** : l'anti-bruteforce compte par IP cliente. Derrière un reverse proxy, lancer uvicorn avec `--proxy-headers --forwarded-allow-ips=<IP du proxy>` (jamais `*`), sinon tous les joueurs partagent une seule IP. Toujours `RUBIX_COOKIE_SECURE=1` en HTTPS. `qa-seed` est refusé quand `RUBIX_COOKIE_SECURE=1`. Voir `docs/SECURITE-AUTH.md`.
 - **Front sur un autre port** : cookie partagé entre ports de `localhost`, mais le navigateur exige CORS pour `fetch` avec `credentials: "include"` : soit un proxy Next (`rewrites` vers l'API, recommandé), soit `RUBIX_CORS_ORIGINS=http://localhost:3000`.
 - **Idempotency-Key** : obligatoire (8–128 car. `A-Za-z0-9_.:-`) sur `POST`/`DELETE` ; BE01 ne valide que la présence et le format. La rejouabilité (même clé => même résultat) est livrée par BE04. Aujourd'hui deux `POST /api/sessions` avec la même clé créent deux parties.
 - **Erreurs** : `{"error": {"code", "message", "details?"}}`, messages en français ; la validation ne renvoie jamais la valeur reçue ; les erreurs internes sont génériques. Exemples : `data/fixtures/errors/`.
 - **Suppression** : `DELETE /api/session` supprime la partie et toutes ses lignes (cascade) et efface le cookie.
 - **Intégrité en base** : unicités `(session, rôle)`, `Evaluation.submission_id`, `LedgerEntry.source_action`, `ActionRun.idempotency_key` ; triggers refusant tout `UPDATE` d'une version de livrable et des champs figés d'une livraison.
+
+## Comptes de test QA (dev / démo uniquement)
+
+`uv run python -m app.cli qa-seed` crée ou réinitialise 3 comptes `@qa.rubix.test` : `qa-vierge` (sans entreprise), `qa-debutant` et `qa-expert` (entreprise déjà créée). Les identifiants sont écrits **uniquement** dans `api/var/qa-accounts.json` (0600, ignoré par git) ; ils ne sont ni affichés ni journalisés. `RUBIX_QA_PASSWORD` impose un mot de passe commun (sinon un mot de passe aléatoire par compte). La commande est idempotente (mots de passe renouvelés, parties QA recréées) et refuse de s'exécuter si `RUBIX_COOKIE_SECURE=1` (sauf `--allow-prod`).

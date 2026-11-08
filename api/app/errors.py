@@ -29,6 +29,7 @@ class ErrorCode(StrEnum):
     INVALID_REQUEST = "INVALID_REQUEST"  # 422 validation d'entrée
     RATE_LIMITED = "RATE_LIMITED"  # 429 saturation
     SESSION_REQUIRED = "SESSION_REQUIRED"  # 401 cookie absent/inconnu
+    INVALID_CREDENTIALS = "INVALID_CREDENTIALS"  # 401 connexion : message unique, sans énumération d'emails
     NOT_FOUND = "NOT_FOUND"  # 404 (aussi pour une ressource d'une autre session)
     NOT_IMPLEMENTED = "NOT_IMPLEMENTED"  # 501 route pas encore livrée
     INTERNAL_ERROR = "INTERNAL_ERROR"  # 500
@@ -50,6 +51,7 @@ CATALOG: dict[ErrorCode, tuple[int, str]] = {
     ErrorCode.INVALID_REQUEST: (422, "Requête invalide."),
     ErrorCode.RATE_LIMITED: (429, "Trop de demandes en cours ; réessayez dans un instant."),
     ErrorCode.SESSION_REQUIRED: (401, "Aucune partie active : créez une partie ou reprenez-en une."),
+    ErrorCode.INVALID_CREDENTIALS: (401, "Email ou mot de passe incorrect."),
     ErrorCode.NOT_FOUND: (404, "Ressource introuvable."),
     ErrorCode.NOT_IMPLEMENTED: (501, "Cette fonctionnalité n'est pas encore implémentée."),
     ErrorCode.INTERNAL_ERROR: (500, "Erreur interne du serveur."),
