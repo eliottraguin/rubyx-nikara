@@ -22,6 +22,17 @@ export interface Trip {
   legMs?: number;
   /** Instant d'une panne (action échouée) : le bot s'arrête là, rien n'est débité. */
   failedAt?: number;
+  /**
+   * Palier cosmétique de l'agent envoyé (GR3-72, `vehicleForAgent`) : décide à pied/voiture/drone/hélicoptère,
+   * prioritaire sur le véhicule du lieu. `undefined` tant que le palier par instance n'est pas livré (GR3-54) :
+   * le véhicule du lieu reste alors inchangé.
+   */
+  tier?: number | null;
+  /**
+   * Ce que l'agent rapporte (ex. `SearchOut.kept`, GR3-59) : affiché en pastille pendant le retour, puis comme
+   * dossier déposé au garage à l'arrivée. `null`/`undefined` = pas encore connu ou sans objet : aucun indicateur.
+   */
+  resultCount?: number | null;
 }
 
 export type TripPhase = "outbound" | "dialogue" | "return" | "home" | "failed";
@@ -148,4 +159,15 @@ export function pruneTrips(trips: readonly Trip[], now: number, reduced = false)
 /** Marque le voyage en panne (action échouée côté serveur) : le bot s'arrête, rien n'est débité. */
 export function failTrip(trips: readonly Trip[], tripId: string, now: number): Trip[] {
   return trips.map((t) => (t.id === tripId && t.failedAt === undefined ? { ...t, failedAt: now, doneAt: t.doneAt ?? now } : t));
+}
+
+/**
+ * Pose l'indicateur de ce que l'agent rapporte (ex. `SearchOut.kept`, GR3-59), affiché en pastille au retour puis
+ * comme dossier déposé au garage. Idempotent (même valeur rejouée => même tableau), jamais appelé pour une panne
+ * (rien n'est débité, rien à rapporter).
+ */
+export function reportResult(trips: readonly Trip[], tripId: string, count: number): Trip[] {
+  const target = trips.find((t) => t.id === tripId);
+  if (!target || target.resultCount === count) return trips as Trip[];
+  return trips.map((t) => (t.id === tripId ? { ...t, resultCount: count } : t));
 }
