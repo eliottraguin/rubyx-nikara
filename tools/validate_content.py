@@ -19,6 +19,9 @@ from pathlib import Path
 NEW_ROLES = ["triage", "replier", "ads"]
 ASSISTANTS = ["assistant_prospection", "assistant_clients", "assistant_pub"]
 V2_ROLES = ["scout"] + NEW_ROLES + ASSISTANTS
+# Rôles hors hangar (ticket D2, GR3-62) : l'orchestrateur (remplace les assistants) et l'évaluateur (PNJ, jamais
+# dans rules_v2.agents) ; validés comme les rôles métier (sections, règle DONNÉE), jamais attendus dans le catalogue.
+D2_ROLES = ["orchestrator", "evaluator"]
 PROSPECT_RUBRICS = ["prospect_fiche_v1", "prospect_message_v1", "conversation_synthese_v1", "conversation_reponse_v1", "ad_kit_v1"]
 SOURCES = ["annuaire", "registre", "carte-locale", "linkedin", "glassdoor"]
 
@@ -163,7 +166,7 @@ def main() -> int:
         check_unique([t["id"] for t in tools["tools"]], "outils")
         tool_ids = {t["id"]: t for t in tools["tools"]}
     role_files = {}
-    for rid in V2_ROLES:
+    for rid in V2_ROLES + D2_ROLES:
         p = c.d / "roles" / f"{rid}.json"
         if not p.exists():
             err(f"rôle manquant : data/roles/{rid}.json")
