@@ -11,12 +11,14 @@ from pathlib import Path
 
 from ..config import ConfigError, Settings
 from ..db import make_engine, make_session_factory, run_migrations
+from ..errors import ApiError
 from ..llm import get_adapter
 from ..rules import load_rules
 from . import demo as demo_ops
 from . import qa_seed
 from . import storage
 from .health import check_state
+from .llm_check import run_llm_check
 
 
 def _out(data: object) -> None:
@@ -61,6 +63,17 @@ def cmd_check(settings: Settings, args) -> int:  # noqa: ANN001
         report = check_state(engine, settings, rules, llm)
     finally:
         engine.dispose()
+    _out(report)
+    return 0 if report["ok"] else 1
+
+
+def cmd_llm_check(settings: Settings, args) -> int:  # noqa: ANN001
+    try:
+        llm = get_adapter(settings.llm_provider, settings)
+    except ApiError as exc:
+        _out({"ok": False, "provider": settings.llm_provider, "error_code": exc.code.value})
+        return 1
+    report = run_llm_check(llm, role=args.role)
     _out(report)
     return 0 if report["ok"] else 1
 
@@ -179,6 +192,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
     sub.add_parser("config", help="valide la configuration et l'affiche sans secret").set_defaults(fn=cmd_config)
     sub.add_parser("check", help="santé, schéma de base, règles, fournisseur (sans réseau)").set_defaults(fn=cmd_check)
+
+    lc = sub.add_parser("llm-check", help="un appel minimal au fournisseur configuré (succès/échec, latence, tokens ; jamais la clé ni le contenu)")
+    lc.add_argument("--role", default="scout", help="rôle utilisé pour l'appel de diagnostic (défaut scout)")
+    lc.set_defaults(fn=cmd_llm_check)
 
     d = sub.add_parser("demo-init", help="crée la partie de démo seedée (graine fixe, mode simulé)")
     d.add_argument("--mode", choices=["beginner", "expert"], default="beginner")
