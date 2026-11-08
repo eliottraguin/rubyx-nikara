@@ -1,6 +1,18 @@
 # AI01 — Adaptateur LLM : ce qu'il doit exposer (documentation uniquement)
 
-**Non exécuté** : la confirmation du fournisseur (« SuperFlix », nom à confirmer, voir `docs/OPEN-QUESTIONS.md`) exige des accès réels. Aucun fichier de secret n'a été lu. L'adaptateur `mock` est dans BE01 (P2) ; il n'est pas réécrit ici.
+**Statut** : adaptateur réel **écrit et testé sur faux transport** (`api/app/llm/real.py`, `api/tests/test_llm_real.py`, aucun réseau). L'étape **« un appel réel réussi » reste À FAIRE par le propriétaire** avec ses accès (commande ci-dessous). Aucun fichier de secret n'a été lu. L'adaptateur `mock` reste le défaut.
+
+## Protocole vérifié (relais AXIS, sondée en amont)
+- Protocole **Messages d'Anthropic** : `POST {base}/v1/messages`, en-têtes `x-api-key` (et/ou `Authorization: Bearer`), `anthropic-version: 2023-06-01`, `content-type: application/json`.
+- Corps : `{model, max_tokens, system?, messages:[{role:"user",content}], temperature?, tools?}`. Réponse : `{id, model, content:[{type:"text",text}|{type:"tool_use",id,name,input}], stop_reason, usage:{input_tokens, output_tokens, cache_*}}`.
+- Modèles : `claude-haiku-4-5-20251001`, `claude-sonnet-5-5`, `claude-sonnet-5`, `claude-sonnet-4-6`, `claude-sonnet-4-5-20250929` (`GET {base}/v1/models`). Aucun modèle OpenAI/codex sur ce groupe : on reste sur Claude. Modèles par rôle dans `data/llm/models.json` (haiku : scout, triage, tri de pertinence ; sonnet-5-5 : replier, ads, assistants).
+- Erreurs : `{"error":{"code","message","type"}}`, 404 `model_not_found` pour un modèle indisponible. L'adaptateur ne relaie jamais ce corps : statut `error` générique, retry technique par `call_provider`.
+- Non vérifié : limites de débit, sorties structurées natives (on demande du JSON dans le message), conservation des données du fournisseur (étapes 6 et 8).
+
+## Configuration et premier appel réel (propriétaire)
+Variables serveur : `RUBIX_LLM_PROVIDER=real`, `RUBIX_LLM_API_KEY` (repli : `AXIS_GATEWAY_KEY`), `RUBIX_LLM_BASE_URL` (repli : `AXIS_GATEWAY_URL` ; https hors localhost). Au démarrage, une variable manquante ou un modèle inconnu dans `data/llm/models.json` est signalé.
+Premier appel, depuis `api/`, clés déjà dans l'environnement (rien n'est affiché) :
+`RUBIX_LLM_PROVIDER=real uv run python -c "import asyncio; from app.config import Settings; from app.llm import get_adapter, LLMRequest; s=Settings.from_env(); r=asyncio.run(get_adapter('real', s).generate(LLMRequest(role='scout', context='Réponds par le mot OK.', max_output_tokens=20))); print(r.status, r.usage, r.duration_ms)"`
 
 ## Interface (rappel de `docs/CONTRACTS.md`)
 Entrée : `role`, `context`, `allowed_tools`, `expected_schema`, `max_output_tokens`.

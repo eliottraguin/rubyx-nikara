@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI05 — Chef d'équipe : plans bornés, délégations, restitution
 
 Fichiers : `data/roles/lead.json`, `data/schemas/lead_plan.schema.json`, fixtures `data/fixtures/model_outputs/lead/`.

@@ -16,6 +16,10 @@
       "type": "string",
       "minLength": 1
     },
+    "client_reward": {
+      "type": "integer",
+      "minimum": 0
+    },
     "initial_capital": {
       "type": "integer",
       "minimum": 0
@@ -28,7 +32,10 @@
           "scout",
           "triage",
           "replier",
-          "ads"
+          "ads",
+          "assistant_prospection",
+          "assistant_clients",
+          "assistant_pub"
         ]
       },
       "minItems": 1
@@ -44,7 +51,10 @@
               "scout",
               "triage",
               "replier",
-              "ads"
+              "ads",
+              "assistant_prospection",
+              "assistant_clients",
+              "assistant_pub"
             ]
           },
           "label": {
@@ -63,19 +73,12 @@
             "type": "integer",
             "minimum": 0
           },
-          "unlock_planet": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "unlock_min_score": {
+          "unlock_clients": {
             "type": [
               "integer",
               "null"
             ],
-            "minimum": 0,
-            "maximum": 100
+            "minimum": 1
           }
         },
         "required": [
@@ -83,15 +86,14 @@
           "label",
           "section",
           "price",
-          "unlock_planet",
-          "unlock_min_score"
+          "unlock_clients"
         ],
         "additionalProperties": false
       },
       "minItems": 4,
-      "maxItems": 4
+      "maxItems": 7
     },
-    "real_mode_waives_score_unlock": {
+    "real_mode_waives_clients_unlock": {
       "type": "array",
       "items": {
         "type": "string",
@@ -99,7 +101,10 @@
           "scout",
           "triage",
           "replier",
-          "ads"
+          "ads",
+          "assistant_prospection",
+          "assistant_clients",
+          "assistant_pub"
         ]
       },
       "minItems": 0
@@ -117,10 +122,6 @@
             "type": "string",
             "minLength": 1
           },
-          "max_reward": {
-            "type": "integer",
-            "minimum": 0
-          },
           "unit_price": {
             "type": "integer",
             "minimum": 0
@@ -133,30 +134,18 @@
           },
           "initially_available": {
             "type": "boolean"
-          },
-          "engine_mission": {
-            "type": "string",
-            "minLength": 1
           }
         },
         "required": [
           "id",
           "label",
-          "max_reward",
           "unit_price",
           "requires_pass",
-          "initially_available",
-          "engine_mission"
+          "initially_available"
         ],
         "additionalProperties": false
       },
       "minItems": 1
-    },
-    "quotas": {
-      "type": "object"
-    },
-    "scoring": {
-      "type": "object"
     },
     "prospect_actions": {
       "type": "object",
@@ -203,7 +192,10 @@
                 "scout",
                 "triage",
                 "replier",
-                "ads"
+                "ads",
+                "assistant_prospection",
+                "assistant_clients",
+                "assistant_pub"
               ]
             }
           },
@@ -260,7 +252,10 @@
                 "scout",
                 "triage",
                 "replier",
-                "ads"
+                "ads",
+                "assistant_prospection",
+                "assistant_clients",
+                "assistant_pub"
               ]
             }
           },
@@ -317,7 +312,10 @@
                 "scout",
                 "triage",
                 "replier",
-                "ads"
+                "ads",
+                "assistant_prospection",
+                "assistant_clients",
+                "assistant_pub"
               ]
             }
           },
@@ -374,7 +372,10 @@
                 "scout",
                 "triage",
                 "replier",
-                "ads"
+                "ads",
+                "assistant_prospection",
+                "assistant_clients",
+                "assistant_pub"
               ]
             }
           },
@@ -431,7 +432,10 @@
                 "scout",
                 "triage",
                 "replier",
-                "ads"
+                "ads",
+                "assistant_prospection",
+                "assistant_clients",
+                "assistant_pub"
               ]
             }
           },
@@ -531,6 +535,18 @@
           "type": "integer",
           "minimum": 1
         },
+        "searches_per_day": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "search_precision_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "search_data_max_age_days": {
+          "type": "integer",
+          "minimum": 1
+        },
         "technical_retries": {
           "type": "integer",
           "minimum": 0
@@ -550,6 +566,9 @@
         "campaigns_max",
         "campaign_name_max_chars",
         "campaign_instruction_max_chars",
+        "searches_per_day",
+        "search_precision_max_chars",
+        "search_data_max_age_days",
         "technical_retries"
       ],
       "additionalProperties": false
@@ -604,14 +623,14 @@
                 "type": "integer",
                 "minimum": 1
               },
-              "min_total_earned": {
+              "min_clients": {
                 "type": "integer",
                 "minimum": 0
               }
             },
             "required": [
               "level",
-              "min_total_earned"
+              "min_clients"
             ],
             "additionalProperties": false
           },
@@ -622,6 +641,76 @@
         "levels"
       ],
       "additionalProperties": false
+    },
+    "assistant": {
+      "type": "object",
+      "properties": {
+        "plans_max": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "instruction_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "summary_max_chars": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "step_types": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "assistant": {
+                "type": "string",
+                "enum": [
+                  "assistant_prospection",
+                  "assistant_clients",
+                  "assistant_pub"
+                ]
+              },
+              "agent": {
+                "type": "string",
+                "enum": [
+                  "scout",
+                  "triage",
+                  "replier",
+                  "ads"
+                ]
+              },
+              "target": {
+                "type": "string",
+                "enum": [
+                  "planet",
+                  "prospect",
+                  "conversation",
+                  "campaign"
+                ]
+              }
+            },
+            "required": [
+              "assistant",
+              "agent",
+              "target"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "plans_max",
+        "max_steps",
+        "instruction_max_chars",
+        "summary_max_chars",
+        "step_types"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -629,12 +718,11 @@
     "source",
     "supersedes",
     "initial_capital",
+    "client_reward",
     "initial_agents",
     "agents",
-    "real_mode_waives_score_unlock",
+    "real_mode_waives_clients_unlock",
     "planets",
-    "quotas",
-    "scoring",
     "prospect_actions",
     "prospect_statuses",
     "followup_days",
@@ -642,7 +730,8 @@
     "retention_notice_days",
     "limits",
     "messaging",
-    "building"
+    "building",
+    "assistant"
   ],
   "additionalProperties": false
 }

@@ -21,7 +21,7 @@ export function ResumeBox() {
   return (
     <p className="muted">
       Partie en cours : <strong>{s.company}</strong> · {money(state.balance.available)} ·{" "}
-      <Link href="/carte">Reprendre</Link>
+      <Link href="/carte">Reprendre sur la carte</Link> · <Link href="/immeuble">Entrer dans l&apos;immeuble</Link>
     </p>
   );
 }

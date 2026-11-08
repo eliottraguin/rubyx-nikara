@@ -473,3 +473,22 @@ body:has(.map-fullscreen) main { flex: 1 1 auto; min-height: 0; padding: 0; posi
 .floor-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
 .planet-item.floor-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .floor-panel:focus-visible { outline: 3px solid #9fc2ff; outline-offset: 2px; }
+
+/* Assistants personnels (docs/ASSISTANT.md §9) */
+.assistant-cards { list-style: none; padding: 0; margin: 0 0 .8rem; display: grid; gap: .5rem; }
+.assistant-left { font-weight: 700; }
+.example-list { list-style: none; padding: 0; margin: 0 0 .6rem; display: flex; flex-wrap: wrap; gap: .4rem; }
+.task-list { list-style: none; padding: 0; margin: 0 0 .8rem; display: grid; gap: .6rem; }
+.task { border: 1px solid var(--line); border-left: 6px solid var(--accent); border-radius: 10px; padding: .6rem .8rem; background: var(--paper); }
+.task-line, .task-title, .task-result, .task-reason { margin: .15rem 0; }
+.task-blocked { background: #eceeee; border-left-color: #6b7479; color: #3f484b; }
+.task-state { font-size: .85rem; font-weight: 700; color: var(--muted); }
+.task-state-running { color: var(--info); }
+.task-state-done { color: var(--ok); }
+.task-state-failed { color: var(--bad); }
+.task-reason { font-style: italic; }
+.task-done { border-left-color: var(--ok); }
+.task-failed { border-left-color: var(--bad); }
+.plan-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+.assistant-history { margin-top: 1rem; }
+.assistant-history .hist-list { list-style: none; padding: 0; margin: 0; display: grid; gap: .4rem; }

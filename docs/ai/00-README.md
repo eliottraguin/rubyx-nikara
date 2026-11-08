@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # Notes de conception P3 — agents, missions, évaluateur, calibration
 
 Statut : **livraison de contenu et de spécifications** (tickets AI01 à AI08). Aucun appel à un fournisseur réel n'a été fait, aucune mesure de calibration ni de latence n'a été réalisée : ces éléments sont livrés « prêts à exécuter » (voir `07-calibration-protocole.md`, `09-recette-demo.md`, `01-adaptateur-llm-ai01.md`).

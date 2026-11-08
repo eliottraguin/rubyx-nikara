@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI03 — Client évaluateur : grilles, schéma, preuves, résistance
 
 Fichiers : `data/rubrics/{m1..m6,rescue}_v1.json` (schéma `rubric.schema.json`), `data/schemas/evaluator_output.schema.json`, rôle `data/roles/system/client_evaluator.json`, fixtures `data/fixtures/model_outputs/client_evaluator/`.

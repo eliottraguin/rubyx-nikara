@@ -55,26 +55,28 @@ Les six lieux remplacent les six planètes (mêmes contrats de prospection, mêm
 - **Halo discret** au sol et **flèche « Votre siège »** à la première ouverture et quand la caméra s'éloigne.
 - **Cliquable** : curseur main, infobulle « Entrer dans votre immeuble », équivalent clavier (touche `Entrée` sur le bouton « Entrer » de la couche DOM).
 
-### Il s'améliore avec l'argent gagné
-- **Niveau d'immeuble** (`building.level`, 1 à 10) **calculé par le serveur** à partir du **total gagné depuis le début** (`building.total_earned`) : somme des **paiements d'expédition** inscrits au ledger. **Il ne baisse jamais**, même si le joueur dépense en agents. Les 30 $ de départ, les remboursements et les actions sans gain n'y comptent pas.
-- **Dix niveaux, très progressifs** (décision Noah : « plus de paliers ») : `building.level` va de 1 à 10, de façon que le joueur **voie son immeuble changer souvent**. Seuils dans `data/rules/rules_v2.json` (`building.levels`, **modifiables sans toucher au code** : on peut en ajouter ou passer à une progression continue). Valeurs de départ proposées (à régler sur l'économie réelle, `OPEN-QUESTIONS.md` n° 45) :
+> **6e décision (2026-11-08, `PARCOURS-BOT.md`)** : plus de gains d'expédition ; l'immeuble s'améliore avec le **nombre de clients obtenus** (prospects au statut `gagne`), plus avec un « total gagné ». Seuils : 0, 1, 2, 4, 7, 11, 16, 22, 30, 40 clients (`rules_v2.building.levels[].min_clients`). Times Square/Constellation est supprimé.
 
-| Niveau | Total gagné | Ce qui change (cosmétique) |
+### Il s'améliore avec le nombre de clients obtenus
+- **Niveau d'immeuble** (`building.level`, 1 à 10) **calculé par le serveur** à partir du **nombre de clients obtenus** (`building.clients_obtained`) : prospects au statut `gagne`. **Il ne baisse jamais** (maximum atteint). Les dépenses, les achats d'agents et les actions sans gain n'y comptent pas.
+- **Dix niveaux, très progressifs** (décision Noah : « plus de paliers ») : `building.level` va de 1 à 10, de façon que le joueur **voie son immeuble changer souvent**. Seuils dans `data/rules/rules_v2.json` (`building.levels`, **modifiables sans toucher au code** : on peut en ajouter ou passer à une progression continue). Seuils en vigueur (réglables sur l'économie réelle, `OPEN-QUESTIONS.md` n° 45) :
+
+| Niveau | Clients obtenus (seuil) | Ce qui change (cosmétique) |
 |---|---|---|
-| 1 | 0 $ | Petit immeuble de briques, enseigne simple, rez-de-chaussée seul occupé |
-| 2 | 20 $ | Peinture refaite, auvent, plantes à l'entrée |
-| 3 | 45 $ | Un étage de plus, fenêtres neuves |
-| 4 | 80 $ | Enseigne lumineuse, terrasse sur le toit |
-| 5 | 125 $ | Façade vitrée partielle, lobby agrandi |
-| 6 | 180 $ | Deux étages de plus, éclairage de façade |
-| 7 | 250 $ | Tour : héliport sur le toit, ascenseur panoramique |
-| 8 | 340 $ | Façade vitrée complète, jardin suspendu |
-| 9 | 450 $ | Gratte-ciel, couronne éclairée |
-| 10 | 600 $ | Siège emblématique, drones décoratifs en orbite, hall monumental |
+| 1 | 0 | Petit immeuble de briques, enseigne simple, rez-de-chaussée seul occupé |
+| 2 | 1 | Peinture refaite, auvent, plantes à l'entrée |
+| 3 | 2 | Un étage de plus, fenêtres neuves |
+| 4 | 4 | Enseigne lumineuse, terrasse sur le toit |
+| 5 | 7 | Façade vitrée partielle, lobby agrandi |
+| 6 | 11 | Deux étages de plus, éclairage de façade |
+| 7 | 16 | Tour : héliport sur le toit, ascenseur panoramique |
+| 8 | 22 | Façade vitrée complète, jardin suspendu |
+| 9 | 30 | Gratte-ciel, couronne éclairée |
+| 10 | 40 | Siège emblématique, drones décoratifs en orbite, hall monumental |
 
 - Le niveau est **uniquement visuel** : il **ne débloque aucun droit** (règle 1, le serveur reste maître). Ce que le joueur peut faire dépend des **achats d'agents** et des **déblocages de lieux**, comme avant. **Consulter, exporter et supprimer** carnet, conversations et campagnes n'est **jamais** lié au niveau.
 - **Montée de niveau** : animation de chantier (grue, échafaudage), **jamais bloquante** (bouton « passer »). En `prefers-reduced-motion` : message texte « Votre immeuble passe au niveau 3 ».
-- **Équivalent texte** permanent : « Immeuble niveau 5 sur 10, 112 $ gagnés au total, prochain niveau à 125 $ ».
+- **Équivalent texte** permanent : « Immeuble niveau 5 sur 10, 4 clients obtenus, prochain niveau à 6 clients ».
 - Le niveau **s'affiche aussi à l'intérieur** (§7, rez-de-chaussée).
 
 ## 5. Les bots dans la ville
@@ -177,9 +179,9 @@ Aucune règle de jeu dans ces fichiers : **cosmétique** et paliers d'affichage.
 |---|---|
 | `data/map/city_v1.json` *(remplace `layout_v1.json`)* | Grille 2:1, îlots, parc, fleuve, **graphe de rues**, position de l'immeuble, **lieux** (id, nom affiché, quartier, position, hélipad éventuel, `vehicle`), héliport, points de départ des drones |
 | `data/map/building_v1.json` | Apparence par niveau (sprites, enseigne, étages de la coupe), postes des agents par étage |
-| `data/rules/rules_v2.json` | `building.levels` (seuils de **total gagné**) ; **les seuils sont des règles d'affichage**, calculés par le serveur |
+| `data/rules/rules_v2.json` | `building.levels` (seuils de **nombre de clients obtenus**, 6e décision) ; **les seuils sont des règles d'affichage**, calculés par le serveur |
 
-Contrat proposé (à reporter dans `CONTRACTS.md` avant fusion, signalé à l'équipe) : `GET /api/state` gagne `building: { level, total_earned, next_level_at }`. `building` est **calculé par le serveur** ; le navigateur ne le choisit jamais (règle 1). Aucune nouvelle route.
+Contrat proposé (à reporter dans `CONTRACTS.md` avant fusion, signalé à l'équipe) : `GET /api/state` gagne `building: { level, clients_obtained, next_level_at }`. `building` est **calculé par le serveur** ; le navigateur ne le choisit jamais (règle 1). Aucune nouvelle route.
 
 `MapViewModel` gagne : `building` (niveau, texte d'équivalent), `places[].vehicle` et `places[].district`, `drones[]` (depuis les actions `ad_campaign` en cours ou terminées), `interior` (étage courant, postes occupés selon les agents achetés).
 

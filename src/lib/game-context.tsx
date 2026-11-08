@@ -84,14 +84,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(t);
   }, [connectionLost, refresh]);
 
-  // Interrogation des actions en cours et de l'évaluation en attente.
+  // Interrogation des actions en cours.
   const runningIds = (state?.actions_in_progress ?? [])
-    .filter((a) => a.status !== "AWAITING_CONFIRMATION" && !TERMINAL.includes(a.status))
+    .filter((a) => !TERMINAL.includes(a.status))
     .map((a) => a.id);
   const runningKey = runningIds.join(",");
-  const evaluating = state?.attempt?.submission?.status === "EVALUATING";
   useEffect(() => {
-    if (!api || (!runningKey && !evaluating)) return;
+    if (!api || !runningKey) return;
     let stop = false;
     let timer: ReturnType<typeof setTimeout>;
     const ids = runningKey ? runningKey.split(",") : [];
@@ -118,7 +117,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       stop = true;
       clearTimeout(timer);
     };
-  }, [api, runningKey, evaluating, refresh]);
+  }, [api, runningKey, refresh]);
 
   const mutate: Ctx["mutate"] = useCallback(
     async (fn) => {

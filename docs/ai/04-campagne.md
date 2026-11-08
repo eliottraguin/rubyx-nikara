@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI04 — Campagne : missions, variantes, corpus, événements
 
 Chaque mission a `data/missions/<id>/corpus.json`, `beginner_v1.json`, `expert_v1.json` (versionnées séparément, schéma `mission_variant.schema.json`), une grille `data/rubrics/<id>_v1.json` et des solutions de référence (dans chaque variante).

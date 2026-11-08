@@ -2,6 +2,8 @@
 
 > **Réécrit le 2026-11-07** pour le cap prospection (`PRODUIT-PROSPECTION.md`). L'ancien backlog (F01–F14 « six missions », UI01–UI08, AI01–AI08, jalons H0–H24 du hackathon) est **OBSOLÈTE** dans son contenu ; ce qui est **déjà livré** est résumé ci-dessous. Tailles : **S** ≈ ≤ 0,5 j · **M** ≈ 1 j · **L** ≈ 2 j (estimations à confirmer à chaque jalon).
 
+> **6e décision (2026-11-08, `PARCOURS-BOT.md`) : pas d'atelier.** Le parcours est « fiche → le bot `scout` cherche sur un lieu → carnet (tri de pertinence sans points) → Contact (conversation) → client obtenu ou non ». **Retirés du backlog** (sections marquées OBSOLÈTE ci-dessous, le code existe encore) : jalon D (notation du prompt), `UI-C2` (livraison), `UI-D1` (retour client), `API-D2` (client évaluateur), `API-D3` (carnet de prompts), `API-E2` et `DATA-E1` pour la Constellation et le secours, événements de marché (P2). **Ajoutés** : jalon **S — Chercher des clients** (`API-S1`, `API-S2`, `API-S3`, `DATA-S1`, `UI-S1`), tickets de retrait `API-R2` et `UI-R3` (jalon R), `API-Q1` ajusté (immeuble = clients obtenus). Ordre et dépendances : fin du fichier.
+
 ## Déjà livré (GARDÉ)
 | Ticket | État | Contenu |
 |---|---|---|
@@ -10,33 +12,33 @@
 | BE03 | Livré | Ledger, réservations, achats, différentiel de reprise |
 | BE04 | Livré | Actions et quotas (5 instructions), idempotence, timeout, reprise sans double débit |
 | BE05 | Livré | Versions immuables, livraison figée, partage de pièces |
-| BE06 | Livré | Évaluation serveur avec fournisseur `mock` : score calculé par le serveur, règlement, grille figée |
+| BE06 | Livré | Évaluation serveur avec fournisseur `mock` : score calculé par le serveur, règlement, grille figée. **OBSOLÈTE (6e décision) : à retirer par `API-R2`** |
 | BE07 | Livré | Tests critiques (paiement unique, concurrence, fonds, accès inter-session, événements) ; 313 tests pytest |
 | Front branché | Livré | `src/lib/api/{http,adapt,types}.ts` : l'ancien parcours est jouable contre l'API réelle |
 | BE08 | **À faire** | Déploiement : variables serveur, stockage persistant, santé, sauvegarde de démo (inchangé) |
 
-**OBSOLÈTE** (à retirer quand remplacé, jamais avant) : contenu M1–M6, 6 rôles, chef d'équipe (BE04 `actions_lead`), écrans « bureau / commande / atelier / boutique » de l'ancien parcours.
+**OBSOLÈTE** (à retirer quand remplacé, jamais avant ; code : `API-R2`, écrans : `UI-R3`) : contenu M1–M6, 6 rôles, chef d'équipe (BE04 `actions_lead`), clarifications, brief, `submit`, évaluation et paiement par expédition, reprise, événements, écrans « bureau / commande / atelier / livraison / retour client ».
 
 ## Périmètre
-- **P0** : jalons A à E **plus H et I** (jouable de bout en bout en **mode Tutoriel**, planètes simulées, avec fiche entreprise et cible et **carnet de prospection** consultable, triable, exportable en CSV).
+- **P0** : jalons A, B, **S**, **R** (dont `API-R2`, `UI-R3`), **H et I** (jouable de bout en bout en **mode Tutoriel** : fiche, recherche du bot sur Annuaire et Registre, carnet consultable, triable, exportable en CSV, « Contacter »). Les jalons C à E de l'ancien parcours sont **remplacés par S** (voir leurs sections).
 - **P1 prioritaire** : jalons **J** (fiche client), **K** (premier message) et **L** (données personnelles et rétention), puis **F** (mode Réel MCP/API). **L est un préalable de F** : aucune vraie donnée avant minimisation, rétention et suppression.
 - **P1 prioritaire, section Clients et section Pub** (3e décision, `PRODUIT-CLIENTS-PUB.md`) : jalons **M** (navigation à trois sections), **N** (messagerie simulée), **P** (pub), puis **O** (messagerie réelle, **bloquée** par L et par la validation juridique, `OPEN-QUESTIONS.md` n° 32).
 - **Ville (4e décision)** : jalon **Q**, en **P0 visuel** : il remplace le décor spatial des jalons A et B (déjà codés) ; il ne change aucune règle et peut avancer **en parallèle** de H à L. Les étages de la coupe hébergent les écrans de M, N et P.
-- **P1** : événements de marché, planète Actualités, animations enrichies, export du bilan, dossiers nommés, enrichissement d'un prospect par nouvelle requête de source.
-- **P2** : chef d'équipe, comptes, multijoueur, génération libre de planètes, navigation web ouverte.
+- **P1** : lieux 3 à 5 (`DATA-S1` étendu), planète Actualités, animations enrichies, export du bilan, dossiers nommés, enrichissement d'un prospect par nouvelle requête de source.
+- **P2** : coach et événements de marché (supprimés en v1, Q5), chef d'équipe, comptes, multijoueur, génération libre de planètes, navigation web ouverte.
 
 ## Jalons
 | Jalon | Vérifiable quand… |
 |---|---|
 | **A — Carte statique** | La carte s'affiche (base + 6 planètes), planètes cliquables, état lu depuis l'API, **couche DOM accessible** équivalente, repli en mode liste |
 | **B — Agent mobile** | Un agent quitte le hangar, vole vers une planète, atterrit et revient ; rejouable depuis une trace ; `prefers-reduced-motion` respecté |
-| **C — Dialogue de planète** | Un prompt envoyé produit une vraie expédition : l'agent de la planète (simulé) répond sur un corpus, bulles + transcript, rapport de leads reçu |
-| **D — Notation du prompt** | Le serveur note **prompt + résultats**, paie, affiche deux scores ; carnet de prompts et diff entre versions |
-| **E — Déblocages et fin** | Planètes 1 à 6 jouables, hangar (4 rôles : `scout`, `triage`, `replier`, `ads`), secours, finale et bilan ; parcours complet sans l'ancien contenu |
+| ~~**C — Dialogue de planète**~~ | **OBSOLÈTE (6e décision)**, remplacé par **S** (le dialogue bot ↔ agent du lieu devient une recherche gratuite) |
+| ~~**D — Notation du prompt**~~ | **OBSOLÈTE (6e décision)** : plus de score ni de carnet de prompts ; remplacé par le tri de pertinence (`API-S2`) |
+| **E — Déblocages** | **Réduit (6e décision)** : hangar à 4 rôles (`API-R1`), déblocage des lieux (≥ 3 prospects retenus) et des agents (clients obtenus) ; plus de secours, de finale ni de Constellation |
 | **F — Mode Réel** | Au moins une planète branchée à une source réelle légale ; repli sur le simulé signalé ; **jalon L terminé** |
 | **G — Finition** | Mobile 390 px, audit clavier et lecteur d'écran, recette, démo répétée |
 | **H — Fiche entreprise et cible** | La fiche est saisie à la création, versionnée, lue par les agents ; en Tutoriel un exemple est pré-rempli ; à placer **avant C** (elle sert de fiche cible en Réel), en parallèle de A et B |
-| **I — Carnet de prospection** | Depuis un rapport, « Ajouter au carnet » (serveur : copie + `source_ref` revérifié) ; liste triable, filtrable, recherchable ; fiche prospect, notes, statut « contacté » ; suppression ; **export CSV** neutralisant les formules ; **après C** (rapport structuré), en parallèle de D |
+| **I — Carnet de prospection** | Les prospects sont **ajoutés par le serveur à la fin d'une recherche** (copie + `source_ref` revérifié, jalon S) ; liste triable, filtrable, recherchable ; fiche prospect, notes, statut « contacté » ; suppression ; **export CSV** neutralisant les formules ; **après S** (ou après `API-I1` en parallèle de S) |
 | **J — Agent fiche client** | Un prospect obtient une fiche (résumé, pourquoi, accroches, à vérifier, sources) par `replier` (action `prospect_profile`) ; coût et quota respectés ; contrôles par code ; **après I et API-E1** |
 | **K — Agent premier message** | Un prospect obtient un brouillon par `replier` (action `prospect_message`) ; aucun envoi ; mentions d'origine et d'opposition ; **après J** (même mécanisme d'action) |
 | **L — Données personnelles et rétention** | Minimisation en liste blanche, purge de rétention, suppression en cascade, export JSON complet, journaux sans contenu personnel ; **bloque F** |
@@ -44,7 +46,8 @@
 | **N — Messagerie simulée (Tutoriel)** | Une conversation par prospect ; envoi simulé ; client simulé (personas, pièges) ; `triage` et `replier` avec contrôles par code ; résultat de conversation calculé par code ; **après I et K** |
 | **O — Messagerie réelle (Réel)** | Connexion OAuth, import des seules réponses des prospects du carnet, **envoi confirmé par le joueur** avec tous les garde-fous (`RULES.md` §13) ; **après N et L**, **bloqué** par la validation juridique et la décision n° 31 |
 | **P — Pub** | Une campagne produit un kit versionné par `ads` (positionnement, accroches, textes aux limites du format, brief visuel, plan, checklist) ; contrôles par code ; export Markdown ; aucun bouton Publier ; **après M** |
-| **Q — Ville et immeuble** | Carte **plein écran** en ville (Bibliothèque, Hôtel de ville, SoHo, Midtown, Wall Street, Times Square), **immeuble central** reconnaissable qui monte de **10 niveaux** avec le **total gagné**, rendu **semi-réaliste façon Les Sims**, bots à pied, à vélo, en skate ou en hélicoptère, **coupe d'immeuble** (Toit, Studio pub, Salle du courrier, Archives, Accueil et garage), drones de pub ; couche DOM et mode liste équivalents ; **remplace le décor spatial** sans toucher aux règles |
+| **Q — Ville et immeuble** | Carte **plein écran** en ville (Bibliothèque, Hôtel de ville, SoHo, Midtown, Wall Street ; Times Square/Constellation supprimé), **immeuble central** reconnaissable qui monte de **10 niveaux** avec le **nombre de clients obtenus**, rendu **semi-réaliste façon Les Sims**, bots à pied, à vélo, en skate ou en hélicoptère, **coupe d'immeuble** (Toit, Studio pub, Salle du courrier, Archives, Accueil et garage), drones de pub ; couche DOM et mode liste équivalents ; **remplace le décor spatial** sans toucher aux règles |
+| **S — Chercher des clients** | Fiche remplie → « Chercher des clients » lance `scout_search` (gratuit) sur un lieu débloqué ; le bot part et revient ; les prospects recevables sont dans le carnet avec source, fiabilité et **pertinence** (`correspond` / `a_verifier` / `hors_cible` + citation) ; recherche vide = résultat honnête ; « Contacter » ouvre une conversation ; Tutoriel guidé par des bulles d'aide ; **après `API-H1`, `API-R1`** |
 
 ## Tickets par jalon et par périmètre
 `api/` = moteur et routes · `src/` = interface · `data/` = contenu et règles.
@@ -56,7 +59,7 @@
 | MAP02 | M | `src/` | `viewmodel.ts` (état → `MapViewModel`) et planètes cliquables ; tests vitest purs |
 | MAP03 | M | `src/` | **Couche DOM accessible** (liste planètes/agents, mêmes actions, `aria-live`) + **mode liste** de repli |
 | MAP04 | S | `data/` | `data/map/layout_v1.json` (positions cosmétiques) + `ASSETS.md` (licences) |
-| API-A1 | S | `api/` | Exposer dans `GET /api/state` la liste de **planètes** (id, nom, état, étoiles, condition de déblocage en texte, tarif, gain) ; documenter dans `CONTRACTS.md` avant fusion |
+| API-A1 | S | `api/` | Exposer dans `GET /api/state` la liste de **lieux** (id, nom, état, nombre de prospects retenus, condition de déblocage en texte ; **plus de tarif ni de gain**, 6e décision) ; documenter dans `CONTRACTS.md` avant fusion |
 
 ### Jalon B — Agent mobile
 | Ticket | Taille | Périm. | Travail et critère de fin |
@@ -66,7 +69,9 @@
 | API-B1 | M | `api/` | **Trace d'expédition** : champ `trace` ordonné (`seq`) dans `GET /api/actions/{id}` (voir `CARTE-TECH.md`) ; aucun prompt système ni clé dedans ; contrat documenté avant fusion |
 | MAP07 | S | `src/` | `prefers-reduced-motion` + réglage manuel ; caméra et entrées tactiles bornées (390 px) |
 
-### Jalon C — Dialogue de planète
+### Jalon C — Dialogue de planète **[OBSOLÈTE (6e décision), remplacé par le jalon S]**
+> Tickets conservés comme trace. `DATA-C1` → `DATA-S1` ; `API-C1`/`API-C2`/`API-C3` → `API-S1` (l'interface `PlanetSource` et l'agent du lieu simulé restent valables) ; `UI-C1` → `UI-S1` ; `UI-C2` (livraison) **retiré**.
+
 | Ticket | Taille | Périm. | Travail et critère de fin |
 |---|---|---|---|
 | DATA-C1 | L | `data/` | `data/planets/annuaire` et `registre` : fiche cible, corpus avec pièges, variantes `beginner`/`expert`, solutions de référence |
@@ -75,24 +80,28 @@
 | API-C2 | L | `api/` | **Agent de la planète simulé** : outil `planet_search` côté serveur (liste blanche), réponses limitées au corpus avec `record_id`, déterministe avec `mock` ; adaptateur de sources (interface `PlanetSource`) |
 | API-C3 | M | `api/` | Rapport de leads : schéma de contenu structuré (liste de leads), versions immuables, rendu non fiable (texte seulement) |
 | UI-C1 | M | `src/` | Panneau planète + panneau prompt (compteur n/5, coût maximal avant envoi, envois impossibles expliqués) |
-| UI-C2 | M | `src/` | Dialogue : bulles + transcript ; cartes de leads ; livraison avec confirmation de la version |
+| ~~UI-C2~~ | M | `src/` | **RETIRÉ (6e décision)** : Dialogue : bulles + transcript ; cartes de leads ; livraison avec confirmation de la version |
 
-### Jalon D — Notation du prompt
+### Jalon D — Notation du prompt **[OBSOLÈTE (6e décision), retiré]**
+> Plus de score ni de grille. `API-D1` (contrôles par code : `source_ref`, doublons, critères structurés, fraîcheur) est **réutilisé** par `API-S1`/`API-S2` ; `API-D2` (client évaluateur), `UI-D1` (retour client), `API-D3` (carnet de prompts) et `DATA-D1`/`DATA-D2` (grilles, rapports annotés) sont **retirés** ; les rapports annotés pourront servir à calibrer le tri de pertinence.
+
 | Ticket | Taille | Périm. | Travail et critère de fin |
 |---|---|---|---|
-| DATA-D1 | M | `data/` | Grilles `annuaire_v1`, `registre_v1` : famille prompt + famille résultat, ids stables (`RULES.md` §5) |
+| ~~DATA-D1~~ | M | `data/` | **RETIRÉ (6e décision)** : Grilles `annuaire_v1`, `registre_v1` : famille prompt + famille résultat, ids stables (`RULES.md` §5) |
 | API-D1 | L | `api/` | Nouveaux contrôles dans `checks.py` : `source_ref` existant, doublons, critères structurés, champs, fraîcheur ; **aucune récompense lue depuis le modèle** |
-| API-D2 | M | `api/` | Client évaluateur : jugement du prompt avec citation littérale ; résistance aux instructions dans les leads (tests d'injection) |
-| API-D3 | M | `api/` | **Carnet de prompts** : `GET/POST /api/notebook` (501 aujourd'hui) ; version, score, diff. **À ne pas confondre** avec le carnet de prospection (jalon I, `/api/prospects`) : `/api/notebook` **reste réservé aux prompts** |
-| UI-D1 | M | `src/` | Retour client à **deux scores**, phrases du prompt en cause, paiement ; carnet avec diff |
-| DATA-D2 | M | `data/` | Rapports annotés (réussite, hors-cible, leads inventés, prompt vague) pour calibrer ; étendre `tools/validate_content.py` |
+| ~~API-D2~~ | M | `api/` | **RETIRÉ (6e décision)** : Client évaluateur : jugement du prompt avec citation littérale ; résistance aux instructions dans les leads (tests d'injection) |
+| ~~API-D3~~ | M | `api/` | **RETIRÉ (6e décision)** : **Carnet de prompts** : `GET/POST /api/notebook` (501 aujourd'hui) ; version, score, diff. **À ne pas confondre** avec le carnet de prospection (jalon I, `/api/prospects`) : `/api/notebook` **reste réservé aux prompts** |
+| ~~UI-D1~~ | M | `src/` | **RETIRÉ (6e décision)** : Retour client à **deux scores**, phrases du prompt en cause, paiement ; carnet avec diff |
+| ~~DATA-D2~~ | M | `data/` | **RETIRÉ (6e décision)** : Rapports annotés (réussite, hors-cible, leads inventés, prompt vague) pour calibrer ; étendre `tools/validate_content.py` |
 
-### Jalon E — Déblocages et fin
+### Jalon E — Déblocages **[RÉDUIT (6e décision)]**
+> `DATA-E1` (planètes 3 à 6, secours, Constellation) : lieux 3 à 5 en P1 (`DATA-S1` étendu), **plus de Constellation ni de secours**. `API-E2` (fin de campagne) : **retiré**, le bilan compte les clients obtenus. `API-E1` : fait par `API-R1`. `UI-E1` : hangar et déblocages sans « fin ».
+
 | Ticket | Taille | Périm. | Travail et critère de fin |
 |---|---|---|---|
-| DATA-E1 | L | `data/` | Planètes 3 à 6 (Carte locale, LinkedIn, Glassdoor, Constellation) + planète de secours |
-| API-E1 | M | `api/` | **(5e décision : voir API-R1)** Remplacer l'énumération des rôles par `scout` / `triage` / `replier` / `ads` (ex-liste `scout` / `qualifier` / `profiler` / `outreach` (migration, achat, hangar) ; déblocage par score en Tutoriel, **levé en Réel** (`RULES.md` §2) |
-| API-E2 | M | `api/` | Fin de campagne : Constellation (≥ 2 agents, ≥ 2 planètes, dépense ≤ 30) ; bilan fondé sur les traces |
+| ~~DATA-E1~~ | L | `data/` | **RETIRÉ (6e décision)** : Planètes 3 à 6 (Carte locale, LinkedIn, Glassdoor, Constellation) + planète de secours |
+| API-E1 | M | `api/` | **(5e décision : voir API-R1 ; déblocage par clients obtenus, 6e décision)** Remplacer l'énumération des rôles par `scout` / `triage` / `replier` / `ads` (ex-liste `scout` / `qualifier` / `profiler` / `outreach` (migration, achat, hangar) ; déblocage par score en Tutoriel, **levé en Réel** (`RULES.md` §2) |
+| ~~API-E2~~ | M | `api/` | **RETIRÉ (6e décision)** : Fin de campagne : Constellation (≥ 2 agents, ≥ 2 planètes, dépense ≤ 30) ; bilan fondé sur les traces |
 | UI-E1 | M | `src/` | Hangar (achat, condition en texte), planètes qui se débloquent (voile, annonce `aria-live`), fin et bilan |
 | QA-E1 | M | tous | **Parcours complet** automatisé (fournisseur simulé) + captures navigateur ; retrait de l'ancien contenu M1–M6 et de ses écrans quand le nouveau parcours est vert |
 
@@ -110,7 +119,7 @@
 |---|---|---|---|
 | UI-G1 | M | `src/` | Mobile 390 px : feuille inférieure à 3 onglets, cibles 44 px, performance (30 images/s) |
 | QA-G1 | M | `src/` | Audit clavier + lecteur d'écran ; test avec `prefers-reduced-motion` |
-| QA-G2 | S | `docs/` | `RECETTE.md` réaligné sur le nouveau contenu ; `docs/ai/*` marqués OBSOLÈTES ou réécrits |
+| QA-G2 | S | `docs/` | **`RECETTE.md` réalignée (2026-11-08)** ; `docs/ai/*` reste à marquer. Visé : `RECETTE.md` réaligné sur le nouveau contenu ; `docs/ai/*` marqués OBSOLÈTES ou réécrits |
 | BE08 | M | `api/` | Déploiement (inchangé) ; sauvegardes de démo : **exclure ou chiffrer** les vrais prospects |
 
 ### Jalon H — Fiche entreprise et cible
@@ -118,20 +127,20 @@
 |---|---|---|---|
 | DATA-H1 | S | `data/` | `data/profile/target_profile_v1.json` (champs, bornes, énumérations de `ton`, liste courte de secteurs) et `data/profile/examples/` (≥ 2 fiches d'exemple Tutoriel). Validé par `tools/validate_content.py`. **Critère** : bornes lues depuis les données, pas du code |
 | API-H1 | M | `api/` | Stockage de la fiche (migration ; l'ancien `company.profile` devient `offre`), `profile_version`, `PUT /api/profile` (`Idempotency-Key`, `expected_version`, `VERSION_CONFLICT`), fiche dans `GET /api/state` ; contrat documenté dans `CONTRACTS.md` **avant fusion**. **Tests** : validation des bornes, version périmée, accès inter-session (404), un texte contenant une « consigne » est stocké comme donnée, rejeu idempotent |
-| API-H2 | M | `api/` | Les agents reçoivent la fiche comme **bloc de données délimité** ; en Réel, elle est la fiche cible des planètes ; critères structurés (`cible_secteurs`, `cible_zone`, `cible_taille`) utilisables par `checks.py` (alimente `l_adequation`, dépend de API-D1). **Tests** : injection dans `offre` sans effet sur le score ni les droits ; une expédition garde la version d'ouverture |
-| UI-H1 | M | `src/` | Étape 2 de la création + page « Fiche entreprise et cible » (formulaire guidé, diff de versions, rappel « une cible, pas des personnes »). **Critère** : Tutoriel jouable sans rien saisir ; Réel exige 3 champs ; tests vitest de validation |
+| API-H2 | M | `api/` | Les agents reçoivent la fiche comme **bloc de données délimité** ; elle est la **seule consigne** du `scout` (Tutoriel et Réel) ; critères structurés (`cible_secteurs`, `cible_zone`, `cible_taille`) utilisables par `checks.py` (recevabilité et pertinence, 6e décision ; dépend de API-D1). **Tests** : injection dans `offre` sans effet sur les droits ; une recherche garde la version à son lancement |
+| UI-H1 | M | `src/` | **LIVRÉ (vérifié 2026-11-08).** Étape 2 de la création + page « Fiche entreprise et cible » (formulaire guidé, diff de versions, rappel « une cible, pas des personnes »). **Critère** : Tutoriel jouable sans rien saisir ; Réel exige 3 champs ; tests vitest de validation |
 
 ### Jalon I — Carnet de prospection
 | Ticket | Taille | Périm. | Travail et critère de fin |
 |---|---|---|---|
 | DATA-I1 | S | `data/` | `rules_v2` : `limits.prospects_max` (500), `notes_max_chars` (2 000), `followup_days`, statuts ; `data/sources/<source>.json` : **liste blanche de champs** de l'instantané |
 | API-I1 | L | `api/` | Modèle `Prospect` + migration + dépôt ; propriété de session ; provenance immuable ; `version` pour la concurrence ; contrat documenté dans `CONTRACTS.md` avant fusion. **Tests** : accès inter-session (404 identique à « introuvable »), limites, champs hors liste blanche écartés |
-| API-I2 | M | `api/` | `POST /api/prospects` : ajout depuis `(expedition, version de rapport, positions)` ; le **serveur recopie** et **revérifie `source_ref`** ; dédoublonnage `(source, source_ref)` idempotent ; lead non vérifiable refusé (`LEAD_UNVERIFIED`, à ajouter aux codes stables) ; `Idempotency-Key`. **Tests** : lead inventé refusé, deux ajouts concurrents du même lead ⇒ un seul prospect, le navigateur ne peut pas imposer de contenu |
+| API-I2 | M | `api/` | **6e décision : l'ajout se fait par `scout_search` (`API-S1`), cette route d'ajout depuis un rapport est à retirer (`API-R2`).** Ancien contenu : `POST /api/prospects` : ajout depuis `(expedition, version de rapport, positions)` ; le **serveur recopie** et **revérifie `source_ref`** ; dédoublonnage `(source, source_ref)` idempotent ; lead non vérifiable refusé (`LEAD_UNVERIFIED`, à ajouter aux codes stables) ; `Idempotency-Key`. **Tests** : lead inventé refusé, deux ajouts concurrents du même lead ⇒ un seul prospect, le navigateur ne peut pas imposer de contenu |
 | API-I3 | M | `api/` | `GET /api/prospects` (tri, filtres, recherche, curseur, compteurs), `GET/PATCH/DELETE /api/prospects/{id}` (`PATCH` : `statut`, `notes`, `version`, `VERSION_CONFLICT` ; `contacte_le` au premier passage à `contacte`), suppression du carnet. **Tests** : tri stable, filtres combinés, conflit de version, suppression idempotente |
 | API-I4 | M | `api/` | `GET /api/prospects/export.csv` : UTF-8 avec BOM, `;`, CRLF, RFC 4180, en-têtes français, `Cache-Control: no-store`, nom `prospects-SIMULE-…` en Tutoriel. **Neutralisation des formules** (préfixe `'` si premier caractère `=` `+` `-` `@` tabulation ou retour chariot) dans **toutes** les colonnes texte. **Tests** : une cellule par caractère dangereux (entreprise, notes, `source_ref`), guillemets et `;` dans les valeurs, notes saisies par le joueur, aucun contenu dans les journaux |
 | UI-I1 | L | `src/` | Carnet : tableau accessible (`aria-sort`), cartes sur mobile, filtres, recherche, pagination, détail, notes, statut, « marquer contacté », suppression avec confirmation, bouton d'export ; mode liste complet sans carte. **Critère** : parcours clavier complet ; tests vitest de l'adaptateur et des vues |
-| UI-I2 | S | `src/` | « Ajouter au carnet » dans le rapport (retour « n ajoutés, m déjà présents, k refusés ») ; classeur de la base avec compteur ; animation cosmétique (reduced-motion respecté) |
-| QA-I1 | S | tous | Parcours automatisé Tutoriel : expédition → ajout → tri → « contacté » → export CSV relu et vérifié (formules neutralisées) |
+| UI-I2 | S | `src/` | **Retour d'une recherche** (6e décision) : « n ajoutés, m déjà présents, k rejetés » en texte, classeur de la base avec compteur ; animation cosmétique (reduced-motion respecté). Remplace « Ajouter au carnet » dans le rapport |
+| QA-I1 | S | tous | Parcours automatisé Tutoriel : recherche → carnet → tri → « contacté » → export CSV relu et vérifié (formules neutralisées) |
 
 ### Jalon J — Agent fiche client
 | Ticket | Taille | Périm. | Travail et critère de fin |
@@ -198,13 +207,13 @@
 | QA-P1 | S | tous | Parcours automatisé : fiche → campagne → kit → contrôle de limites → export ; non-fuite dans les journaux |
 
 ### Jalon Q — Ville et immeuble
-> Remplace le **décor** des jalons A et B (thème spatial déjà codé dans `src/game/map/`) : la logique pure (iso, trajets, bus, viewmodel, trace) est **gardée et testée** ; seuls l'art, le layout, la scène et les véhicules changent. Aucune règle serveur, sauf la lecture du total gagné (API-Q1).
+> Remplace le **décor** des jalons A et B (thème spatial déjà codé dans `src/game/map/`) : la logique pure (iso, trajets, bus, viewmodel, trace) est **gardée et testée** ; seuls l'art, le layout, la scène et les véhicules changent. Aucune règle serveur, sauf la lecture du nombre de clients obtenus (API-Q1).
 
 | Ticket | Taille | Périm. | Travail et critère de fin |
 |---|---|---|---|
 | ART-Q1 | L | `data/` + `public/` | **Direction artistique** « Sims réaliste » : planche de style, personnages, immeuble (10 niveaux), façade en coupe, véhicules, drones ; **pipeline de production** (sprites pré-rendus 3D, atlas compressés, budget ≤ 8 Mo premier affichage) ; **décision sur la production** (création, licence, génération assistée, `OPEN-QUESTIONS.md` n° 50) ; `data/map/ASSETS.md` à jour **avant fusion**. **Critère** : un lieu, l'immeuble niveau 1 et un bot animé rendus dans le style cible, validés par Noah avant la production en série |
-| DATA-Q1 | M | `data/` | `data/map/city_v1.json` (grille, îlots, parc, fleuve, **graphe de rues**, immeuble au centre, 6 lieux avec `vehicle`, héliport) remplaçant `layout_v1.json` ; `data/map/building_v1.json` (apparence par niveau, postes par étage) ; `rules_v2.building.levels` (**10 niveaux**, seuils de **total gagné**) ; `data/map/ASSETS.md` mis à jour. Validé par `tools/validate_content.py`. **Critère** : aucune règle de jeu dans ces fichiers |
-| API-Q1 | S | `api/` | `GET /api/state` gagne `building: { level, total_earned, next_level_at }`, **calculé par le serveur** à partir des **paiements d'expédition** du ledger (ni les 30 $ de départ, ni remboursements, ni actions sans gain) ; **ne baisse jamais**. Contrat dans `CONTRACTS.md` avant fusion. **Tests** : achat d'agents ne fait pas baisser le niveau, paliers exacts, paiement rejoué (idempotent) ne compte qu'une fois, le navigateur ne peut rien imposer |
+| DATA-Q1 | M | `data/` | `data/map/city_v1.json` (grille, îlots, parc, fleuve, **graphe de rues**, immeuble au centre, 5 lieux avec `vehicle`, héliport) remplaçant `layout_v1.json` ; `data/map/building_v1.json` (apparence par niveau, postes par étage) ; `rules_v2.building.levels` (**10 niveaux**, seuils de **nombre de clients obtenus**, 6e décision) ; `data/map/ASSETS.md` mis à jour. Validé par `tools/validate_content.py`. **Critère** : aucune règle de jeu dans ces fichiers |
+| API-Q1 | S | `api/` | **Ajusté (6e décision)** : `GET /api/state` gagne `building: { level, clients_won, next_level_at }`, **calculé par le serveur** à partir du **nombre de prospects au statut `gagne`** (plus de paiements d'expédition) ; **ne baisse jamais** (un client `gagne` repassé à `perdu` ne fait pas redescendre le niveau : à trancher, voir `OPEN-QUESTIONS.md`). Contrat dans `CONTRACTS.md` avant fusion. **Tests** : paliers exacts, achat d'agents sans effet, le navigateur ne peut rien imposer |
 | MAP-Q1 | L | `src/` | Ville plein écran : **placeholders** puis assets d'ART-Q1 (immeubles, rues, parc, fleuve), `WorldScene` (décor, caméra bornée, recentrage `H`), barre d'état et menu **en surimpression**. **Critère** : 30 images/s à 390 px ; tests purs du layout et du viewmodel |
 | MAP-Q2 | L | `src/` | Bots et véhicules : marche, vélo, skate sur le **graphe de rues**, hélicoptère en courbe avec ombre ; états (garage, en route, sur place, retour, en panne) ; même trace serveur. **Critère** : `route.ts` et `trips.ts` testés (même trace ⇒ même animation) ; `prefers-reduced-motion` : apparition à destination |
 | MAP-Q3 | M | `src/` | **Immeuble central** : enseigne au nom de l'entreprise (texte brut tronqué), halo et flèche « Votre siège », 10 apparences par niveau (progressives), animation de chantier non bloquante, équivalent texte permanent. **Critère** : un nouveau joueur identifie son immeuble sans aide (test utilisateur) ; niveau lu uniquement depuis l'état serveur |
@@ -222,14 +231,36 @@
 | DATA-R1 | S | `data/` | `data/roles/{scout,triage,replier,ads}.json` ; retrait de `qualifier.json`, `profiler.json`, `outreach.json` (ou archivage) ; `rules_v2` mis à jour ; `tools/validate_content.py` vert |
 | UI-R1 | M | `src/` | **Entrer dans l'immeuble** : le clic sur le siège (et « Entrer » dans la couche DOM) ouvre l'intérieur ; **liste des étages** (Toit, Studio pub, Salle du courrier, Archives, Accueil et garage), `Échap` pour sortir. **Critère** : parcours clavier complet, repli en liste |
 | UI-R2 | L | `src/` | **Salle du courrier** (Clients) : conversations, synthèse `triage`, brouillons `replier`, bandeau « rien n'a été envoyé » ; dépend de API-N1…N3 |
-| UI-R3 | L | `src/` | **Studio pub** : campagnes, kit `ads`, copier, exporter, bandeau « rien n'a été publié ni dépensé » ; dépend de API-P1…P3 |
-| UI-R4 | M | `src/` | **Archives** : carnet de prospection (UI-I1) et fiche prospect avec fiche client et premier message `replier` ; dépend de API-I1…I3 |
-| UI-R5 | S | `src/` | Menu de raccourcis (Prospection, Clients, Pub) ouvrant directement chaque étage (UI-M1) |
-| QA-R1 | S | tous | Parcours automatisé Tutoriel : expédition → carnet → fiche client → premier message → conversation simulée → kit de pub, **sans carte** ; puis avec la coupe |
+| UI-R6 | L | `src/` | **Studio pub** : campagnes, kit `ads`, copier, exporter, bandeau « rien n'a été publié ni dépensé » ; dépend de API-P1…P3 |
+| UI-R7 | M | `src/` | **Archives** : carnet de prospection (UI-I1) et fiche prospect avec fiche client et premier message `replier` ; dépend de API-I1…I3 |
+| UI-R8 | S | `src/` | Menu de raccourcis (Prospection, Clients, Pub) ouvrant directement chaque étage (UI-M1) |
+| API-R2 | L | `api/` | **Retirer l'atelier (6e décision)** : rôles M1–M6 (`writer`, `prospector`, `researcher`, `analyst`, `qa`, `lead`), clarifications, `submit` et évaluation (`Submission`, `Evaluation`, client évaluateur), brief et événements, crédit de correction, reprise (`retry`), `POST /api/demo/events`, missions `m1` à `m6` et `rescue`, grilles et données associées (`data/missions/m*`, `data/rubrics/m*`, rôles système évaluateur/clarificateur/coach, fixtures) ; `/api/notebook` retiré ou réaffecté ; migration. **Seulement après** `API-S1`/`API-S2` verts. **Tests** : les 313 tests sont réduits **sans perdre** ceux de idempotence, quotas, ledger, propriété de session ; OpenAPI et fixtures régénérées |
+| UI-R3 | M | `src/` | **Retirer les écrans** commande, atelier, livraison, retour client, bureau (`OrderScreen`, `WorkshopScreen`, `DeliveryScreen`, `FeedbackScreen`, bureau si son seul rôle est de mener à la commande), carnet de prompts et leurs adaptateurs ; **après** `UI-S1`. **Critère** : `pnpm typecheck`, `lint`, `test` verts ; aucune route orpheline |
+| QA-R1 | S | tous | Parcours automatisé Tutoriel : recherche → carnet → fiche client → premier message → conversation simulée → kit de pub, **sans carte** ; puis avec la coupe |
 
-**Ordre** : API-R1 et DATA-R1 → API-I1…I3, API-N*, API-P* (en parallèle) → UI-R1 → UI-R4, UI-R2, UI-R3 → UI-R5, QA-R1. `MAP-Q4` (coupe animée Phaser) vient **ensuite** et habille UI-R1 sans changer les panneaux.
+**Ordre** : API-R1 et DATA-R1 → API-I1…I3, API-N*, API-P* (en parallèle) → UI-R1 → UI-R7, UI-R2, UI-R6 → UI-R8, QA-R1 ; `API-R2` et `UI-R3` (retraits) en dernier, **après le jalon S**. *(Renumérotation : l'ancien `UI-R3` Studio pub devient `UI-R6`, `UI-R4` Archives devient `UI-R7`, `UI-R5` menu devient `UI-R8`, pour libérer `UI-R3` au retrait des écrans.)* `MAP-Q4` (coupe animée Phaser) vient **ensuite** et habille UI-R1 sans changer les panneaux.
+
+### Jalon S — Chercher des clients (6e décision)
+> Référence : `PARCOURS-BOT.md`, `CONTRACTS.md` §11 (IMPLÉMENTÉ), `PRODUIT-PROSPECTION.md` §2 à §7. Remplace les jalons C et D. Recherches **gratuites**, aucun gain, aucun score.
+
+| Ticket | Taille | Périm. | Travail et critère de fin |
+|---|---|---|---|
+| DATA-S1 | L | `data/` | **LIVRÉ (vérifié 2026-11-08).** Lieux **Annuaire** et **Registre** : source + description + **corpus avec pièges** (variantes `beginner`/`expert`), liste blanche de champs ; **sans fiche de commanditaire ni grille** ; fiche d'exemple Tutoriel (`DATA-H1`) ; `data/roles/scout.json` ; seuil de déblocage (N = 3) dans `rules_v2`. Validé par `tools/validate_content.py` |
+| API-S1 | L | `api/` | **LIVRÉ (vérifié 2026-11-08).** Entité `Search` + migration ; `POST /api/searches` (`planet_id`, `precision` ≤ 300, `Idempotency-Key`), action asynchrone `scout_search` suivie par `GET /api/actions/{id}`, **gratuite** ; réutilise `PlanetSource` et l'agent du lieu simulé ; le serveur **ajoute au carnet** les leads recevables avec `source_ref` revérifié et dédoublonnage ; trace (`departed`/`arrived`/`dialogue`/`returned`/`failed`) ; déblocage d'un lieu quand le précédent a ≥ 3 prospects retenus. **Tests (mock)** : recherche vide honnête, `source_ref` inventé rejeté, doublon idempotent, même clé ⇒ une seule recherche, précision contenant une consigne sans effet, lieu verrouillé refusé, accès inter-session (404), aucun débit |
+| API-S2 | M | `api/` | **LIVRÉ (vérifié 2026-11-08).** **Tri de pertinence** : agent de tri (mock déterministe) rend `correspond` / `a_verifier` / `hors_cible` + citation de l'instantané ; critères structurés tranchés par code (`API-D1`) ; citation absente de l'instantané ⇒ repli `a_verifier` ; tout `score`/`reward` du modèle ignoré. **Tests** : injection dans la source sans effet, hors zone ⇒ `hors_cible` par code |
+| API-S3 | S | `api/` | **LIVRÉ (vérifié 2026-11-08).** `POST /api/prospects/{id}/contact` : ouvre (ou renvoie) la **conversation** du prospect, n'envoie rien, `Idempotency-Key` ; dépend de `API-N1`. **Tests** : idempotent, prospect `ecarte` refusé, accès inter-session |
+| UI-S1 | L | `src/` | **LIVRÉ (vérifié 2026-11-08).** Bouton **« Chercher des clients »** (carte, immeuble, panneau lieu, assistant Prospection), précision facultative, résultat de recherche (pertinence + citation), bouton « Contacter » ; **bulles d'aide Tutoriel** à chaque étape (« voici votre cible », « voici ce que le bot a trouvé », « contactez-en un ») ; mode liste équivalent. **Critère** : parcours clavier complet, tests vitest de l'adaptateur |
+| API-S4 | M | `api/` | **LIVRÉ (vérifié 2026-11-08).** Clients obtenus : `PATCH /api/prospects/{id}` avec `statut: "gagne"` écrit **une fois par prospect** `+rules_v2.client_reward` (20 $) au ledger ; refusé (`INVALID_STATE`) sans réponse du prospect ou après désinscription ; `clients_obtained` et `building` dans `GET /api/state` ; agents débloqués à 1, 2 et 3 clients ; immeuble par clients |
+
+**Jalon assistants (`docs/ASSISTANT.md`)** : `ASSIST-1` à `ASSIST-5` **LIVRÉS (vérifié 2026-11-08)** : trois assistants fournis, plan validé par code (3 étapes au plus), confirmation ou rejet, exécution par les services existants, panneau dans l'Accueil de l'immeuble. Reste : `ASSIST-1b` (exemplaires multiples d'un même agent) et `AI-REAL` (adaptateur réel sur la relais AXIS).
+
+**Restant (2026-11-08)** : `API-R2` **en cours** (retrait de l'ancien moteur, migration 0015) puis `UI-R3` si des écrans restent ; adaptateur LLM réel (`AI-REAL`) ; sources réelles du mode Réel (`API-F2`, bloqué par le jalon L) ; envoi réel confirmé (jalon O, bloqué par la validation juridique) ; exemplaires multiples (`ASSIST-1b`) ; lieux 3 à 5 (`DATA-S1` étendu) ; vérification dans un navigateur ; décor ville (jalon Q).
+
+**Ordre du jalon S** : `DATA-H1`/`API-H1` (fiche) et `API-R1` → `DATA-S1` → `API-S1` → `API-S2` → `UI-S1` ; `API-S3` après `API-N1` (conversation) ; puis `API-R2` et `UI-R3` (retraits).
 
 ## Ordre et dépendances
+> **6e décision, ordre actuel** : H (fiche) → R1 (rôles) → **S** (`DATA-S1`, `API-S1`, `API-S2`, `UI-S1`) → I, N, P en parallèle (`API-S3` après `API-N1`) → R (étages) → **`API-R2` et `UI-R3` (retraits)** → Q (ville, `API-Q1` ajusté) → F, L, O. Les phrases suivantes sont l'ancien ordre : les dépendances sur C, D et E (`API-C*`, `API-D2`, `API-E2`, `UI-C2`, `UI-D1`) sont **caduques** et remplacées par S.
+
 `MAP01 → MAP02 → MAP03` en parallèle de `API-A1` · `MAP05/06` dépend de `API-B1` · `UI-C1/C2` dépendent de `API-C1…C3` et `DATA-C1/C2` · `API-D1/D2` dépendent de `API-C3` · `API-E1` précède `UI-E1` · `API-F1` est **indépendant** (peut démarrer dès `API-C2`, qui fixe l'interface `PlanetSource`), mais `API-F2` (première source **réelle**) est **bloqué par le jalon L** (`API-L1` à `API-L3`). Jalons produit : `DATA-H1`/`API-H1` **avant** `API-C1` (la fiche cible en Réel est la fiche du joueur) · `UI-H1` après `API-H1` · `API-I1…I4` après `API-C3` (rapport structuré) et en parallèle de `API-D*` · `UI-I1` après `API-I3` · `API-J1` après `API-I1` et `API-E1` (rôle `profiler`) · `API-K1` après `API-J1` · `API-L1…L3` après `API-I1`. **5e décision : le jalon R passe avant tout le reste de Q.** Ville (après R) : `ART-Q1` (direction artistique), car il conditionne budget et assets ; `DATA-Q1` et `API-Q1` ensuite · `MAP-Q1` après `DATA-Q1` · `MAP-Q2` et `MAP-Q3` après `MAP-Q1` · `MAP-Q4` après `MAP-Q1` et fournit les étages à `UI-N1`, `UI-P1` et `UI-I1` (qui restent d'abord jouables en **mode liste**) · `MAP-Q5` après `API-P2`. Q est **indépendant** des règles : aucun jalon H à P n'attend Q. Clients et pub : `DOC-M1` (contrats) **avant** `API-N*`, `API-O*`, `API-P*` · `DATA-M1`/`API-M1`/`UI-M1` avant N et P · `API-N1…N3` après `API-I1`, `API-J1` et `API-K1` (même mécanisme d'action, brouillon `outreach` réutilisé) · `UI-N1` après `API-N3` · `API-O*` après `API-N1` et `API-L1…L3`, **bloqué** par la validation juridique et la décision n° 31 de `OPEN-QUESTIONS.md` · `API-P1…P3` après `API-J1` (mécanisme d'action), en **parallèle** de N · N et P sont **indépendants** l'un de l'autre. L'export CSV (`API-I4`) et la suppression sont **P0 et jamais conditionnés** par le score ni par l'argent. Les tickets `src/`, `api/` et `data/` d'un même jalon sont conçus pour être menés **en parallèle** si les contrats (`CONTRACTS.md`, `CARTE-TECH.md`) sont écrits d'abord.
 
 ## Collaboration

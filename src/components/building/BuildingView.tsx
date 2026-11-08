@@ -7,6 +7,9 @@ import { CourrierPanel } from "./CourrierPanel";
 import { PubPanel } from "./PubPanel";
 import { ToitPanel } from "./ToitPanel";
 import { AccueilPanel } from "./AccueilPanel";
+import { useSearch } from "@/components/search/useSearch";
+import { useAssistant } from "@/components/assistant/useAssistant";
+import { useTips } from "@/components/search/useTips";
 import type { ApiError, GameState, RoleId } from "@/lib/api/types";
 
 export interface BuildingViewProps {
@@ -17,6 +20,10 @@ export interface BuildingViewProps {
   onBuy: (role: RoleId) => Promise<ApiError | null>;
   /** Retour à la ville (Échap ou bouton). */
   onLeave: () => void;
+  /** Conversation à ouvrir dans la salle du courrier (paramètre d'URL). */
+  initialConversationId?: string | null;
+  /** Une recherche du bot vient de réussir (relire l'état : déblocages). */
+  onSearchDone?: () => void;
   /** Appelé quand l'étage ouvert change (mise à jour de l'URL). */
   onFloorChange?: (floor: Floor | null) => void;
 }
@@ -26,11 +33,15 @@ function targetIsField(t: EventTarget | null): boolean {
 }
 
 /** Vue « Immeuble » : liste des étages (flèches, Entrée, Échap) et panneau de l'étage ouvert. Texte brut uniquement. */
-export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave, onFloorChange }: BuildingViewProps) {
+export function BuildingView({ state, busy, initialFloor = null, initialConversationId = null, onSearchDone, onBuy, onLeave, onFloorChange }: BuildingViewProps) {
   const initialIdx = initialFloor ? FLOORS.findIndex((f) => f.id === initialFloor) : -1;
   const [open, setOpen] = useState<FloorId | null>(initialIdx >= 0 ? FLOORS[initialIdx]!.id : null);
   const [cursor, setCursor] = useState(Math.max(0, initialIdx));
   const [live, setLive] = useState("");
+  const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
+  const tips = useTips(state.session?.mode !== "expert");
+  const search = useSearch({ onDone: onSearchDone });
+  const assistant = useAssistant({ onSpent: onSearchDone });
   const btns = useRef<(HTMLButtonElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const leave = useRef(onLeave);
@@ -49,14 +60,22 @@ export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave,
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  function openFloor(i: number) {
+  function openFloor(i: number, conv: string | null = null) {
     const f = FLOORS[i]!;
+    setConversationId(conv);
     setCursor(i);
     setOpen(f.id);
     setLive(`${f.label} ouvert : ${f.section}.`);
     onFloorChange?.(f);
     requestAnimationFrame(() => panelRef.current?.focus({ preventScroll: true }));
   }
+
+  function openFloorById(id: FloorId, conv: string | null = null) {
+    const i = FLOORS.findIndex((f) => f.id === id);
+    if (i >= 0) openFloor(i, conv);
+  }
+  /** « Contacter » : la conversation s'ouvre dans la salle du courrier. */
+  const openConversation = (id: string) => openFloorById("courrier", id);
 
   function onKeyDown(e: KeyboardEvent<HTMLUListElement>) {
     if (e.key === "ArrowUp" || e.key === "ArrowDown") {
@@ -76,9 +95,9 @@ export function BuildingView({ state, busy, initialFloor = null, onBuy, onLeave,
   let panel: ReactNode = null;
   if (open === "toit") panel = <ToitPanel state={state} />;
   else if (open === "pub") panel = <PubPanel state={state} />;
-  else if (open === "courrier") panel = <CourrierPanel state={state} />;
+  else if (open === "courrier") panel = <CourrierPanel key={conversationId ?? "liste"} state={state} initialConversationId={conversationId} />;
   else if (open === "archives") panel = <ArchivesPanel state={state} />;
-  else if (open === "accueil") panel = <AccueilPanel state={state} busy={busy} onBuy={onBuy} />;
+  else if (open === "accueil") panel = <AccueilPanel state={state} busy={busy} onBuy={onBuy} search={search} assistant={assistant} tips={tips} onOpenConversation={openConversation} onOpenCarnet={() => openFloorById("archives")} />;
 
   return (
     <div className="building-view">

@@ -1,0 +1,50 @@
+{
+  "avertissement": "Réservé aux tests : ne jamais envoyer au modèle ni au navigateur. Les enregistrements non cités sont hors cible évidente.",
+  "fiches": {
+    "exemple_caisse_commerce": {
+      "bons": [
+        "ann_001",
+        "ann_002",
+        "ann_003",
+        "ann_004",
+        "ann_005",
+        "ann_006",
+        "ann_007",
+        "ann_008",
+        "ann_009",
+        "ann_010"
+      ],
+      "pieges": {
+        "ann_017": "doublon",
+        "ann_018": "doublon",
+        "ann_019": "ferme_ou_radie",
+        "ann_020": "hors_zone",
+        "ann_021": "taille_voisine",
+        "ann_022": "secteur_voisin",
+        "ann_023": "secteur_voisin",
+        "ann_024": "hors_zone",
+        "ann_025": "donnee_perimee",
+        "ann_027": "injection",
+        "ann_029": "taille_voisine"
+      }
+    },
+    "exemple_emballages_restauration": {
+      "bons": [
+        "ann_011",
+        "ann_012",
+        "ann_013",
+        "ann_014",
+        "ann_015",
+        "ann_016"
+      ],
+      "pieges": {
+        "ann_028": "doublon",
+        "ann_030": "ferme_ou_radie",
+        "ann_026": "donnee_perimee",
+        "ann_024": "secteur_voisin",
+        "ann_023": "hors_zone",
+        "ann_027": "injection"
+      }
+    }
+  }
+}

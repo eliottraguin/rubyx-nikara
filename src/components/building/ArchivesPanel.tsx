@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PERTINENCES } from "@/lib/api/searches";
 import { ApiError, type GameState } from "@/lib/api/types";
 import {
   STATUTS,
@@ -13,8 +14,10 @@ import {
   type ProspectQuery,
   type ProspectsClient,
   type ProspectTri,
+  type Pertinence,
   type Prospect,
 } from "@/lib/api/prospects";
+import { PERTINENCE } from "@/content/recherche";
 import { ProspectDetailView } from "./archives/ProspectDetailView";
 import { ProspectTable, nextOrder } from "./archives/ProspectTable";
 
@@ -30,6 +33,7 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
   const [tri, setTri] = useState<ProspectTri>("date_ajout");
   const [ordre, setOrdre] = useState<ProspectOrdre>("desc");
   const [statut, setStatut] = useState("");
+  const [etiquette, setEtiquette] = useState<Pertinence | "">("");
   const [qInput, setQInput] = useState("");
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Prospect[]>([]);
@@ -41,7 +45,7 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
   const [info, setInfo] = useState<string | null>(null);
   const seq = useRef(0);
 
-  const query: ProspectQuery = useMemo(() => ({ tri, ordre, statut: statut || undefined, q: q || undefined }), [tri, ordre, statut, q]);
+  const query: ProspectQuery = useMemo(() => ({ tri, ordre, statut: statut || undefined, etiquette: etiquette || undefined, q: q || undefined }), [tri, ordre, statut, etiquette, q]);
 
   const load = useCallback(
     async (append: boolean, cursor?: string) => {
@@ -89,7 +93,7 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
     }
   }
 
-  const filtered = Boolean(statut || q);
+  const filtered = Boolean(statut || etiquette || q);
   const total = meta?.total ?? 0;
   const empty = !loading && !error && items.length === 0;
 
@@ -127,6 +131,17 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
           <button key={s} type="button" className="btn btn-small" aria-pressed={statut === s} onClick={() => setStatut(s)}>
             {statutLabel(s)}
             {meta ? ` (${meta.counts[s] ?? 0})` : ""}
+          </button>
+        ))}
+      </div>
+
+      <div className="row" role="group" aria-label="Filtrer par correspondance">
+        <button type="button" className="btn btn-small" aria-pressed={etiquette === ""} onClick={() => setEtiquette("")}>
+          Toutes les correspondances
+        </button>
+        {PERTINENCES.map((e) => (
+          <button key={e} type="button" className="btn btn-small" aria-pressed={etiquette === e} onClick={() => setEtiquette(e)}>
+            {PERTINENCE[e].label}
           </button>
         ))}
       </div>
@@ -175,7 +190,7 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
           {filtered
             ? "Aucun prospect ne correspond à ces filtres."
             : total === 0
-              ? "Aucun prospect dans le carnet pour le moment. Ajoutez-en depuis le rapport d'une expédition."
+              ? "Aucun prospect dans le carnet pour le moment. Lancez une recherche depuis la carte."
               : "Aucun prospect à afficher."}
         </p>
       ) : null}

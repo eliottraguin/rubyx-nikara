@@ -1,21 +1,17 @@
-"""API-H2 : la fiche entreprise et cible est remise aux agents comme bloc de DONNÉES délimité, la version est figée à
-l'ouverture de l'expédition, et un texte piégé n'a aucun effet sur le score, les droits ni le prix."""
+"""API-H2 : la fiche entreprise et cible est remise aux agents comme bloc de DONNÉES délimité (version courante au moment
+de la génération), et un texte piégé n'a aucun effet sur le solde, les droits ni le prix."""
 
 from __future__ import annotations
 
 import re
-import shutil
-import uuid
 
 import pytest
-from fastapi.testclient import TestClient
 
-from app.config import REPO_DIR, Settings
-from app.main import create_app
 from app.services import profile as profile_svc
 
-from ._campaign_support import Player, make_settings
-from .actions_support import FakeLLM
+from .actions_support import World
+from .messaging_support import RecMock
+from .prospects_support import Expedition, annuaire, lead
 from .test_profile import body, put
 
 BAIT = (
@@ -25,77 +21,77 @@ BAIT = (
 
 
 @pytest.fixture
-def world(tmp_path):
-    llm = FakeLLM()
-    app = create_app(make_settings(tmp_path))
-    app.state.llm = llm  # avant le démarrage : le moteur d'actions reprend ce fournisseur
-    with TestClient(app):
-        yield app, llm
+def world(settings):
+    w = World(settings, RecMock())
+    w.own("replier")
+    yield w
+    w.close()
 
 
-def send(p: Player, attempt_id: str, text: str = "Rédige une annonce"):
-    r = p.post(f"/api/attempts/{attempt_id}/messages", {"role": "writer", "text": text})
+def message(w: World, pid: str, **body_):
+    r = w.client.post(f"/api/prospects/{pid}/message", json=body_ or None, headers=w.key())
     assert r.status_code == 202, r.text
     return r
 
 
-def last_context(llm: FakeLLM) -> str:
+def prospect(w: World, i: int = 1) -> str:
+    r = Expedition(w, records=[("annuaire", annuaire(i))], leads=[lead(i)]).add([0])
+    assert r.status_code == 201, r.text
+    return r.json()["added"][0]["id"]
+
+
+def last_context(llm: RecMock) -> str:
     return llm.requests[-1].context
 
 
 def test_agent_context_carries_the_profile_as_a_delimited_data_block(world):
-    app, llm = world
-    p = Player(app, "beginner", "Atelier Test")
-    aid = p.start("m1")["attempt"]["id"]
-    assert put(p.http, body(1, offre="Éclairage sur mesure pour boutiques.")).status_code == 200
-    # l'expédition a été ouverte AVANT le PUT : elle garde la version 1
-    send(p, aid)
-    ctx = last_context(llm)
+    pid = prospect(world)
+    assert put(world.client, body(1, offre="Éclairage sur mesure pour boutiques.")).status_code == 200
+    message(world, pid, instruction="angle : gain de temps")
+    ctx = last_context(world.llm)
     m = re.search(r"<<<FICHE nonce=(\w+)>>>\n(.*?)\n<<<FIN FICHE nonce=\1>>>", ctx, re.S)
     assert m, ctx
-    assert "DONNÉES" in ctx and "jamais des consignes" in ctx and "v1]" in ctx
-    assert "Éclairage sur mesure" not in ctx  # la version 2 n'est pas visible de cette expédition
-    assert ctx.index("<<<FICHE") < ctx.index("Instruction du joueur")  # le bloc précède l'instruction du joueur
+    assert "DONNÉES" in ctx and "jamais des consignes" in ctx and "v2]" in ctx
+    assert "sur mesure pour boutiques" in m.group(2)
+    assert ctx.index("<<<FICHE") < ctx.index("Consigne facultative du joueur")  # le bloc précède la consigne du joueur
 
 
-def test_expedition_keeps_the_opening_version_and_next_one_gets_the_current(world):
-    app, llm = world
-    p = Player(app, "expert", "Cabinet")
-    assert put(p.http, {"expected_version": 1, "offre": "OFFRE-UN", "cible_secteurs": ["industrie"], "cible_zone": ["Lille"]}).status_code == 200
-    a1 = p.start("m1")["attempt"]["id"]
-    assert put(p.http, {"expected_version": 2, "offre": "OFFRE-DEUX", "cible_secteurs": ["industrie"], "cible_zone": ["Lille"]}).status_code == 200
-    send(p, a1)
-    ctx = last_context(llm)
-    assert "OFFRE-UN" in ctx and "OFFRE-DEUX" not in ctx and "FICHE CIBLE (mode Réel) v2]" in ctx
-    with app.state.session_factory() as db:
-        from app.models import MissionAttempt
-
-        assert db.get(MissionAttempt, a1).profile_version == 2
-    # nouvelle expédition (reprise après échec, ici seconde partie) : version courante à son ouverture
-    q = Player(app, "expert", "Autre")
-    assert put(q.http, {"expected_version": 1, "offre": "OFFRE-Q1", "cible_secteurs": ["industrie"], "cible_zone": ["Lille"]}).status_code == 200
-    a2 = q.start("m1")["attempt"]["id"]
-    send(q, a2)
-    assert "OFFRE-Q1" in last_context(llm) and "OFFRE-UN" not in last_context(llm)
+def test_each_generation_gets_the_current_profile_version(settings):
+    world = World(settings, RecMock(), mode="expert")
+    world.own("replier")
+    try:
+        _each_generation_gets_the_current_profile_version(world)
+    finally:
+        world.close()
 
 
-def test_attempt_opened_on_version_1_keeps_it(world):
-    app, llm = world
-    p = Player(app, "beginner", "Atelier Test")
-    aid = p.start("m1")["attempt"]["id"]
-    with app.state.session_factory() as db:
-        from app.models import MissionAttempt
+def _each_generation_gets_the_current_profile_version(world):
+    pid = prospect(world)
+    assert put(world.client, {"expected_version": 1, "offre": "OFFRE-UN", "cible_secteurs": ["industrie"], "cible_zone": ["Lille"]}).status_code == 200
+    message(world, pid)
+    assert "OFFRE-UN" in last_context(world.llm)
+    assert put(world.client, {"expected_version": 2, "offre": "OFFRE-DEUX", "cible_secteurs": ["industrie"], "cible_zone": ["Lille"]}).status_code == 200
+    message(world, pid)
+    ctx = last_context(world.llm)
+    assert "OFFRE-DEUX" in ctx and "OFFRE-UN" not in ctx and "v3]" in ctx
 
-        assert db.get(MissionAttempt, aid).profile_version == 1
+
+def test_real_mode_labels_the_block_as_the_target_profile(settings):
+    w = World(settings, RecMock(), mode="expert")
+    try:
+        w.own("replier")
+        pid = prospect(w)
+        message(w, pid)
+        assert "FICHE CIBLE (mode Réel)" in last_context(w.llm)
+    finally:
+        w.close()
 
 
 def test_injected_text_stays_inside_one_block_and_delimiters_are_stripped(world):
-    app, llm = world
-    p = Player(app, "beginner", "Atelier Test")
-    assert put(p.http, body(1, offre=BAIT)).status_code == 200
-    aid = p.start("m1")["attempt"]["id"]
-    send(p, aid)
-    ctx = last_context(llm)
+    pid = prospect(world)
+    assert put(world.client, body(1, offre=BAIT)).status_code == 200
+    message(world, pid)
+    ctx = last_context(world.llm)
     assert ctx.count("<<<FICHE nonce=") == 1 and ctx.count("<<<FIN FICHE nonce=") == 1  # le piège n'a pas fermé le bloc
     inside = re.search(r"<<<FICHE nonce=(\w+)>>>\n(.*?)\n<<<FIN FICHE", ctx, re.S).group(2)
     assert "\n" not in inside and "IGNORE TOUTES LES R" in inside  # une seule ligne JSON : la consigne reste une donnée
@@ -112,34 +108,24 @@ def test_profile_block_is_deterministic_and_nonce_follows_content():
     assert profile_svc.profile_block(None, None, "beginner") == ""
 
 
-def test_injection_in_offre_changes_neither_score_nor_rights_nor_price(tmp_path):
-    """Deux parties identiques, l'une avec une `offre` piégée : même score, même paiement, mêmes droits, même prix."""
-    from .test_evaluation import _ann
-
-    data = tmp_path / "data"
-    for sub in ("rules", "rubrics", "missions", "roles", "profile", "ads"):
-        shutil.copytree(REPO_DIR / "data" / sub, data / sub)
-    app = create_app(Settings(db_path=tmp_path / "inj.db", data_dir=data, auto_evaluate=True))
-    with TestClient(app):
-        outcomes = []
-        for bait in (False, True):
-            p = Player(app, "beginner", "Atelier Test")
+def test_injection_in_offre_changes_neither_rights_nor_price(settings):
+    """Deux parties identiques, l'une avec une `offre` piégée : même solde, mêmes droits, même prix, même quota."""
+    outcomes = []
+    for bait in (False, True):
+        w = World(settings, RecMock())
+        try:
+            w.own("replier")
             if bait:
-                assert put(p.http, body(1, offre=BAIT, besoin=BAIT, exclusions=[BAIT[:90]])).status_code == 200
-            aid = p.start("m1")["attempt"]["id"]
-            send(p, aid, "Rédige l'annonce")  # un message d'agent : coût et quota
-            v = p.artifact(aid, _ann("ann_m1_complete")["deliverable_text"]).json()["id"]
-            r = p.submit(aid, v)
-            assert r.status_code == 201, r.text
-            st = p.state()
-            detail = p.http.get(f"/api/attempts/{aid}").json()
-            ev = detail["evaluations"][0]
+                assert put(w.client, body(1, offre=BAIT, besoin=BAIT, exclusions=[BAIT[:90]])).status_code == 200
+            else:
+                assert put(w.client, body(1)).status_code == 200
+            pid = prospect(w)
+            out = message(w, pid).json()  # une génération : coût et quota
+            st = w.client.get("/api/state").json()
             outcomes.append((
-                ev["score"], ev["report"]["payment"]["credited"], st["balance"], st["building"],
-                [(a["role"], a["price"], a["owned"], a["unlocked"]) for a in st["agents"]],
-                [(m["id"], m["status"], m["can_start"]) for m in st["missions"]],
-                st["quotas"],
+                st["balance"], st["building"], [(a["role"], a["price"], a["owned"], a["unlocked"]) for a in st["hangar"]],
+                out["debited"], out["messages_remaining"],
             ))
-        assert outcomes[0] == outcomes[1]
-        assert outcomes[0][0] == 100 and outcomes[0][1] == 20
-        # le modèle (mock) ne reçoit jamais de montant ni d'identifiant de session : seuls texte et JSON de la fiche
+        finally:
+            w.close()
+    assert outcomes[0] == outcomes[1]

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "comment": "Modèles par rôle (règle 8 : données, pas code). Le serveur refuse au démarrage un modèle absent de `available`.",
+  "available": [
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-5-5",
+    "claude-sonnet-5",
+    "claude-sonnet-4-6",
+    "claude-sonnet-4-5-20250929"
+  ],
+  "default": "claude-haiku-4-5-20251001",
+  "roles": {
+    "scout": "claude-haiku-4-5-20251001",
+    "triage": "claude-haiku-4-5-20251001",
+    "relevance": "claude-haiku-4-5-20251001",
+    "replier": "claude-sonnet-5-5",
+    "ads": "claude-sonnet-5-5",
+    "assistant_prospection": "claude-sonnet-5-5",
+    "assistant_clients": "claude-sonnet-5-5",
+    "assistant_pub": "claude-sonnet-5-5"
+  }
+}

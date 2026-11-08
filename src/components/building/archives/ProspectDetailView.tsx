@@ -1,7 +1,12 @@
+import { PertinenceBadge } from "@/components/search/PertinenceBadge";
+import { MESSAGES } from "@/content/recherche";
 import { useState } from "react";
 import { ApiError } from "@/lib/api/types";
 import { STATUTS, fiabiliteLabel, statutLabel, type ProspectDetail, type ProspectsClient } from "@/lib/api/prospects";
 import { fmtDate } from "./ProspectTable";
+import { DraftsPanel } from "./DraftsPanel";
+import type { DraftsApi } from "@/lib/api/drafts";
+import type { SearchesApi } from "@/lib/api/searches";
 
 const CANAL: Record<string, string> = {
   email_generique: "Email générique",
@@ -15,6 +20,8 @@ const CANAL: Record<string, string> = {
 export function ProspectDetailView({
   prospect,
   client,
+  drafts,
+  contacts,
   notesMax = 2000,
   onChange,
   onDeleted,
@@ -22,6 +29,9 @@ export function ProspectDetailView({
 }: {
   prospect: ProspectDetail;
   client: ProspectsClient;
+  /** Injectables pour les tests (défaut : client du mode courant). */
+  drafts?: DraftsApi;
+  contacts?: SearchesApi;
   notesMax?: number;
   onChange: (p: ProspectDetail) => void;
   onDeleted: (id: string) => void;
@@ -30,6 +40,7 @@ export function ProspectDetailView({
   const [notes, setNotes] = useState(prospect.notes);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [won, setWon] = useState(false);
   const [conflict, setConflict] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const dirty = notes !== prospect.notes;
@@ -37,13 +48,16 @@ export function ProspectDetailView({
   async function patch(body: { statut?: string; notes?: string }) {
     setBusy(true);
     setError(null);
+    setWon(false);
     try {
       const next = await client.patch(prospect.id, { version: prospect.version, ...body });
+      if (body.statut === "gagne" && prospect.statut !== "gagne") setWon(true);
       setConflict(false);
       setNotes(next.notes);
       onChange(next);
     } catch (e) {
       if (e instanceof ApiError && e.code === "VERSION_CONFLICT") setConflict(true);
+      else if (e instanceof ApiError && e.code === "INVALID_STATE" && body.statut === "gagne") setError("Ce prospect ne vous a pas encore répondu : vous ne pouvez pas le compter comme client.");
       else setError(e instanceof ApiError ? e.message : "Une erreur est survenue.");
     } finally {
       setBusy(false);
@@ -96,8 +110,12 @@ export function ProspectDetailView({
         <dd>{fmtDate(prospect.collecte_le)}</dd>
         <dt>Fiabilité</dt>
         <dd>{fiabiliteLabel(prospect.fiabilite)}</dd>
-        <dt>Pertinence</dt>
-        <dd>{prospect.pertinence} / 100</dd>
+        <dt>Correspondance avec votre cible</dt>
+        <dd>
+          <PertinenceBadge value={prospect.pertinence_etiquette} />
+        </dd>
+        <dt>Citation de la source</dt>
+        <dd>{prospect.pertinence_citation ? <q>{prospect.pertinence_citation}</q> : <span className="muted">{MESSAGES.pasDeCitation}</span>}</dd>
         {contact ? (
           <>
             <dt>Contact</dt>
@@ -168,11 +186,19 @@ export function ProspectDetailView({
           </div>
         </div>
       ) : null}
+      {won ? (
+        <p className="note" role="status">
+          Félicitations, un nouveau client ! +20 $ ajoutés à votre solde.
+        </p>
+      ) : null}
       {error ? (
         <p className="note note-bad" role="alert">
           {error}
         </p>
       ) : null}
+
+      <h4 className="h3">Fiche client et premier message</h4>
+      <DraftsPanel prospectId={prospect.id} entreprise={prospect.entreprise} api={drafts} contact={contacts} />
 
       {prospect.historique_statut.length ? (
         <>

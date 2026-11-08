@@ -38,7 +38,7 @@ def check_state(engine: Engine, settings: Settings, rules: Any, llm: Any) -> dic
         checks.setdefault("db", {"ok": False, "detail": "inaccessible"})
         checks.setdefault("schema", {"ok": False, "detail": "non vérifiable"})
     checks["rules"] = (
-        {"ok": True, "detail": f"{rules.version} ({len(rules.agents)} agents, {len(rules.missions)} missions)"}
+        {"ok": True, "detail": rules.version}
         if rules is not None
         else {"ok": False, "detail": "non chargées"}
     )

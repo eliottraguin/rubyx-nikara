@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "PROFILE_INCOMPLETE",
+      "message": "Votre fiche entreprise et cible est incomplète : renseignez au moins votre offre, vos secteurs cibles et votre zone."
+    }
+  }
+}

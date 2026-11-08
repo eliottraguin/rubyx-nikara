@@ -35,13 +35,9 @@ function useMotionPref() {
   return [off, toggle] as const;
 }
 
-/** La carte est l'entrée principale ; les anciens écrans sont secondaires et s'atteignent depuis la carte ou ce menu. */
-const SECONDARY = [
-  { href: "/bureau", label: "Bureau" },
-  { href: "/boutique", label: "Boutique" },
-  { href: "/carnet", label: "Carnet et bilan" },
-];
-const SECONDARY_PREFIXES = ["/bureau", "/boutique", "/carnet", "/commande", "/atelier", "/livraison", "/retour", "/plan"];
+/** La carte est l'entrée principale ; la boutique d'agents est un écran secondaire. */
+const SECONDARY = [{ href: "/boutique", label: "Boutique" }];
+const SECONDARY_PREFIXES = ["/boutique"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { state, connectionLost, refresh } = useGame();
@@ -66,6 +62,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <li>
                   <Link href="/carte" className="nav-main" aria-current={onMap ? "page" : undefined}>
                     Carte
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/fiche" className="nav-main" aria-current={path === "/fiche" ? "page" : undefined}>
+                    Ma fiche
                   </Link>
                 </li>
                 <li>

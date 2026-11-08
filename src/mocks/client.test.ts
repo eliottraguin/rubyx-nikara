@@ -1,65 +1,37 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockClient } from "./client";
+import { createMockSearchesApi } from "./searches";
 
-describe("parcours M1 en mode mock", () => {
+describe("client simulé", () => {
   beforeEach(() => vi.useFakeTimers({ shouldAdvanceTime: false }));
   afterEach(() => vi.useRealTimers());
 
-  it("création, message, version, livraison, paiement, achat, reprise", async () => {
+  it("création, ouverture d'un lieu par les recherches, achat d'un rôle verrouillé puis débloqué", async () => {
     const api = createMockClient();
-    const wait = async (ms: number) => {
-      await vi.advanceTimersByTimeAsync(ms);
-    };
+    const wait = (ms: number) => vi.advanceTimersByTimeAsync(ms);
     const p = api.createSession({ company: "Atelier Test", mode: "beginner" });
     await wait(200);
     expect((await p).state.balance.available).toBe(30);
 
-    const r = api.startMission("m1");
+    const locked = api.purchaseAgent("triage");
+    locked.catch(() => {});
     await wait(200);
-    const attempt = (await r).state.attempt!;
-    expect(attempt.roles.find((x) => x.role === "scout")?.used).toBe(0);
+    await expect(locked).rejects.toMatchObject({ code: "ROLE_LOCKED" });
 
-    const s = api.sendMessage(attempt.id, { role: "scout", text: "Écris une annonce", document_ids: [], max_cost_confirmed: 0 });
-    await wait(200);
-    const act = (await s).action!;
-    expect(["RESERVED", "RUNNING"]).toContain(act.status);
-    await wait(3000);
-    let st = await (async () => {
-      const g = api.getState();
-      await wait(100);
-      return (await g)!;
-    })();
-    expect(st.attempt!.artifacts).toHaveLength(1);
-    expect(st.attempt!.roles.find((x) => x.role === "scout")?.used).toBe(1);
-
-    // brief changé : livrer l'ancienne version du brief est refusé
-    const ev = api.demoEvent("target_change");
-    await wait(200);
-    expect((await ev).state.attempt!.brief.version).toBe(2);
-    const bad = api.submit(attempt.id, { artifact_version_id: st.attempt!.artifacts[0]!.id, brief_version: 1 });
-    bad.catch(() => {});
-    await wait(200);
-    await expect(bad).rejects.toMatchObject({ code: "VERSION_CONFLICT" });
-
-    const sub = api.submit(attempt.id, { artifact_version_id: st.attempt!.artifacts[0]!.id, brief_version: 2 });
-    await wait(200);
-    await sub;
-    await wait(2500);
-    const g2 = api.getState();
-    await wait(100);
-    st = (await g2)!;
-    const ev1 = st.attempt!.submission!.evaluation!;
-    expect(ev1.score).toBe(65);
-    expect(ev1.payment.credited).toBe(13);
-    expect(st.balance.available).toBe(43);
-    expect(st.agents.find((a) => a.role === "triage")?.unlocked).toBe(true);
+    // Le lieu suivant s'ouvre quand le précédent a rapporté 3 prospects retenus (recherches simulées).
+    expect((await Promise.all([api.getState(), wait(100)]))[0]!.planets[1]!.status).toBe("LOCKED");
+    const search = createMockSearchesApi({ delayMs: 0 });
+    const s1 = search.run({ planetId: "annuaire" });
+    await wait(10);
+    await s1;
+    expect((await Promise.all([api.getState(), wait(100)]))[0]!.planets[1]!.status).toBe("AVAILABLE");
+    const s2 = search.run({ planetId: "registre" });
+    await wait(10);
+    await s2;
 
     const buy = api.purchaseAgent("triage");
+    buy.catch(() => {});
     await wait(200);
-    expect((await buy).state.balance.available).toBe(8);
-    const again = api.purchaseAgent("ads");
-    again.catch(() => {});
-    await wait(200);
-    await expect(again).rejects.toMatchObject({ code: "ROLE_LOCKED" });
+    await expect(buy).rejects.toMatchObject({ code: "INSUFFICIENT_FUNDS" });
   });
 });

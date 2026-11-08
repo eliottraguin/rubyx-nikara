@@ -10,26 +10,20 @@ import unicodedata
 from .base import LLMAdapter, LLMRequest, LLMResponse, LLMStatus, Usage
 
 _LABELS = {
-    "writer": "rédacteur",
-    "prospector": "prospecteur",
-    "researcher": "chargé de veille",
-    "analyst": "analyste",
-    "qa": "responsable qualité",
-    "lead": "chef d'équipe",
     "scout": "éclaireur",
     "triage": "trieur de boîte",
     "replier": "rédacteur",
     "ads": "directeur de campagne",
+    "assistant_prospection": "assistant prospection",
+    "assistant_clients": "assistant clients",
+    "assistant_pub": "assistant pub",
 }
 
 # Messagerie simulée : blocs de données délimités (voir services/conversations.py)
-_THREAD = re.compile(r"<<<FIL nonce=(\w+)>>>\n(.*?)\n<<<FIN FIL nonce=\1>>>", re.S)
+_THREAD = re.compile(r"<<<FIL nonce=(\w+)>>>\n(.*?)\n<<<FIN FIL nonce=\1>>>", re.DOTALL)
 _MENTIONS = re.compile(r"\[MENTIONS STANDARD\] origine=.*? \| opposition=(.*?) \| client déjà informé=(oui|non)")
 _SYNTH = re.compile(r"\[SYNTHÈSE DE LA CONVERSATION\] intention=(\w+)")
 _OPTOUT_HINTS = ("arretez", "stop", "desinscri", "desabonn", "ne plus recevoir", "ne m'ecrivez plus", "retirez moi", "unsubscribe")
-
-_DELIVERABLE = re.compile(r"<<<LIVRABLE nonce=(\w+)>>>\n(.*?)\n<<<FIN nonce=\1>>>", re.S)
-
 
 class MockLLMAdapter(LLMAdapter):
     name = "mock"
@@ -44,14 +38,27 @@ class MockLLMAdapter(LLMAdapter):
         if request.purpose.startswith("conversation_reply"):
             return self._response(request, self._reply(request), digest)
         title = (request.expected_schema or {}).get("title")
-        if title == "LeadPlan":
-            return self._plan(request, digest)
-        if title == "EvaluatorOutput":
-            return self._evaluation(request, digest)
+        if title == "AssistantPlan":  # plan simulé d'un assistant personnel : uniquement des cibles de la liste fournie
+            from .mock_assistant import build_plan_json
+
+            return self._response(request, build_plan_json({**request.metadata["assistant"], "purpose": request.purpose}), digest)
+        if title == "ScoutReport":  # rapport simulé du bot de recherche : uniquement des enregistrements fournis
+            from .mock_scout import build_report_json
+
+            return self._response(request, build_report_json({**request.metadata["scout"], "purpose": request.purpose}), digest)
+        if title == "RelevanceTriage":  # tri de pertinence simulé : étiquettes et citations d'après les enregistrements fournis
+            from .mock_relevance import build_triage_json
+
+            return self._response(request, build_triage_json({**request.metadata["relevance"], "purpose": request.purpose}), digest)
         if title == "AdKit":  # kit de campagne simulé (rôle `ads`) : uniquement des éléments de la fiche entreprise
             from .mock_ads import build_kit_json
 
             return self._response(request, build_kit_json(request.metadata["ads"]), digest)
+        if title in ("ProspectFiche", "ProspectMessage"):  # fiche client / premier message simulés (rôle `replier`) : uniquement des données transmises
+            from .mock_prospect import build_fiche_json, build_message_json
+
+            meta = request.metadata["prospect_draft"]
+            return self._response(request, (build_fiche_json if title == "ProspectFiche" else build_message_json)(meta), digest)
         content = f"[Réponse simulée du {_LABELS[request.role.value]}] Référence {digest[:8]}."
         return self._response(request, content, digest)
 
@@ -129,46 +136,3 @@ class MockLLMAdapter(LLMAdapter):
                 parts.append(mentions.group(1))
             body = " ".join(parts) + " Cordialement."
         return json.dumps({"corps": body, "a_verifier": a_verifier}, ensure_ascii=False)
-
-    def _plan(self, request: LLMRequest, digest: str) -> LLMResponse:
-        """Plan borné déterministe du chef : une seule étape confiée au rédacteur (toujours possédé)."""
-        content = json.dumps(
-            {
-                "steps": [{"role": "writer", "task": "Rédiger la réponse demandée", "source_ids": [], "depends_on": None}],
-                "summary": "[Plan simulé] Confier la rédaction au rédacteur.",
-            },
-            ensure_ascii=False,
-        )
-        return self._response(request, content, digest)
-
-    def _evaluation(self, request: LLMRequest, digest: str) -> LLMResponse:
-        """Évaluation simulée : le « juge » donne 1,0 à tous les critères sur un livrable non vide, citant le début
-        du livrable (preuve littérale) ; 0 et hors sujet sur un livrable vide. Les contrôles déterministes du serveur
-        restent seuls maîtres du score final."""
-        m = _DELIVERABLE.search(request.context)
-        text = m.group(2) if m else ""
-        meta = request.metadata
-        quote = " ".join(text.split())[:60].rstrip()
-        # une citation tronquée au milieu d'un mot reste littérale : c'est une sous-chaîne du livrable
-        empty = not text.strip()
-        criteria = [
-            {
-                "id": cid,
-                "rating": 0.0 if empty else 1.0,
-                "evidence": "" if empty else quote,
-                "comment": "[Simulé] Livrable vide." if empty else "[Simulé] Critère jugé satisfaisant.",
-            }
-            for cid in meta.get("criteria_ids", [])
-        ]
-        content = json.dumps(
-            {
-                "submission_id": meta.get("submission_id", ""),
-                "rubric_version": meta.get("rubric_id", ""),
-                "out_of_scope": empty,
-                "criteria": criteria,
-                "client_feedback": "[Retour simulé] Merci pour votre livraison.",
-                "next_action": "[Simulé] Relire le brief puis ajuster si besoin.",
-            },
-            ensure_ascii=False,
-        )
-        return self._response(request, content, digest)

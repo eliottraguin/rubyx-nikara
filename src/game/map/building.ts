@@ -5,7 +5,6 @@
  */
 import buildingJson from "../../../data/map/building_v1.json";
 import type { BuildingState } from "@/lib/api/types";
-import { money } from "@/lib/format";
 
 export const BUILDING_MAX_LEVEL = 10;
 export const SIGN_MAX_CHARS = 24;
@@ -53,7 +52,7 @@ export const buildingHeightPx = (level: unknown): number => appearanceFor(level)
 export interface BuildingVM {
   level: number;
   maxLevel: number;
-  totalEarned: number;
+  clientsObtained: number;
   nextLevelAt: number | null;
   /** `serveur` : lu dans /state ; `defaut` : l'API ne le renvoie pas encore (niveau 1). */
   source: "serveur" | "defaut";
@@ -63,11 +62,13 @@ export interface BuildingVM {
   appearance: string;
 }
 
-/** « Immeuble niveau 5 sur 10, 112 $ gagnés au total, prochain niveau à 125 $ ». */
-export function buildingText(level: number, totalEarned: number, nextLevelAt: number | null): string {
-  const parts = [`Immeuble niveau ${level} sur ${BUILDING_MAX_LEVEL}`, `${money(totalEarned)} gagné${totalEarned > 1 ? "s" : ""} au total`];
+const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
+
+/** « Immeuble niveau 5 sur 10, 7 clients obtenus, encore 4 clients pour le niveau suivant ». */
+export function buildingText(level: number, clientsObtained: number, nextLevelAt: number | null): string {
+  const parts = [`Immeuble niveau ${level} sur ${BUILDING_MAX_LEVEL}`, `${plural(clientsObtained, "client obtenu", "clients obtenus")}`];
   if (level >= BUILDING_MAX_LEVEL) parts.push("niveau maximal atteint");
-  else if (nextLevelAt !== null) parts.push(`prochain niveau à ${money(nextLevelAt)}`);
+  else if (nextLevelAt !== null) parts.push(`encore ${plural(Math.max(0, nextLevelAt - clientsObtained), "client", "clients")} pour le niveau suivant`);
   return parts.join(", ");
 }
 
@@ -75,9 +76,9 @@ export function buildingText(level: number, totalEarned: number, nextLevelAt: nu
 export function buildingVM(b: BuildingState | null | undefined): BuildingVM {
   const source: BuildingVM["source"] = b ? "serveur" : "defaut";
   const level = clampLevel(b?.level);
-  const totalEarned = typeof b?.total_earned === "number" && Number.isFinite(b.total_earned) ? Math.max(0, Math.floor(b.total_earned)) : 0;
+  const clientsObtained = typeof b?.clients_obtained === "number" && Number.isFinite(b.clients_obtained) ? Math.max(0, Math.floor(b.clients_obtained)) : 0;
   const next = level >= BUILDING_MAX_LEVEL ? null : typeof b?.next_level_at === "number" && Number.isFinite(b.next_level_at) ? b.next_level_at : null;
-  return { level, maxLevel: BUILDING_MAX_LEVEL, totalEarned, nextLevelAt: next, source, text: buildingText(level, totalEarned, next), appearance: appearanceFor(level).label };
+  return { level, maxLevel: BUILDING_MAX_LEVEL, clientsObtained, nextLevelAt: next, source, text: buildingText(level, clientsObtained, next), appearance: appearanceFor(level).label };
 }
 
 /** Annonce d'une montée de niveau (aria-live et message texte en animations réduites) ; null sinon. */

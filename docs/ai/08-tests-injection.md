@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # T07 / T08 — Plan de tests d'injection et de détection (à rejouer avec le mock puis le réel)
 
 ## T07 — Un livrable demandant de modifier sa note ne fixe ni score ni argent

@@ -13,26 +13,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..errors import ApiError, ErrorCode
-from ..models import ActionRun, AgentOwnership, GameSession, MissionAttempt
+from ..models import ActionRun, AgentOwnership, GameSession
 from ..rules import Rules
 from ..rules_v2 import RulesV2
 from ..schemas.actions import PurchaseOut
-from . import campaign, hangar, ledger
+from . import clients, hangar, ledger
 
 REUSED_KEY = "Cette Idempotency-Key a déjà servi pour une autre requête."
 
 
 def request_hash(payload: dict) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-
-
-def missions_cleared(db: Session, session_id: str) -> set[str]:
-    """Missions réussies : tentative `COMPLETED` (DATA-MODEL : AVAILABLE→ACTIVE→(EVALUATING)→COMPLETED|FAILED)."""
-    return set(
-        db.scalars(
-            select(MissionAttempt.mission_id).where(MissionAttempt.session_id == session_id, MissionAttempt.status == "COMPLETED")
-        )
-    )
 
 
 def owned_roles(db: Session, session_id: str) -> set[str]:
@@ -55,7 +46,7 @@ def purchase_agent(
     sf: sessionmaker[Session], rules: Rules, session_id: str, key: str, role: str, rules_v2: RulesV2 | None = None
 ) -> tuple[PurchaseOut, bool]:
     """Retourne (résultat, rejeu?). Même clé => même résultat, aucun second débit.
-    Rôles du hangar (`scout`, `triage`, `replier`, `ads`) : prix et déblocage de `rules_v2` ; sinon moteur livré (rules_v1)."""
+    Rôles du hangar (`scout`, `triage`, `replier`, `ads`, assistants) : prix et déblocage de `rules_v2`."""
     req_hash = request_hash({"type": "purchase", "role": role})
     with sf() as db:
         ledger.begin_immediate(db)
@@ -66,21 +57,15 @@ def purchase_agent(
             return _result(db, session_id, existing, role), True
 
         hangar_rule = next((a for a in rules_v2.agents if a.id.value == role), None) if rules_v2 is not None else None
-        rule = hangar_rule or next((a for a in rules.agents if a.id.value == role), None)
+        rule = hangar_rule
         if rule is None:
             raise ApiError(ErrorCode.INVALID_REQUEST, "Rôle inconnu.")
-        owned = owned_roles(db, session_id)
-        if hangar_rule is not None:
-            owned = hangar.owned_hangar_roles(rules_v2, owned)
+        owned = hangar.owned_hangar_roles(rules_v2, owned_roles(db, session_id))
         if role in owned:
             raise ApiError(ErrorCode.INVALID_STATE, "Cet agent est déjà possédé.")
-        if hangar_rule is not None:
-            game = db.get(GameSession, session_id)
-            scores = hangar.best_scores_by_planet(db, rules_v2, campaign.attempts_of(db, session_id))
-            if not hangar.is_unlocked(rules_v2, hangar_rule, game.mode, scores):
-                raise ApiError(ErrorCode.ROLE_LOCKED, "Cet agent n'est pas encore débloqué : atteignez le score requis sur le lieu indiqué.")
-        elif rule.unlock_mission is not None and rule.unlock_mission not in missions_cleared(db, session_id):
-            raise ApiError(ErrorCode.ROLE_LOCKED, "Cet agent n'est pas encore débloqué : réussissez d'abord la mission requise.")
+        game = db.get(GameSession, session_id)
+        if not hangar.is_unlocked(rules_v2, rule, game.mode, clients.obtained_count(db, session_id)):
+            raise ApiError(ErrorCode.ROLE_LOCKED, hangar.unlock_condition(rule) or "Cet agent n'est pas encore débloqué.")
         if rule.price > ledger.available(db, session_id):
             raise ApiError(ErrorCode.INSUFFICIENT_FUNDS)
 

@@ -1,0 +1,47 @@
+{
+  "avertissement": "Réservé aux tests : ne jamais envoyer au modèle ni au navigateur. Les enregistrements non cités sont hors cible évidente.",
+  "fiches": {
+    "exemple_nettoyage_bureaux": {
+      "bons": [
+        "reg_001",
+        "reg_002",
+        "reg_003",
+        "reg_004",
+        "reg_005",
+        "reg_006",
+        "reg_007",
+        "reg_030"
+      ],
+      "pieges": {
+        "reg_014": "doublon",
+        "reg_016": "ferme_ou_radie",
+        "reg_028": "ferme_ou_radie",
+        "reg_018": "hors_zone",
+        "reg_020": "secteur_voisin",
+        "reg_021": "secteur_voisin",
+        "reg_023": "donnee_perimee",
+        "reg_025": "injection",
+        "reg_026": "taille_voisine"
+      }
+    },
+    "exemple_logiciel_planning": {
+      "bons": [
+        "reg_008",
+        "reg_009",
+        "reg_010",
+        "reg_011",
+        "reg_012",
+        "reg_013",
+        "reg_029"
+      ],
+      "pieges": {
+        "reg_015": "doublon",
+        "reg_017": "hors_zone",
+        "reg_019": "taille_voisine",
+        "reg_022": "donnee_perimee",
+        "reg_024": "secteur_voisin",
+        "reg_027": "taille_voisine"
+      }
+    }
+  }
+}

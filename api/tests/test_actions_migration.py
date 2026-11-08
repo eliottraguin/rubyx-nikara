@@ -13,7 +13,7 @@ from app.models import ActionRun, GameSession
 
 
 def _game(db, token: str) -> GameSession:
-    g = GameSession(token_hash=token, mode="beginner", company={"name": "x"}, stage="m1", seed=1, rules_version="rules_v1")
+    g = GameSession(token_hash=token, mode="beginner", company={"name": "x"}, seed=1, rules_version="rules_v1")
     db.add(g)
     db.commit()
     return g
@@ -41,7 +41,7 @@ def test_0002_keeps_existing_rows_and_scopes_keys_per_session(settings):
     engine.dispose()
     with sqlite3.connect(settings.db_path) as c:  # les clés étrangères enfants ont survécu à la recréation de table
         assert c.execute("select count(*) from ledger_entries").fetchone()[0] == 1
-        fks = {r[2] for r in c.execute("pragma foreign_key_list(messages)")}
+        fks = {r[2] for r in c.execute("pragma foreign_key_list(reservations)")}
         assert "action_runs" in fks
 
 

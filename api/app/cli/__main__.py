@@ -48,7 +48,7 @@ def cmd_check(settings: Settings, args) -> int:  # noqa: ANN001
     except Exception:  # noqa: BLE001
         pass
     try:
-        llm = get_adapter(settings.llm_provider)
+        llm = get_adapter(settings.llm_provider, settings)
     except Exception:  # noqa: BLE001
         pass
     if not settings.db_path.is_file():

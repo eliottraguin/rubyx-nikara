@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "planet",
+  "title": "Lieu de la ville : source de données simulée (Tutoriel)",
+  "type": "object",
+  "required": ["id", "version", "simule", "label", "description", "source", "source_type", "scope", "operations_autorisees", "source_ref_field", "champs_renvoyes", "champs_exclus_toujours", "deblocage", "corpus", "reponses_tests", "variantes", "tranches_effectif", "exemples"],
+  "properties": {
+    "id": {"type": "string", "enum": ["annuaire", "registre", "carte-locale", "linkedin", "glassdoor"]},
+    "version": {"type": "integer", "minimum": 1},
+    "simule": {"type": "boolean", "const": true},
+    "label": {"type": "string", "minLength": 1},
+    "lieu_ville": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1, "maxLength": 400},
+    "source": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "minLength": 1},
+    "scope": {"type": "string", "const": "B2B"},
+    "operations_autorisees": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "filtres", "max_resultats"],
+        "properties": {
+          "id": {"type": "string", "enum": ["search"]},
+          "description": {"type": "string"},
+          "max_resultats": {"type": "integer", "minimum": 1, "maximum": 50},
+          "filtres": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "type", "match"],
+              "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "type": {"enum": ["string", "boolean", "integer", "date"]},
+                "match": {"enum": ["exact", "exact_insensible"]}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "source_ref_field": {"type": "string", "const": "record_id"},
+    "champs_renvoyes": {
+      "type": "array", "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "personal_data", "required"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "type": {"enum": ["string", "boolean", "integer", "number", "date"]},
+          "personal_data": {"type": "boolean"},
+          "max_chars": {"type": "integer", "minimum": 1},
+          "required": {"type": "boolean"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "champs_exclus_toujours": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "deblocage": {
+      "oneOf": [
+        {"type": "object", "required": ["type"], "properties": {"type": {"const": "ouvert"}}, "additionalProperties": false},
+        {"type": "object", "required": ["type", "planet_id", "min"], "properties": {"type": {"const": "prospects_retenus"}, "planet_id": {"type": "string"}, "min": {"type": "integer", "minimum": 1}}, "additionalProperties": false}
+      ]
+    },
+    "corpus": {"type": "string"},
+    "reponses_tests": {"type": "string"},
+    "variantes": {
+      "type": "object",
+      "required": ["beginner", "expert"],
+      "properties": {
+        "beginner": {"$ref": "#/$defs/variante"},
+        "expert": {"$ref": "#/$defs/variante"}
+      },
+      "additionalProperties": false
+    },
+    "correspondance_secteurs": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": {"type": "string"}}},
+    "tranches_effectif": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "required": ["label", "min", "max"], "properties": {"label": {"type": "string"}, "min": {"type": "integer", "minimum": 0}, "max": {"type": ["integer", "null"]}}, "additionalProperties": false}
+    },
+    "exemples": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+    "corpus_fictif": {"type": "boolean", "const": true},
+    "badge": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "variante": {
+      "type": "object",
+      "required": ["max_resultats", "pieges_inclus", "indices"],
+      "properties": {
+        "max_resultats": {"type": "integer", "minimum": 1},
+        "pieges_inclus": {"type": "array", "items": {"type": "string"}},
+        "indices": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

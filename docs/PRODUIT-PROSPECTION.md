@@ -2,11 +2,13 @@
 
 > **Cap décidé le 2026-11-07 (Noah).** Ce document remplace, pour tout ce qui touche au contenu du jeu, les missions M1–M6 et les 6 rôles du cahier v1.1. Les règles non négociables de `CLAUDE.md` et le moteur existant (sessions, économie, quotas, évaluation, idempotence, ledger) sont **gardés**. Les points non tranchés sont dans `OPEN-QUESTIONS.md` (section « Cap prospection »).
 >
-> **Précision du 2026-11-07 (Noah, 2e décision).** La prospection n'est pas un simple thème de jeu : c'est la **fonction réelle du produit**. En mode Réel, le joueur cherche **de vrais clients pour sa vraie entreprise**. La valeur du produit est la **liste de prospects exploitables** (carnet de prospection, fiches clients, premiers messages, export CSV) ; le score, les gains en $ et les déblocages sont des **mécaniques d'apprentissage et de progression**, jamais le but. Voir §1 et §11 à §14.
+> **Précision du 2026-11-07 (Noah, 2e décision).** La prospection n'est pas un simple thème de jeu : c'est la **fonction réelle du produit**. En mode Réel, le joueur cherche **de vrais clients pour sa vraie entreprise**. La valeur du produit est la **liste de prospects exploitables** (carnet de prospection, fiches clients, premiers messages, export CSV) ; le jeu (carte, déblocages, immeuble) est une **mécanique de progression** (les gains en $ par expédition et le score sont OBSOLÈTES depuis la 6e décision), jamais le but. Voir §1 et §11 à §14.
 >
 > **3e décision du 2026-11-07 (Noah).** Deux sections s'ajoutent à la prospection : **Clients** (messagerie gérée par des agents, simulée en Tutoriel, branchée à une vraie boîte mail en Réel) et **Pub** (agent publicitaire, contenus prêts à publier). Référence : `PRODUIT-CLIENTS-PUB.md`. « **Seule la prospection est traitée** » (§1) ne vaut donc plus pour le produit entier : ce document reste la référence de la **section Prospection**.
 >
-> **4e décision du 2026-11-07 (Noah) : le décor devient une ville.** Fini l'espace : la carte est **plein écran**, inspirée de **New York** ; **votre immeuble est au centre** et s'améliore avec l'argent gagné ; les agents sont des **bots** qui partent à pied, à vélo, en skate ou en hélicoptère ; les **planètes deviennent des lieux** (Bibliothèque publique, Hôtel de ville, SoHo, Midtown, Wall Street, Times Square). **Lire « planète » comme « lieu » et « vaisseau/navette » comme « bot » dans tout ce document** : les règles, gains, déblocages et identifiants techniques (`planet`, `hangar`) sont **inchangés**. Référence visuelle : `VILLE-ET-BATIMENT.md`.
+> **4e décision du 2026-11-07 (Noah) : le décor devient une ville.** Fini l'espace : la carte est **plein écran**, inspirée de **New York** ; **votre immeuble est au centre** et s'améliore avec le **nombre de clients obtenus** (6e décision) ; les agents sont des **bots** qui partent à pied, à vélo, en skate ou en hélicoptère ; les **planètes deviennent des lieux** (Bibliothèque publique, Hôtel de ville, SoHo, Midtown, Wall Street, Times Square). **Lire « planète » comme « lieu » et « vaisseau/navette » comme « bot » dans tout ce document** : les règles, gains, déblocages et identifiants techniques (`planet`, `hangar`) sont **inchangés**. Référence visuelle : `VILLE-ET-BATIMENT.md`.
+>
+> **6e décision du 2026-11-08 (Noah) : pas d'atelier, juste un bot qui va chercher des clients.** Référence : `PARCOURS-BOT.md`. Le parcours devient **4 temps** : *mon entreprise* (fiche) → *chercher des clients* (le bot `scout` va sur un lieu) → *carnet* (prospects avec source et tri de pertinence **sans points**) → *Contact* (conversation, on obtient ou non un client). **Disparaissent** : commanditaire, brief, clarifications, prompt à écrire, livraison, score /100, paiement `floor(gain × score)`, reprise, retour client, coach, événements de marché, Constellation. Les passages de ce document qui décrivent ces mécanismes sont **marqués OBSOLÈTE (6e décision)** et restent comme trace tant que le code (ticket `API-R2`) n'est pas retiré.
 >
 > Ce cap n'est pas un retour à l'ancien cadrage « Prospect Tycoon » (hackathon 48 h, TypeScript seul, sans base de données) : la pile (Next.js + FastAPI + SQLite), le moteur et les tests restent ceux du dépôt.
 
@@ -16,34 +18,32 @@ Une **appweb** (navigateur uniquement, pas d'application native) en français, s
 - **Seule la prospection** est traitée. Pas de rédaction générale, pas de veille, pas d'analyse de tableaux.
 - Une **carte unique** (une ville) : **votre immeuble** au centre, des **lieux** autour (anciennement planètes). Chaque lieu est une **plateforme** de données (Annuaire, Registre, Carte locale, LinkedIn, Glassdoor…), débloquée au fil de la partie.
 - Le joueur **voit ses bots** quitter l'immeuble (à pied, à vélo, en skate ou en hélicoptère selon le lieu), arriver et **discuter avec l'agent du lieu**.
-- Ce que le joueur apprend : **écrire le prompt qui fait trouver les bons prospects**. Le prompt est noté ; c'est lui qu'on améliore, version après version.
+- Ce que le joueur apprend : **décrire précisément sa cible** (la fiche entreprise et cible est la seule consigne du bot ; une « précision » facultative de 300 caractères peut s'y ajouter à chaque recherche) puis **trier et contacter** les prospects trouvés. *(6e décision : l'ancien apprentissage « écrire et améliorer un prompt noté » est OBSOLÈTE.)*
 
 ### Ce qui est le produit, ce qui est le jeu
 | | Rôle | Exemples |
 |---|---|---|
 | **Le produit** (valeur réelle, utilisable hors du jeu) | Des prospects **vérifiables** et exploitables | Fiche entreprise et cible, **carnet de prospection**, fiches clients, premiers messages (brouillons), export CSV |
-| **Le jeu** (apprentissage et progression) | Rendre la tâche agréable et faire progresser le prompt | Carte, voyages, planètes, score /100, gains en $, déblocages, hangar |
+| **Le jeu** (apprentissage et progression) | Rendre la tâche agréable | Carte, voyages du bot, lieux, déblocages (nombre de clients obtenus), hangar, immeuble. *(OBSOLÈTE 6e décision : score /100, gains en $ par expédition.)* |
 
 Conséquences de conception :
 1. **Consulter, trier, exporter, annoter et supprimer** ses prospects n'est **jamais** conditionné par la monnaie ni par la progression du jeu (`RULES.md` §11).
 2. En mode Réel, tout « résultat » montré au joueur est **vérifiable** (source, date, fiabilité) et **utilisable sans le jeu** (export).
-3. Le score mesure la qualité du **prompt** et la fiabilité du **rapport**, pas la valeur commerciale d'un prospect : il ne doit jamais être présenté comme tel.
+3. Il n'y a **plus de score** de prompt ni de livraison (6e décision). Le **tri de pertinence** (`correspond` / `a_verifier` / `hors_cible`, avec citation de la source) est une **aide à la décision**, jamais une note ni une promesse de valeur commerciale.
 4. Rien n'est envoyé **automatiquement** au nom du joueur : le produit prépare, le joueur agit (§14). Seule exception : en mode Réel, le joueur peut **confirmer l'envoi** d'un email depuis sa boîte connectée (`PRODUIT-CLIENTS-PUB.md` §4).
 
-## 2. Boucle de jeu
-1. **Choisir une planète** disponible sur la carte. Un panneau montre la **fiche cible** (le commanditaire cherche quel type de prospects), la récompense maximale, le coût par instruction.
-2. **Rédiger le prompt** de l'agent (l'éclaireur) : qui chercher, où, avec quelles contraintes, quel format de rapport.
-3. **Envoyer** : le serveur réserve le coût et un message du quota (voir `RULES.md` §4), puis lance l'expédition.
-4. **Voyage** : l'agent quitte le hangar de la base et vole vers la planète (animation, indépendante de la durée réelle de l'appel IA).
-5. **Dialogue** : l'agent atterrit et converse avec l'**agent de la planète** (bulles lisibles, transcript complet consultable). L'agent du joueur applique le prompt ; la planète répond avec des données.
-6. **Retour** : l'agent revient avec un **rapport de leads** (cartes de prospects qui tombent dans la soute).
-7. **Notation** : le serveur note le **prompt** et la **qualité des leads** (§6). Le retour client explique les écarts et les relie à des phrases du prompt.
-8. **Amélioration** : le joueur corrige son prompt (5 instructions maximum par agent et par expédition). Le **carnet de prompts** garde les versions et leurs scores ; un diff montre ce qui a changé et ce que ça a rapporté.
-9. **Livraison et paiement** : une version de rapport est figée et livrée. Le serveur calcule le paiement (§8).
-10. **Déblocage** : un bon score ouvre la planète suivante ou un agent au hangar.
-11. **Exploitation (le produit)** : le joueur **ajoute au carnet de prospection** (§12) les leads vérifiés du rapport ; il y consulte, trie, marque « contacté », demande une **fiche client** et un **premier message** à des agents spécialisés (§13) et **exporte en CSV**. Cette étape ne dépend ni du score ni de l'argent.
+## 2. Boucle de jeu (6e décision)
+Quatre temps (`PARCOURS-BOT.md` §1) :
+1. **Mon entreprise** : le joueur remplit sa **fiche entreprise et cible** (§11). C'est la seule consigne du bot. Ni commanditaire, ni brief, ni prompt.
+2. **Chercher des clients** : bouton « Chercher des clients » (carte, immeuble ou assistant Prospection) : choix d'un **lieu** et d'une **précision facultative** (≤ 300 caractères, traitée comme donnée). Le serveur lance l'action asynchrone `scout_search` (**gratuite**, `Idempotency-Key`). Le bot part visiblement (animation indépendante de la durée réelle de l'appel), discute avec l'**agent du lieu** (transcript consultable) et revient.
+3. **Carnet** : les prospects trouvés sont **ajoutés au carnet par le serveur** (§12), avec `source_ref` **revérifié**, source, date et fiabilité (§14). Le code garantit existence, doublons, zone, secteur et taille ; un **agent de tri** ajoute pour chacun `correspond` / `a_verifier` / `hors_cible` **avec une citation de la source**. Une recherche vide est un **résultat honnête**.
+4. **Contact** : « Contacter » sur un prospect ouvre une **conversation** dans la section Clients (Contact) ; `replier` propose le premier message, `triage` résume la réponse (`PRODUIT-CLIENTS-PUB.md`). On obtient **ou non** un client (statut `gagne`) : c'est le résultat, il fait progresser le joueur (§4, §9).
 
-M1 (la première planète) doit être atteignable en **3 actions** après la création : choisir la planète, écrire un prompt, envoyer.
+Le carnet, la fiche client et l'export (§12 et §13) ne dépendent **ni de l'argent ni de la progression**.
+
+Première recherche atteignable en **3 actions** après la création : ouvrir la fiche d'exemple (Tutoriel), choisir le lieu, lancer.
+
+> **OBSOLÈTE (6e décision), à retirer par `API-R2` / `UI-R3`** : l'ancienne boucle (choisir une planète avec fiche du commanditaire, rédiger un prompt, 5 instructions, voyage, notation du prompt et des leads, retour client, amélioration, livraison et paiement, déblocage par score ≥ 60/50) n'est plus la référence.
 
 ## 3. Deux modes, un seul moteur
 | | **Tutoriel** (`beginner`) | **Réel** (`expert`) |
@@ -51,52 +51,53 @@ M1 (la première planète) doit être atteignable en **3 actions** après la cr�
 | Planètes | Toutes disponibles, **simulées** | Les mêmes, **branchées à de vraies sources** via MCP/API (côté serveur) |
 | Agent de la planète | Agent IA qui **simule** la recherche sur un **corpus de référence** (données fictives, avec pièges) | Appels réels à la source ; l'agent de la planète met en forme les résultats |
 | Reproductibilité | Déterministe avec le fournisseur `mock` (tests) ; variantes pilotées par la **graine** | Résultats variables : la notation s'appuie sur des **vérifications par code** de la source |
-| Fiche cible (brief) | Celle d'un **commanditaire fictif** propre à la planète ; fiche entreprise d'exemple fournie par les données | **La fiche entreprise et cible du joueur** (§11) |
+| Fiche cible | *(OBSOLÈTE)* commanditaire fictif par planète. **6e décision** : pas de commanditaire ; **fiche d'exemple pré-remplie** fournie par les données, modifiable | **La fiche entreprise et cible du joueur** (§11) |
 | Prospects du carnet | Fictifs, marqués `simulé` partout (carnet, export) | Réels, avec source, date de collecte et fiabilité (§14) |
-| Aide | Cadrage guidé, une action à la fois, indices, définitions | Brief direct, aide facultative |
+| Aide | **Bulles d'aide à chaque étape** (« voici votre cible », « voici ce que le bot a trouvé », « contactez-en un »), définitions | Aide facultative |
 | Badge | « Mode simulé » toujours visible | « Données réelles » + sources affichées ; repli sur le simulé signalé par le badge |
 
 Les valeurs `beginner` et `expert` de l'API sont **conservées** (aucune migration de schéma). L'interface dit « Tutoriel » et « Réel ».
 
 **Sources en mode réel :** uniquement des **API officielles, MCP autorisés ou fournisseurs de données licenciés**. **Aucun scraping direct** de LinkedIn ni d'une plateforme dont les CGU l'interdisent. Si une planète n'a pas de source légale disponible, elle reste **simulée** (badge visible) jusqu'à décision contraire. Choix des sources : `OPEN-QUESTIONS.md`.
 
-## 4. Planètes
-Chaque planète est un **contrat de prospection** (données dans `data/planets/`, voir §10). Ordre de déblocage proposé, par difficulté de prompt croissante :
+## 4. Lieux (ex-planètes)
+Un lieu est **une source + une description + un corpus** (Tutoriel, avec pièges) : données dans `data/planets/` (identifiants `planet` conservés). **6e décision** : un lieu n'a **ni fiche de commanditaire, ni gain, ni grille de score** ; une recherche y est **gratuite**. Ordre de déblocage :
 
-| # | Planète | Nature des données | Ce que le joueur apprend | Gain max | Coût / instruction | Déblocage |
-|---|---|---|---|---|---|---|
-| 1 | **Annuaire** | Liste simple d'entreprises locales | Dire qui chercher, où, en combien | 20 | 0 | Au lancement |
-| 2 | **Registre** | Données structurées d'entreprises (secteur, taille, zone, âge) | Filtres précis, critères d'exclusion | 30 | 1 | Score ≥ 60 sur la planète 1 |
-| 3 | **Carte locale** | Établissements, avis, horaires, contact | Prospection de proximité, canal de contact | 40 | 1 | Score ≥ 60 sur la planète 2 |
-| 4 | **LinkedIn** | Entreprises et décideurs (poste, ancienneté) | Cibler un **décideur**, pas seulement une entreprise | 60 | 2 | Score ≥ 60 sur la planète 3 |
-| 5 | **Glassdoor** | Signaux sur l'entreprise (recrutement, croissance, climat) | Repérer le **bon moment** pour approcher | 90 | 2 | Score ≥ 60 sur la planète 4 |
-| 6 | **Constellation** (finale) | Plusieurs planètes pour un nouveau commanditaire | Combiner sources et agents, sous budget | 150 | 3 | Score ≥ 60 sur la planète 5 |
+| # | Lieu | Nature des données | Ce que le bot y trouve | Déblocage |
+|---|---|---|---|---|
+| 1 | **Annuaire** (Bibliothèque publique) | Liste simple d'entreprises locales | Entreprises par zone et secteur | Au lancement |
+| 2 | **Registre** (Hôtel de ville) | Données structurées (secteur, taille, zone, âge) | Filtres précis, exclusions | Le lieu 1 a rapporté **au moins 3 prospects retenus** |
+| 3 | **Carte locale** (SoHo) | Établissements, avis, horaires, contact | Prospection de proximité | Idem sur le lieu 2 |
+| 4 | **Réseau pro** (Midtown) | Entreprises et décideurs | Un **décideur**, pas seulement une entreprise | Idem sur le lieu 3 |
+| 5 | **Signaux** (Wall Street) | Recrutement, croissance | Le **bon moment** pour approcher | Idem sur le lieu 4 |
 
-- En mode **Réel**, la fiche cible d'une planète est la **fiche entreprise et cible du joueur** (§11) ; en Tutoriel, c'est celle du commanditaire fictif de la planète.
-- Les noms de plateformes sont affichés tels quels dans le jeu (mention « non affilié » à prévoir) ; décision de marque dans `OPEN-QUESTIONS.md`.
-- Une **planète bonus** (Actualités : levées de fonds, recrutements) est proposée en P1.
-- Une planète verrouillée affiche **la condition de déblocage en texte** (jamais une simple icône).
-- Reprise : on peut rejouer une planète ; le paiement supplémentaire suit le **différentiel de reprise** (`max(0, cible − meilleur paiement déjà acquis)`).
-- Une **planète de secours** (financement, 5 messages gratuits, rejouable) reste accessible sans argent.
+- **Seuil de déblocage** : « prospect retenu » = prospect ajouté au carnet et non `hors_cible` ; N = **3** (décision Q3), valeur dans `rules_v2`.
+- Seuls **Annuaire et Registre** sont à produire d'abord (`DATA-S1`) ; les lieux 3 à 5 viennent après.
+- En mode **Réel**, le bot ne reçoit que la **fiche entreprise et cible du joueur** (§11).
+- Les noms de plateformes sont affichés tels quels (mention « non affilié » à prévoir) ; décision de marque dans `OPEN-QUESTIONS.md`.
+- Un lieu verrouillé affiche **la condition de déblocage en texte**.
+- On peut **relancer** un lieu : la recherche est gratuite ; les doublons du carnet (`(source, source_ref)`) ne sont pas recréés.
+- **Supprimés (6e décision)** : gains max et coût par instruction du tableau précédent (20/30/40/60/90/150 $ ; 0/1/1/2/2/3 $), seuil « score ≥ 60 », reprise par différentiel, planète de secours payante, **Constellation (finale)** et planète bonus Actualités (reprise en P2).
 
 ## 5. Agents et hangar
-Le MVP a **un seul bot de prospection**, l'**éclaireur** (`scout`, gratuit), qui travaille **en expédition**. **5e décision (2026-11-07)** : plus de `qualifier`, `profiler` ni `outreach`. Le tri des leads (doublons, hors-cible, critères structurés) est fait **par code**. Les autres rôles servent la **communication** et se gèrent **dans l'immeuble** :
+Le MVP a **un seul bot de prospection**, l'**éclaireur** (`scout`, gratuit), qui travaille **en recherche** (action `scout_search`). **5e décision (2026-11-07)** : plus de `qualifier`, `profiler` ni `outreach`. Le tri des leads (doublons, hors-cible, critères structurés) est fait **par code**. Les autres rôles servent la **communication** et se gèrent **dans l'immeuble** :
 
 | Rôle | Id technique | Fonction | Prix | Déblocage |
 |---|---|---|---|---|
 | **Éclaireur** | `scout` | Va sur un lieu, applique le prompt, rapporte des leads | 0 | Au lancement |
-| **Trieur de boîte** | `triage` | Résume les messages reçus (Salle du courrier) | 35 | Score ≥ 50 sur le lieu 2 (Tutoriel) |
-| **Rédacteur** | `replier` | **Fiche client** et **premier message** d'un prospect du carnet (§13), puis réponses aux conversations ; **aucun envoi réel** | 45 | Score ≥ 50 sur le lieu 3 (Tutoriel) |
-| **Directeur de campagne** | `ads` | Kit de pub (Studio pub) | 50 | Score ≥ 50 sur le lieu 4 (Tutoriel) |
+| **Trieur de boîte** | `triage` | Résume les messages reçus (Salle du courrier) | 35 | **1 client obtenu** (Tutoriel ; seuil dans `rules_v2`, à fixer) |
+| **Rédacteur** | `replier` | **Fiche client** et **premier message** d'un prospect du carnet (§13), puis réponses aux conversations ; **aucun envoi réel** | 45 | **2 clients obtenus** (Tutoriel ; à fixer) |
+| **Directeur de campagne** | `ads` | Kit de pub (Studio pub) | 50 | **3 clients obtenus** (Tutoriel ; à fixer) |
 
+> Les déblocages ci-dessus étaient « score ≥ 50 sur le lieu 2/3/4 » : **OBSOLÈTE (6e décision)**, remplacés par le **nombre de clients obtenus** (PARCOURS-BOT §6, Q1). Les seuils 1/2/3 sont une **proposition** à confirmer. Sans gains, **à quoi servent les $** (acheter ces agents) reste à trancher : voir `OPEN-QUESTIONS.md`.
 - Achat unique par rôle (contrainte `(session, rôle)` du moteur inchangée). Les prix vivent dans `data/rules/`.
-- En mode **Réel**, la condition de **score** de déblocage est **levée** pour `triage`, `replier` et `ads` (seul le prix reste) : la valeur réelle ne doit pas attendre la progression du jeu (décision par défaut, voir `OPEN-QUESTIONS.md`).
+- En mode **Réel**, la condition de **progression** de déblocage est **levée** pour `triage`, `replier` et `ads` (seul le prix reste) : la valeur réelle ne doit pas attendre la progression du jeu (décision par défaut, voir `OPEN-QUESTIONS.md`).
 - Un agent n'accède qu'à ce qui lui est transmis ou partagé (règle du moteur conservée).
-- Plusieurs agents peuvent être **dehors en même temps**, chacun avec son propre quota de 5 instructions par expédition.
-- Chaque agent a un **prompt propre**, éditable ; il est noté séparément.
+- Plusieurs bots peuvent être **dehors en même temps** (chaque recherche est une action distincte).
+- *(OBSOLÈTE, 6e décision : « prompt propre éditable et noté séparément ».)* Le `scout` n'a pas de prompt de joueur ; sa consigne est la fiche cible + la précision facultative.
 
 ## 6. Leads et qualité
-Un **lead** est une **fiche de prospect** produite par l'agent à partir de ce que la planète a renvoyé. Un lead **vérifié** peut être ajouté au **carnet de prospection** (§12), où il devient un **prospect** :
+Un **lead** est une **fiche de prospect** produite par le bot à partir de ce que le lieu a renvoyé pendant une recherche. Le serveur le **recopie** dans le carnet (§12) s'il est recevable ; il y devient un **prospect** :
 
 | Champ | Contenu |
 |---|---|
@@ -104,56 +105,53 @@ Un **lead** est une **fiche de prospect** produite par l'agent à partir de ce q
 | `contact` | Poste ou fonction visée ; nom seulement si la source le donne |
 | `signal` | Pourquoi ce prospect, pourquoi maintenant |
 | `canal` | Comment le joindre (email générique, formulaire, adresse, réseau…) |
-| `source_ref` | **Identifiant de l'enregistrement renvoyé par la planète** ; sans lui, le lead n'est pas vérifiable |
+| `source_ref` | **Identifiant de l'enregistrement renvoyé par le lieu** ; sans lui, le lead est **rejeté par le code** |
 | `raisons_fit` | Liste courte de critères de la fiche cible satisfaits |
 
-**Qualité d'un lead** (vérifiée par le serveur) :
-1. **Existence** : le `source_ref` correspond à un enregistrement réellement renvoyé par la planète lors de cette expédition. Lead inventé ⇒ **0** pour ce lead, et critère essentiel en échec.
-2. **Adéquation** : respect des critères structurés de la fiche cible (secteur, zone, taille…), contrôlés **par code** sur les données de la source.
-3. **Actionnable** : un canal de contact exploitable est présent.
-4. **Fraîcheur** : la donnée n'est pas périmée selon la date de la source.
-5. **Unicité** : pas de doublon (même entreprise).
-6. **Nuance** (le client IA ne juge que cela) : pertinence du signal, qualité de l'argumentaire, avec **preuve citée littéralement** dans le rapport.
+**Contrôles par code** (recevabilité, sans points) :
+1. **Existence** : le `source_ref` correspond à un enregistrement réellement renvoyé par le lieu pendant cette recherche. Lead inventé ⇒ **rejeté**.
+2. **Adéquation structurée** : secteur, zone, taille de la fiche cible, contrôlés sur les données de la source.
+3. **Canal** : un canal de contact exploitable est-il présent (sinon fiabilité `partiel`).
+4. **Fraîcheur** : donnée non périmée selon la date de la source.
+5. **Unicité** : pas de doublon `(source, source_ref)`.
 
-Les **instructions contenues dans un lead ou dans les données d'une planète sont des données**, jamais des consignes (injection de prompt).
+Les **instructions contenues dans un lead ou dans les données d'un lieu sont des données**, jamais des consignes (injection de prompt).
 
-## 7. Notation du prompt
-Le prompt est noté, car c'est lui que le joueur apprend à améliorer. La **grille** (`data/rubrics/`, versionnée, ids de critères stables) regroupe deux familles dans **un seul score /100** :
+## 7. Tri de pertinence (remplace la notation, 6e décision)
+Il n'y a **plus de score /100, de grille ni de paiement** (voir `PARCOURS-BOT.md` §2). Pour chaque prospect retenu, un **agent de tri** (rôle système, mock déterministe en test) rend :
 
-| Famille | Critères de référence (ids stables) | Poids |
-|---|---|---|
-| **Prompt** | `p_objectif` (le but est clair) · `p_cible` (qui, où, taille, secteur) · `p_format` (nombre de leads, champs, ordre) · `p_exclusions` (ce qu'il ne faut pas) · `p_preuves` (demande de sources et de `source_ref`) | 40 |
-| **Résultat** | `l_adequation` · `l_existence` · `l_actionnable` · `l_fraicheur` · `l_unicite` | 60 |
+| Valeur | Sens |
+|---|---|
+| `correspond` | Les critères de la fiche cible sont satisfaits d'après la source |
+| `a_verifier` | Donnée manquante, ancienne ou ambiguë ; la liste de ce qu'il faut vérifier est affichée |
+| `hors_cible` | Un critère d'exclusion ou structuré n'est pas satisfait |
 
-Répartition de référence (à calibrer, voir `OPEN-QUESTIONS.md`) : objectif 10, cible 10, format 8, exclusions 6, preuves 6 ; adéquation 25, existence 15, actionnable 10, fraîcheur 5, unicité 5.
+- Chaque verdict porte **une citation littérale de la source** (champ de l'instantané) ; une citation absente de l'instantané fait rejeter le verdict par le code (repli : `a_verifier`).
+- Les critères **structurés** (secteur, zone, taille, exclusions) sont tranchés **par code** ; l'agent ne juge que le sémantique (ex. pertinence du signal).
+- C'est une **aide à la décision**, jamais une note : aucun gain, aucun score affiché, aucune pénalité si la recherche est vide.
+- Tout champ `reward`, `score` ou `payment` suggéré par un modèle est **ignoré** (règle 3).
 
-- Les contrôles **mesurables** sont du code (nombre de leads, champs présents, doublons, `source_ref` existant, critères structurés). Le client IA ne juge que le **sémantique** (clarté de l'objectif, qualité de l'exclusion formulée) avec **citation littérale** du prompt comme preuve.
-- Le serveur valide types et bornes, puis **calcule seul** le score. Tout champ `reward`, `score` ou `payment` suggéré par un modèle est **ignoré**.
-- **Essentiels** (plafond 40 s'ils échouent) : leads issus de la source (aucun inventé), cible respectée, format exploitable.
-- Hors sujet ⇒ 0. Réussite : planète ordinaire ≥ 60 sans essentiel manquant ; finale ≥ 70 avec tous les essentiels.
-- Le retour affiche **deux scores lisibles** : « Votre prompt » et « Vos résultats », chacun avec les phrases du prompt qui ont fait gagner ou perdre des points. Le coach ne donne **jamais** de prompt complet à recopier.
-- Une grille modifiée n'altère jamais une livraison déjà évaluée.
+> **OBSOLÈTE (6e décision), à retirer par `API-R2`** : l'ancienne grille « 40 prompt / 60 résultat » (`p_objectif`, `p_cible`, `p_format`, `p_exclusions`, `p_preuves`, `l_adequation`, `l_existence`, `l_actionnable`, `l_fraicheur`, `l_unicite`), les essentiels (plafond 40), les seuils 60/70, les « deux scores » et le coach.
 
 ## 8. Économie
-Le **ledger du moteur est réutilisé tel quel** ; seules les valeurs changent (données `rules_v2` à créer).
+Le **ledger du moteur est réutilisé tel quel** (monnaie, réservation avant appel, règlement après, jamais de débit sans réponse exploitable, idempotence).
 
 - Monnaie : dollars de jeu entiers. **Capital initial : 30 $** et un éclaireur gratuit.
-- Une instruction envoyée coûte `coût/instruction` de la planète (« carburant »). Le **maximum est affiché avant l'envoi** ; réservation atomique avant l'appel, règlement après, jamais de débit sans réponse exploitable.
-- **Quota : 5 instructions par agent et par expédition** (jamais 6). Le premier prompt et chaque correction comptent.
-- Paiement = `floor(gain_max × score / 100)`, figé à la livraison ; une livraison ne se paie qu'une fois.
-- Les gains alimentent : l'achat d'agents (§5) et les coûts des planètes plus chères. La **fin de partie** (Constellation) exige une **dépense ≤ 30 $** et **≥ 2 agents** ayant contribué.
-- En mode réel, les appels de sources ont un **coût réel** (limites de débit, quotas API, budget tokens) : plafonds côté serveur, pause explicite si un seuil est atteint, jamais de faux résultat (`RULES.md` §8).
-- Les **actions sur un prospect** (fiche client, premier message) coûtent un petit montant par génération, avec le même mécanisme de réservation et de règlement, mais **ne rapportent aucun gain** ; consulter, trier, exporter, annoter et supprimer ses prospects est **toujours gratuit** (`RULES.md` §11).
+- **Recherches gratuites** (Q1, option b) : `scout_search` ne coûte rien et ne rapporte rien. La **progression** (lieux, agents, immeuble) se débloque avec le **nombre de clients obtenus**.
+- Les $ servent à **acheter des agents** (§5) ; leur source de revenus sans gains d'expédition est **à trancher** (`OPEN-QUESTIONS.md`).
+- En mode réel, les appels de sources ont un **coût réel** (limites de débit, quotas API, budget tokens) : plafonds côté serveur, pause explicite si un seuil est atteint, jamais de faux résultat (`RULES.md` §8). Un plafond de recherches par jour est à prévoir.
+- Les **actions sur un prospect** (fiche client, premier message) coûtent un petit montant par génération (3 $ et 2 $, inchangé), avec réservation et règlement, mais **ne rapportent aucun gain** ; consulter, trier, exporter, annoter et supprimer ses prospects est **toujours gratuit** (`RULES.md` §11).
+- *(OBSOLÈTE, 6e décision : coût par instruction, quota de 5 instructions par expédition, paiement `floor(gain_max × score / 100)`, fin de partie Constellation « ≤ 30 $ et ≥ 2 agents ». Le quota 5 reste valable pour les générations de `replier`.)*
 
 ## 9. Ce qui est visuel
 Détails d'interface dans `UX.md`, d'architecture dans `CARTE-TECH.md`. Principe : **tout état serveur a une représentation visible sur la carte ET un équivalent texte**.
 
 | Élément | États visibles |
 |---|---|
-| **Immeuble** | Niveau 1 à 10 selon le **total gagné** (apparence seulement), enseigne au nom de l'entreprise, halo « Votre siège » ; à l'intérieur : coffre (trésorerie), garage (bots présents / dehors), archives (nombre de prospects, ouvre le carnet) |
-| **Lieu** | Verrouillé (voilé + condition en texte) · disponible (halo) · expédition en cours · visité (étoiles = meilleur score) |
-| **Bot** | Au garage · en route (à pied, vélo, skate ou hélicoptère) · en discussion (bulle) · de retour avec rapport · en panne (échec technique, reprise sûre) |
-| **Retours** | Gain en $ qui s'envole vers le coffre · leads qui arrivent en dossier · compteur d'instructions restantes |
+| **Immeuble** | Niveau 1 à 10 selon le **nombre de clients obtenus** (apparence seulement, seuils dans les données), enseigne au nom de l'entreprise, halo « Votre siège » ; à l'intérieur : coffre (trésorerie), garage (bots présents / dehors), archives (nombre de prospects, ouvre le carnet) |
+| **Lieu** | Verrouillé (voilé + condition en texte) · disponible (halo) · recherche en cours · visité (nombre de prospects retenus) |
+| **Bot** | Au garage · en route (à pied, vélo, skate ou hélicoptère) · en discussion (bulle) · de retour avec ses prospects · en panne (échec technique, relance sûre) |
+| **Retours** | Prospects qui arrivent au carnet · compteur de clients obtenus |
 
 Les animations ne **retardent jamais** un résultat : bouton « passer », et l'animation s'adapte à la durée réelle de l'appel (boucle de vol tant que la réponse n'est pas arrivée).
 
@@ -162,16 +160,16 @@ Aucune règle n'est réécrite ; on **renomme et remplit** :
 
 | Moteur (dépôt actuel) | Nouveau sens | Travail |
 |---|---|---|
-| `MissionDefinition` (`data/missions/*`) | **Planète / contrat** : fiche cible, corpus ou source, tarif, gain, déblocage | Nouveaux fichiers `data/planets/*` ; le chargeur de missions les lit |
-| `MissionAttempt` | **Expédition** | Aucun |
-| `Message` (5 par rôle) | **Instruction / version de prompt** | Aucun |
-| `ArtifactVersion` | **Rapport de leads** (versions immuables) | Schéma de contenu structuré (liste de leads) |
-| `Submission` + `Evaluation` | **Rapport remis** + **note** (prompt + résultats) | Nouvelle grille, nouveaux contrôles dans `checks.py` |
-| `AgentOwnership` + rôles | **Hangar** (4 rôles : `scout`, `triage`, `replier`, `ads`) | Remplacer l'énumération des rôles |
-| `NotebookEntry` | **Carnet de prompts** (cœur de l'apprentissage ; **distinct** du carnet de prospection, §12) | Livrer `GET/POST /api/notebook` (501 aujourd'hui) |
-| Événements de brief versionnés | **Événements de marché** (« la cible change ») | Contenu à écrire (P1) |
-| Clarifications au client (2 gratuites) | **Briefer le commanditaire** | Contenu à écrire |
-| Fournisseur LLM `mock` / `real` | Agent de la planète simulé (tuto) / source MCP-API (réel) | Adaptateur de sources (§3) |
+| `MissionDefinition` (`data/missions/*`) | **Lieu** : source, description, corpus (sans commanditaire ni gain) | Nouveaux fichiers `data/planets/*` (`DATA-S1`) |
+| `MissionAttempt` | **Recherche** (`Search`, action `scout_search`) | Nouvelle entité (`API-S1`) ; l'ancienne tentative est retirée par `API-R2` |
+| `Message` (5 par rôle) | *(OBSOLÈTE pour le scout)* ; reste pour les générations de `replier` | `API-R2` |
+| `ArtifactVersion` | Versions de fiche client et de brouillon ; **plus de rapport livré** | Conservé pour `replier` / `ads` |
+| `Submission` + `Evaluation` | **Retirés** ; remplacés par le **tri de pertinence** par prospect | `API-S2`, `API-R2` |
+| `AgentOwnership` + rôles | **Hangar** (4 rôles : `scout`, `triage`, `replier`, `ads`) | Remplacer l'énumération des rôles (`API-R2`) |
+| `NotebookEntry` | *(OBSOLÈTE 6e décision : carnet de prompts, plus de prompt de joueur)* ; `/api/notebook` reste en 501, à retirer ou réaffecter | À trancher |
+| Événements de brief versionnés | **Retirés** (événements de marché reportés en P2) | `API-R2` |
+| Clarifications au client (2 gratuites) | **Retirées** | `API-R2` |
+| Fournisseur LLM `mock` / `real` | Agent du lieu simulé (tuto) / source MCP-API (réel) | Adaptateur de sources (§3) |
 | *(nouveau)* `TargetProfile` | **Fiche entreprise et cible** (§11), versionnée, rattachée à la session | Stockage + `PUT /api/profile` ; l'ancien `company.profile` (texte ≤ 200) est repris comme champ `offre` |
 | *(nouveau)* `Prospect` | **Prospect du carnet** (§12) | Table, routes `/api/prospects`, export CSV |
 | *(nouveau)* actions `prospect_profile` / `prospect_message` | Fiche client, brouillon de message (§13) | Réutilise réservation, règlement, idempotence ; **nouvelle clé de quota `(prospect, rôle)`** |
@@ -195,16 +193,16 @@ Ensemble structuré, **par partie**, **versionné** (`profile_version`), modifia
 
 Les bornes ci-dessus sont des valeurs de départ, versionnées dans `data/` (`data/profile/`), pas dans le code.
 
-- **Rôles de la fiche** : (1) **fiche cible des planètes** en mode Réel (§4) ; (2) **contexte des agents**, transmis comme **bloc de données délimité**, jamais comme consigne système (règle 3) ; (3) **critères structurés** contrôlés **par code** pour `l_adequation` (§6) et pour la **pertinence** d'un prospect (§12) ; (4) personnalisation des fiches clients et des messages (§13).
-- **Tutoriel** : une fiche d'exemple est fournie par les données (`data/profile/examples/`) et peut être modifiée pour s'exercer ; les planètes gardent la fiche de leur commanditaire fictif.
+- **Rôles de la fiche** : (1) **seule consigne du bot `scout`** (§2 ; en Réel comme en Tutoriel, sans commanditaire) ; (2) **contexte des agents**, transmis comme **bloc de données délimité**, jamais comme consigne système (règle 3) ; (3) **critères structurés** contrôlés **par code** pour la recevabilité (§6) et pour la **pertinence** d'un prospect (§12) ; (4) personnalisation des fiches clients et des messages (§13).
+- **Tutoriel** : une fiche d'exemple est fournie par les données (`data/profile/examples/`) et peut être modifiée pour s'exercer ; **pas de commanditaire fictif** (6e décision).
 - **Réel** : saisie guidée à la **création** (étape 2 ; minimum requis : `offre`, `cible_secteurs`, `cible_zone`), modifiable ensuite depuis la base. Pas de saisie libre de données personnelles de tiers (consigne affichée : on décrit une **cible**, pas des personnes).
-- **Versions** : modifier la fiche crée une **nouvelle version** avec diff affiché. Une expédition garde la version qui était courante à son ouverture ; une livraison **fige** la version utilisée (règle 7). Envoyer une action sur une version périmée donne `VERSION_CONFLICT` (rechargez).
+- **Versions** : modifier la fiche crée une **nouvelle version** avec diff affiché. Une recherche garde la version qui était courante à son lancement (`profile_version` mémorisée dans `Search`) ; un prospect porte la version de provenance (règle 7). Envoyer une action sur une version périmée donne `VERSION_CONFLICT` (rechargez).
 - Tous les champs texte sont du **texte brut**, nettoyé au rendu ; leur contenu est une **donnée** pour les agents, jamais une consigne.
 
 ## 12. Carnet de prospection
-**Le cœur du produit.** Dossier de la partie qui **conserve** les prospects trouvés, indépendamment du score. Un seul dossier par partie au MVP (dossiers nommés en P1, `OPEN-QUESTIONS.md`). Il est accessible **depuis la carte (le classeur de la base) et depuis la liste** (sans carte).
+**Le cœur du produit.** Dossier de la partie qui **conserve** les prospects trouvés, indépendamment de la progression du jeu. Un seul dossier par partie au MVP (dossiers nommés en P1, `OPEN-QUESTIONS.md`). Il est accessible **depuis la carte (le classeur de la base) et depuis la liste** (sans carte).
 
-**Ne pas confondre** : le **carnet de prompts** (`/api/notebook`, apprentissage, §10) garde les versions de **prompts** ; le **carnet de prospection** (`/api/prospects`) garde les **prospects**.
+**Ne pas confondre** : le **carnet de prompts** (`/api/notebook`, *obsolète depuis la 6e décision*, §10) gardait les versions de **prompts** ; le **carnet de prospection** (`/api/prospects`) garde les **prospects**.
 
 ### Entité Prospect
 | Champ | Contenu | Modifiable par le joueur |
@@ -214,21 +212,21 @@ Les bornes ci-dessus sont des valeurs de départ, versionnées dans `data/` (`da
 | `contact_nom` | Nom du contact, **seulement si la source le donne** comme donnée professionnelle | Non |
 | `contact_fonction` | Fonction visée ou constatée | Non |
 | `canal` | Type (`email_generique`, `formulaire`, `adresse`, `telephone_standard`, `reseau_pro`) **et** valeur | Non |
-| `source` / `source_ref` | Planète ou source, et **identifiant de l'enregistrement renvoyé pendant l'expédition**, **vérifié par code** | Non |
+| `source` / `source_ref` | Lieu ou source, et **identifiant de l'enregistrement renvoyé pendant la recherche**, **vérifié par code** | Non |
 | `raisons_fit` / `signal` | Pourquoi ce prospect, pourquoi maintenant | Non |
-| `pertinence` | Score 0 à 100 **calculé par le serveur** (critères structurés de la fiche cible vérifiés par code ; score de fit du qualificateur s'il a travaillé) | Non |
+| `pertinence` | **PROPOSÉ (6e décision)** : `correspond`, `a_verifier` ou `hors_cible`, **calculé par le serveur** (critères structurés par code, sémantique par l'agent de tri), accompagné de `pertinence_citation` (citation littérale de l'instantané) et de `pertinence_a_verifier` (liste). Remplace le score 0 à 100 (qui devient obsolète) | Non |
 | `fiabilite` | `verifie`, `partiel` ou `simule` (§14) | Non |
 | `statut` | `nouveau`, `contacte`, `en_discussion`, `gagne`, `perdu`, `ecarte` | **Oui** |
 | `notes` | Texte brut libre (≤ 2 000 caractères) | **Oui** |
 | `instantane_source` | Copie **minimisée** de l'enregistrement de la source (liste blanche de champs), base des fiches et messages | Non |
-| `expedition_id`, `rapport_version_id`, `profile_version` | Provenance : d'où vient ce prospect | Non |
+| `search_id` (ex-`expedition_id`), `profile_version` (ex-`rapport_version_id` obsolète) | Provenance : d'où vient ce prospect | Non |
 | `cree_le`, `modifie_le`, `contacte_le`, `derniere_activite_le` | Dates (UTC, ISO 8601) ; `contacte_le` posé au **premier** passage à `contacte` | Non (posées par le serveur) |
 | `version` | Compteur de modification (concurrence optimiste) | Non |
 
 La **provenance est immuable** (comme les versions de livrables, règle 7) ; le joueur ne modifie que `statut` et `notes`.
 
 ### Ajouter au carnet
-- Depuis un **rapport de leads livré ou en cours** : « Ajouter au carnet » sur un lead ou sur tous les leads retenus. Le navigateur envoie **seulement des références** (expédition, version de rapport, positions des leads) ; le **serveur recopie** les champs depuis la version figée du rapport et **revérifie le `source_ref`** contre les enregistrements renvoyés pendant l'expédition. Le navigateur ne fournit jamais le contenu d'un prospect.
+- **6e décision** : à la fin d'une recherche (`scout_search`), le **serveur ajoute lui-même** au carnet les leads recevables : il recopie les champs depuis les enregistrements renvoyés par le lieu et **revérifie le `source_ref`**. Plus de rapport à livrer ni de bouton « Ajouter au carnet » obligatoire (l'ancien parcours « ajouter depuis un rapport livré », avec références d'expédition et de version de rapport, est **OBSOLÈTE**, `API-R2`). Le navigateur ne fournit jamais le contenu d'un prospect.
 - **Lead sans `source_ref` vérifiable** : refusé (code d'erreur stable proposé `LEAD_UNVERIFIED`, à documenter dans `CONTRACTS.md`). Aucun prospect inventé n'entre dans le carnet.
 - **Doublons** : clé de dédoublonnage `(source, source_ref)` ; ajouter deux fois le même lead renvoie le **même prospect** (idempotent, sans erreur). Même entreprise via deux sources : deux prospects distincts, signalés « possible doublon » à l'affichage.
 - Limite initiale : **500 prospects** par partie (`rules_v2`), erreur stable au-delà.
@@ -271,7 +269,7 @@ L'export est **gratuit**, répétable (lecture) et **jamais refusé pour manque 
 ## 13. Fiche client et premier message (rôle `replier`)
 > **5e décision** : ces deux productions sont faites par **un seul agent, `replier`** ; ci-dessous, « `profiler` » et « `outreach` » désignent désormais les **deux actions** `prospect_profile` et `prospect_message` du même rôle, avec chacune son quota 5 par `(prospect, action)`. Elles se lancent depuis la **fiche prospect aux Archives** de l'immeuble.
 
-Deux productions se font **à partir d'un prospect du carnet** (« atelier du prospect »), pas en expédition. Ils s'achètent au hangar (§5). Ils ne font **aucune requête vers une source** au MVP : ils lisent l'**instantané minimisé** du prospect et la **fiche entreprise et cible** (enrichissement par nouvelle requête de source : P1).
+Deux productions se font **à partir d'un prospect du carnet** (fiche prospect), pas en recherche. Ils s'achètent au hangar (§5). Ils ne font **aucune requête vers une source** au MVP : ils lisent l'**instantané minimisé** du prospect et la **fiche entreprise et cible** (enrichissement par nouvelle requête de source : P1).
 
 | | **Analyste de fiche client** (`profiler`) | **Rédacteur de premier message** (`outreach`) |
 |---|---|---|
@@ -300,7 +298,7 @@ Deux productions se font **à partir d'un prospect du carnet** (« atelier du pr
 ### Qualité et fiabilité
 | Fiabilité | Condition (vérifiée **par code**) |
 |---|---|
-| `verifie` | `source_ref` renvoyé pendant l'expédition ; champs obligatoires présents (entreprise, source, date de collecte) ; donnée **non périmée** ; critères structurés de la fiche cible respectés |
+| `verifie` | `source_ref` renvoyé pendant la recherche ; champs obligatoires présents (entreprise, source, date de collecte) ; donnée **non périmée** ; critères structurés de la fiche cible respectés |
 | `partiel` | `source_ref` vérifié mais canal de contact absent, donnée ancienne ou critère non vérifiable ; la liste de ce qui manque est affichée |
 | `simule` | Tutoriel : données fictives. **Jamais mélangé** avec des prospects réels dans un même export sans la colonne `simule` |
 

@@ -423,10 +423,23 @@ def _client_request(m: Messaging, db: Session, conv: Conversation, rows: list[Co
     )
     context = "\n\n".join([desc, thread_block(m, rows, values)])
     return LLMRequest(
-        role=Role.LEAD,  # pas de rôle « client » dans l'énumération (même écart documenté que les clarifications)
+        role=Role.REPLIER,  # pas de rôle « client » dans l'énumération : porteur technique de l'appel du client simulé
         context=context, allowed_tools=[], max_output_tokens=m.rules_v2.limits.client_or_lead_max_output_tokens,
         purpose="client_sim", metadata={"persona_id": conv.persona_id, "turn": turn, "scripted_line": line},
     )
+
+
+def _draft_belongs(db: Session, conv: Conversation, draft_version_id: str) -> bool:
+    """Brouillon utilisable dans ce fil : un brouillon de réponse de CETTE conversation, ou une version de **premier message**
+    (`prospect_message`) du MÊME prospect (point 17 : elle devient le premier message du joueur ; il relit/édite, le texte
+    envoyé reste `text`)."""
+    d = db.get(ReplyDraft, draft_version_id)
+    if d is not None:
+        return d.conversation_id == conv.id
+    from ..models_drafts import ProspectDraft
+
+    p = db.get(ProspectDraft, draft_version_id)
+    return p is not None and p.session_id == conv.session_id and p.prospect_id == conv.prospect_id and p.kind == "message"
 
 
 def send_simulated(m: Messaging, session_id: str, key: str, conversation_id: str, text: str, draft_version_id: str | None) -> MessageSendOut:
@@ -445,10 +458,8 @@ def send_simulated(m: Messaging, session_id: str, key: str, conversation_id: str
         if game.mode != "beginner" or not conv.simule:
             raise ApiError(ErrorCode.INVALID_STATE, "L'envoi simulé n'existe qu'en Tutoriel ; en Réel, utilisez l'envoi confirmé.")
         text = _check_text(m, text)
-        if draft_version_id is not None:
-            d = db.get(ReplyDraft, draft_version_id)
-            if d is None or d.conversation_id != conv.id:
-                raise ApiError(ErrorCode.INVALID_REQUEST, "Brouillon inconnu pour cette conversation.")
+        if draft_version_id is not None and not _draft_belongs(db, conv, draft_version_id):
+            raise ApiError(ErrorCode.INVALID_REQUEST, "Brouillon inconnu pour cette conversation.")
         prospect = m.prospects.get(db, session_id, conv.prospect_id)
         if prospect is None:
             raise ApiError(ErrorCode.NOT_FOUND)
@@ -506,7 +517,7 @@ def send_simulated(m: Messaging, session_id: str, key: str, conversation_id: str
             error = (outcome.error or {}).get("code", ErrorCode.LLM_UNAVAILABLE.value)
         with m.sf() as db:
             ledger.begin_immediate(db)
-            act.log_call(db, m.eng, run.id, Role.LEAD.value, outcome, None)
+            act.log_call(db, m.eng, run.id, Role.REPLIER.value, outcome)
             db.commit()
 
     with m.sf() as db:

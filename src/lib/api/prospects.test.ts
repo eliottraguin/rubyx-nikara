@@ -10,6 +10,17 @@ describe("client carnet de prospection", () => {
     expect(buildQuery({})).toBe("");
   });
 
+  it("filtre par étiquette dans la requête et l'export ; lecture tolérante de l'étiquette et de la citation", async () => {
+    expect(buildQuery({ etiquette: "a_verifier" })).toBe("?etiquette=a_verifier");
+    expect(exportUrl({ etiquette: "correspond", cursor: "c" })).toBe("/api/prospects/export.csv?etiquette=correspond");
+    const raw = { id: "a", pertinence: 82 }; // ancien format : nombre, pas d'étiquette
+    const fetch = vi.fn(async () => json({ items: [raw, { id: "b", pertinence_etiquette: "correspond", pertinence_citation: " « x » " }, { id: "c", pertinence_etiquette: "bizarre" }], next_cursor: null, counts: {}, total: 3 })) as unknown as typeof globalThis.fetch;
+    const r = await createProspectsClient({ fetch }).list({ etiquette: "correspond" });
+    expect(r.items.map((i) => i.pertinence_etiquette)).toEqual(["a_verifier", "correspond", "a_verifier"]);
+    expect(r.items[0]!.pertinence_citation).toBeNull();
+    expect(r.items[1]!.pertinence_citation).toBe(" « x » ");
+  });
+
   it("PATCH : Idempotency-Key, cookie, version ; clé renouvelée après réponse", async () => {
     const f = vi.fn(async () => json({ id: "p1" }));
     const c = createProspectsClient({ fetch: f as unknown as typeof fetch });

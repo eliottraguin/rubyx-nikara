@@ -1,9 +1,10 @@
+import { PertinenceBadge } from "@/components/search/PertinenceBadge";
 import { DEFAULT_ORDER, fiabiliteLabel, statutLabel, type Prospect, type ProspectOrdre, type ProspectTri } from "@/lib/api/prospects";
 
 const COLS: { tri: ProspectTri; label: string }[] = [
   { tri: "entreprise", label: "Entreprise" },
   { tri: "statut", label: "Statut" },
-  { tri: "pertinence", label: "Pertinence" },
+  { tri: "pertinence", label: "Correspondance" },
   { tri: "fiabilite", label: "Fiabilité" },
   { tri: "source", label: "Source" },
   { tri: "date_ajout", label: "Ajouté le" },
@@ -59,7 +60,9 @@ export function ProspectTable({
                 {p.possible_doublon ? <span className="help"> (doublon possible)</span> : null}
               </th>
               <td style={{ padding: ".3rem .5rem" }}>{statutLabel(p.statut)}</td>
-              <td style={{ padding: ".3rem .5rem" }}>{p.pertinence} / 100</td>
+              <td style={{ padding: ".3rem .5rem" }}>
+                <PertinenceBadge value={p.pertinence_etiquette} />
+              </td>
               <td style={{ padding: ".3rem .5rem" }}>{fiabiliteLabel(p.fiabilite)}</td>
               <td style={{ padding: ".3rem .5rem" }}>{p.source}</td>
               <td style={{ padding: ".3rem .5rem" }}>{fmtDate(p.cree_le)}</td>

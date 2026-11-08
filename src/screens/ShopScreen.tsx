@@ -5,6 +5,7 @@ import { useState } from "react";
 import { BackLink, ErrorNote, Notice, Pill, RequireSession } from "@/components/ui";
 import type { AgentView, ApiError, GameState, RoleId } from "@/lib/api";
 import { ROLE_LABEL, money } from "@/lib/format";
+import { clientsProgressText } from "@/lib/api/adapt";
 import { useGame } from "@/lib/game-context";
 
 function Shop({ state }: { state: GameState }) {
@@ -31,7 +32,7 @@ function Shop({ state }: { state: GameState }) {
 
   return (
     <div className="page">
-      <BackLink href="/bureau">Bureau</BackLink>
+      <BackLink href="/carte">Carte</BackLink>
       <h1>Boutique</h1>
       <p>
         Solde disponible : <strong>{money(state.balance.available)}</strong>. Chaque agent s&apos;achète une seule fois ; le
@@ -56,6 +57,11 @@ function Shop({ state }: { state: GameState }) {
               </p>
               <p>{a.teaches}</p>
               <p className="help">Condition : {a.unlock_condition}</p>
+              {!a.owned && !a.unlocked && typeof a.unlock_clients === "number" ? (
+                <p className="help" data-testid={`progress-${a.role}`}>
+                  Progression : {clientsProgressText(state.building?.clients_obtained ?? 0, a.unlock_clients)}
+                </p>
+              ) : null}
               {pending === a.role ? (
                 <div className="confirm" role="group" aria-label={`Confirmer l'achat de ${ROLE_LABEL[a.role]}`}>
                   <p>

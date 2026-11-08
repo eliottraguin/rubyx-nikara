@@ -29,7 +29,7 @@ describe("couche DOM accessible de la ville", () => {
   it("un lieu verrouillé explique sa condition en texte, sans bouton d'action", () => {
     const registre = vm.planets.find((p) => p.id === "registre")!;
     render(<PlanetPanel planet={registre} vm={vm} />);
-    expect(screen.getByRole("note")).toHaveTextContent("Condition de déblocage");
+    expect(screen.getByRole("note")).toHaveTextContent("Pas encore ouvert");
     expect(screen.queryByRole("link")).toBeNull();
   });
 
@@ -39,10 +39,10 @@ describe("couche DOM accessible de la ville", () => {
   });
 
   it("l'immeuble : équivalent texte permanent du niveau et bouton « Entrer » au clavier", () => {
-    const withBuilding = buildMapViewModel({ session: { company: "Atelier Test" }, balance: { available: 5 }, agents: [], missions: [], simulated_provider: true, building: { level: 5, total_earned: 112, next_level_at: 125 } } as never);
+    const withBuilding = buildMapViewModel({ session: { company: "Atelier Test" }, balance: { available: 5 }, agents: [], planets: [], simulated_provider: true, building: { level: 5, clients_obtained: 7, next_level_at: 11 } } as never);
     const onEnter = vi.fn();
     render(<BuildingStatus vm={withBuilding} onEnter={onEnter} />);
-    expect(screen.getByTestId("building-text").textContent).toBe("Immeuble niveau 5 sur 10, 112\u00a0$ gagnés au total, prochain niveau à 125\u00a0$");
+    expect(screen.getByTestId("building-text").textContent).toBe("Immeuble niveau 5 sur 10, 7 clients obtenus, encore 4 clients pour le niveau suivant");
     fireEvent.click(screen.getByRole("button", { name: "Entrer dans votre immeuble" }));
     expect(onEnter).toHaveBeenCalled();
   });

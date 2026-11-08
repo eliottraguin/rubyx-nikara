@@ -1,6 +1,9 @@
 import { BuildingScreen } from "@/screens/BuildingScreen";
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ etage?: string | string[] }> }) {
-  const { etage } = await searchParams;
-  return <BuildingScreen floor={Array.isArray(etage) ? (etage[0] ?? null) : (etage ?? null)} />;
+type Param = string | string[] | undefined;
+const first = (v: Param): string | null => (Array.isArray(v) ? (v[0] ?? null) : (v ?? null));
+
+export default async function Page({ searchParams }: { searchParams: Promise<{ etage?: Param; conversation?: Param }> }) {
+  const { etage, conversation } = await searchParams;
+  return <BuildingScreen floor={first(etage)} conversation={first(conversation)} />;
 }

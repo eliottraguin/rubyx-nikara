@@ -1,3 +1,5 @@
+> **OBSOLÈTE (6e décision, 2026-11-08)** : ce document décrit l'ancien contenu (M1–M6, client évaluateur, score et paiement par expédition). Voir `docs/PARCOURS-BOT.md`. Ne pas s'y fier ; retrait des données associées : ticket API-R2.
+
 # AI07 — Aides, bilan fondé sur les traces, suivi des tokens
 
 Fichiers : indices dans chaque variante (`hints`, `hint_forbidden_terms`), `data/missions/_shared/coach_and_debrief.json` (schéma `coach_debrief.schema.json`), rôle `data/roles/system/coach.json`.

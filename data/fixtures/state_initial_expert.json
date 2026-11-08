@@ -7,7 +7,6 @@
       "profile": null
     },
     "state": "ACTIVE",
-    "stage": "m1",
     "seed": 12345,
     "rules_version": "rules_v1",
     "created_at": "2026-01-01T09:00:00Z"
@@ -17,56 +16,6 @@
     "reserved": 0,
     "available": 30
   },
-  "agents": [
-    {
-      "role": "writer",
-      "label": "Rédacteur",
-      "price": 0,
-      "owned": true,
-      "unlock_mission": null,
-      "unlocked": true
-    },
-    {
-      "role": "prospector",
-      "label": "Prospecteur",
-      "price": 20,
-      "owned": false,
-      "unlock_mission": "m1",
-      "unlocked": false
-    },
-    {
-      "role": "researcher",
-      "label": "Chargé de veille",
-      "price": 35,
-      "owned": false,
-      "unlock_mission": "m2",
-      "unlocked": false
-    },
-    {
-      "role": "qa",
-      "label": "Responsable qualité",
-      "price": 30,
-      "owned": false,
-      "unlock_mission": "m2",
-      "unlocked": false
-    },
-    {
-      "role": "analyst",
-      "label": "Analyste",
-      "price": 45,
-      "owned": false,
-      "unlock_mission": "m3",
-      "unlocked": false
-    },
-    {
-      "role": "lead",
-      "label": "Chef d'équipe",
-      "price": 80,
-      "owned": false,
-      "unlock_mission": "m5",
-      "unlocked": false
-    }
-  ],
   "hangar": [
     {
       "role": "scout",
@@ -74,9 +23,9 @@
       "section": "prospection",
       "price": 0,
       "owned": true,
-      "unlock_planet": null,
-      "unlock_min_score": null,
-      "score_condition_waived": false,
+      "unlock_clients": null,
+      "unlock_condition": null,
+      "clients_condition_waived": false,
       "unlocked": true
     },
     {
@@ -85,9 +34,9 @@
       "section": "clients",
       "price": 35,
       "owned": false,
-      "unlock_planet": "registre",
-      "unlock_min_score": 50,
-      "score_condition_waived": true,
+      "unlock_clients": 1,
+      "unlock_condition": "Obtenez 1 client pour débloquer ce trieur",
+      "clients_condition_waived": true,
       "unlocked": true
     },
     {
@@ -96,9 +45,9 @@
       "section": "clients",
       "price": 45,
       "owned": false,
-      "unlock_planet": "carte-locale",
-      "unlock_min_score": 50,
-      "score_condition_waived": true,
+      "unlock_clients": 2,
+      "unlock_condition": "Obtenez 2 clients pour débloquer ce rédacteur",
+      "clients_condition_waived": true,
       "unlocked": true
     },
     {
@@ -107,140 +56,46 @@
       "section": "pub",
       "price": 50,
       "owned": false,
-      "unlock_planet": "linkedin",
-      "unlock_min_score": 50,
-      "score_condition_waived": true,
+      "unlock_clients": 3,
+      "unlock_condition": "Obtenez 3 clients pour débloquer ce directeur de campagne",
+      "clients_condition_waived": true,
+      "unlocked": true
+    },
+    {
+      "role": "assistant_prospection",
+      "label": "Assistant Prospection",
+      "section": "prospection",
+      "price": 0,
+      "owned": true,
+      "unlock_clients": null,
+      "unlock_condition": null,
+      "clients_condition_waived": false,
+      "unlocked": true
+    },
+    {
+      "role": "assistant_clients",
+      "label": "Assistant Clients",
+      "section": "clients",
+      "price": 0,
+      "owned": true,
+      "unlock_clients": null,
+      "unlock_condition": null,
+      "clients_condition_waived": false,
+      "unlocked": true
+    },
+    {
+      "role": "assistant_pub",
+      "label": "Assistant Pub",
+      "section": "pub",
+      "price": 0,
+      "owned": true,
+      "unlock_clients": null,
+      "unlock_condition": null,
+      "clients_condition_waived": false,
       "unlocked": true
     }
   ],
-  "missions": [
-    {
-      "id": "m1",
-      "label": "Mission 1",
-      "max_reward": 20,
-      "unit_price": 0,
-      "status": "AVAILABLE",
-      "requires": null,
-      "unlocks": [
-        "prospector"
-      ],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": true,
-      "can_retry": false
-    },
-    {
-      "id": "m2",
-      "label": "Mission 2",
-      "max_reward": 30,
-      "unit_price": 1,
-      "status": "LOCKED",
-      "requires": "m1",
-      "unlocks": [
-        "researcher",
-        "qa"
-      ],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": false,
-      "can_retry": false
-    },
-    {
-      "id": "m3",
-      "label": "Mission 3",
-      "max_reward": 40,
-      "unit_price": 1,
-      "status": "LOCKED",
-      "requires": "m2",
-      "unlocks": [
-        "analyst"
-      ],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": false,
-      "can_retry": false
-    },
-    {
-      "id": "m4",
-      "label": "Mission 4",
-      "max_reward": 60,
-      "unit_price": 2,
-      "status": "LOCKED",
-      "requires": "m3",
-      "unlocks": [],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": false,
-      "can_retry": false
-    },
-    {
-      "id": "m5",
-      "label": "Mission 5",
-      "max_reward": 90,
-      "unit_price": 2,
-      "status": "LOCKED",
-      "requires": "m4",
-      "unlocks": [
-        "lead"
-      ],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": false,
-      "can_retry": false
-    },
-    {
-      "id": "m6",
-      "label": "Mission 6",
-      "max_reward": 150,
-      "unit_price": 3,
-      "status": "LOCKED",
-      "requires": "m5",
-      "unlocks": [],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": false,
-      "can_retry": false
-    },
-    {
-      "id": "rescue",
-      "label": "Mission de secours",
-      "max_reward": 10,
-      "unit_price": 0,
-      "status": "AVAILABLE",
-      "requires": null,
-      "unlocks": [],
-      "attempts_count": 0,
-      "best_score": null,
-      "active_attempt_id": null,
-      "can_start": true,
-      "can_retry": false
-    }
-  ],
-  "attempts": [],
-  "progress": {
-    "completed_missions": [],
-    "total_missions": 6,
-    "reputation": null,
-    "victory": false,
-    "stage": "m1",
-    "next_action": {
-      "type": "start_mission",
-      "mission_id": "m1",
-      "attempt_id": null,
-      "message": "Acceptez la prochaine commande."
-    }
-  },
   "active_actions": [],
-  "quotas": {
-    "messages_per_agent_per_attempt": 5,
-    "clarifications_per_attempt": 2
-  },
   "target_profile": {
     "profile_version": 1,
     "entreprise_nom": "Atelier Exemple",
@@ -255,11 +110,50 @@
     "modifie_le": "2026-01-01T09:00:00Z",
     "complete": false
   },
+  "clients_obtained": 0,
   "building": {
     "level": 1,
-    "total_earned": 0,
-    "next_level_at": 20
+    "clients_obtained": 0,
+    "next_level_at": 1
   },
+  "planets": [
+    {
+      "id": "annuaire",
+      "label": "Bibliothèque publique",
+      "status": "AVAILABLE",
+      "reason": null
+    },
+    {
+      "id": "registre",
+      "label": "Hôtel de ville",
+      "status": "LOCKED",
+      "reason": "Trouvez d'abord 3 prospects qui correspondent à « Bibliothèque publique »."
+    },
+    {
+      "id": "carte-locale",
+      "label": "Carte locale",
+      "status": "LOCKED",
+      "reason": "Ce lieu n'est pas encore ouvert."
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "status": "LOCKED",
+      "reason": "Ce lieu n'est pas encore ouvert."
+    },
+    {
+      "id": "glassdoor",
+      "label": "Glassdoor",
+      "status": "LOCKED",
+      "reason": "Ce lieu n'est pas encore ouvert."
+    },
+    {
+      "id": "constellation",
+      "label": "Constellation",
+      "status": "LOCKED",
+      "reason": "Ce lieu n'est pas encore ouvert."
+    }
+  ],
   "llm": {
     "provider": "mock",
     "simulated": true

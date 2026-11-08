@@ -1,0 +1,259 @@
+{
+  "id": "registre",
+  "version": 1,
+  "simule": true,
+  "label": "Hôtel de ville",
+  "lieu_ville": "Hôtel de ville",
+  "description": "À l'hôtel de ville, le registre des entreprises donne la forme juridique, le secteur, la taille, la date de création et le statut. Se débloque quand l'annuaire a rapporté 3 prospects retenus.",
+  "source": "registre",
+  "source_type": "registre_entreprises",
+  "scope": "B2B",
+  "operations_autorisees": [
+    {
+      "id": "search",
+      "description": "Recherche par filtres structurés ; renvoie des enregistrements du corpus, jamais d'invention ; peut ne rien trouver.",
+      "filtres": [
+        {
+          "name": "ville",
+          "type": "string",
+          "match": "exact_insensible"
+        },
+        {
+          "name": "region",
+          "type": "string",
+          "match": "exact_insensible"
+        },
+        {
+          "name": "secteur_code",
+          "type": "string",
+          "match": "exact"
+        },
+        {
+          "name": "effectif_tranche",
+          "type": "string",
+          "match": "exact"
+        },
+        {
+          "name": "statut_actif",
+          "type": "boolean",
+          "match": "exact"
+        }
+      ],
+      "max_resultats": 15
+    }
+  ],
+  "source_ref_field": "record_id",
+  "champs_renvoyes": [
+    {
+      "name": "record_id",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": true
+    },
+    {
+      "name": "entreprise",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": true
+    },
+    {
+      "name": "collecte_le",
+      "type": "date",
+      "personal_data": false,
+      "required": true
+    },
+    {
+      "name": "identifiant_registre",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 30,
+      "required": false
+    },
+    {
+      "name": "forme_juridique",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 60,
+      "required": false
+    },
+    {
+      "name": "secteur_libelle",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 120,
+      "required": false
+    },
+    {
+      "name": "secteur_code",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 10,
+      "required": false
+    },
+    {
+      "name": "effectif_tranche",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 40,
+      "required": false
+    },
+    {
+      "name": "date_creation",
+      "type": "date",
+      "personal_data": false,
+      "required": false
+    },
+    {
+      "name": "ville",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 80,
+      "required": false
+    },
+    {
+      "name": "region",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 80,
+      "required": false
+    },
+    {
+      "name": "statut_actif",
+      "type": "boolean",
+      "personal_data": false,
+      "required": false
+    },
+    {
+      "name": "dirigeant_fonction",
+      "type": "string",
+      "personal_data": false,
+      "max_chars": 60,
+      "required": false
+    }
+  ],
+  "champs_exclus_toujours": [
+    "date_naissance",
+    "adresse_personnelle",
+    "telephone_personnel",
+    "email_personnel",
+    "photo",
+    "reseaux_personnels",
+    "donnees_sensibles",
+    "avis_texte_libre",
+    "situation_familiale"
+  ],
+  "deblocage": {
+    "type": "prospects_retenus",
+    "planet_id": "annuaire",
+    "min": 3
+  },
+  "corpus": "corpus.json",
+  "reponses_tests": "answers.json",
+  "variantes": {
+    "beginner": {
+      "max_resultats": 10,
+      "pieges_inclus": [
+        "hors_zone",
+        "ferme_ou_radie",
+        "doublon"
+      ],
+      "indices": true
+    },
+    "expert": {
+      "max_resultats": 15,
+      "pieges_inclus": [
+        "hors_zone",
+        "ferme_ou_radie",
+        "doublon",
+        "secteur_voisin",
+        "taille_voisine",
+        "donnee_perimee",
+        "injection"
+      ],
+      "indices": false
+    }
+  },
+  "correspondance_secteurs": {
+    "secteur_code": {
+      "68.20": "immobilier",
+      "70.22": "conseil_services_entreprises",
+      "62.01": "logiciel_services_numeriques",
+      "62.02": "logiciel_services_numeriques",
+      "49.41": "transport_logistique",
+      "52.29": "transport_logistique",
+      "49.32": "transport_voyageurs",
+      "81.21": "services_nettoyage",
+      "73.11": "communication_marketing"
+    }
+  },
+  "tranches_effectif": [
+    {
+      "label": "1 à 5",
+      "min": 1,
+      "max": 5
+    },
+    {
+      "label": "6 à 9",
+      "min": 6,
+      "max": 9
+    },
+    {
+      "label": "6 à 10",
+      "min": 6,
+      "max": 10
+    },
+    {
+      "label": "10 à 19",
+      "min": 10,
+      "max": 19
+    },
+    {
+      "label": "11 à 20",
+      "min": 11,
+      "max": 20
+    },
+    {
+      "label": "20 à 49",
+      "min": 20,
+      "max": 49
+    },
+    {
+      "label": "50 à 99",
+      "min": 50,
+      "max": 99
+    },
+    {
+      "label": "plus de 50",
+      "min": 51,
+      "max": null
+    },
+    {
+      "label": "100 à 199",
+      "min": 100,
+      "max": 199
+    },
+    {
+      "label": "200 à 249",
+      "min": 200,
+      "max": 249
+    },
+    {
+      "label": "250 à 499",
+      "min": 250,
+      "max": 499
+    },
+    {
+      "label": "500 et plus",
+      "min": 500,
+      "max": null
+    }
+  ],
+  "exemples": [
+    "profile/examples/exemple_nettoyage_bureaux.json",
+    "profile/examples/exemple_logiciel_planning.json"
+  ],
+  "corpus_fictif": true,
+  "badge": "Simulé"
+}

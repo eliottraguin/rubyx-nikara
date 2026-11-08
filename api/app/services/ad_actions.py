@@ -189,13 +189,13 @@ def submit_generate(pub: PubEngine, session_id: str, key: str, campaign_id: str,
         rule = pub.rules_v2.prospect_actions[ACTION]
         _reserve_quota(db, pub, session_id, campaign.id)  # ROLE_LOCKED puis MESSAGE_LIMIT (annulés avec la transaction si les fonds manquent)
         action = ActionRun(
-            session_id=session_id, attempt_id=None, idempotency_key=key, request_hash=req_hash, type=ACTION, status="PENDING",
+            session_id=session_id, idempotency_key=key, request_hash=req_hash, type=ACTION, status="PENDING",
             steps=[{"index": 0, "kind": ACTION, "role": rule.role.value, "status": "PENDING", "cost": rule.cost, "campaign_id": campaign.id, "quota_reserved": True}],
         )
         db.add(action)
         db.flush()
         rsv = ledger.reserve(
-            db, session_id=session_id, action_id=action.id, amount=rule.cost, role=rule.role.value, attempt_id=None, quota=1,
+            db, session_id=session_id, action_id=action.id, amount=rule.cost, role=rule.role.value,
             ttl_seconds=eng.rules.limits.reservation_ttl_seconds,
         )  # INSUFFICIENT_FUNDS
         action.reservation_id = rsv.id

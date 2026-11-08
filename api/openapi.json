@@ -45,28 +45,6 @@
       },
       "ActionOut": {
         "properties": {
-          "answer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Answer"
-          },
-          "attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attempt Id"
-          },
           "balance": {
             "$ref": "#/components/schemas/Balance"
           },
@@ -95,34 +73,12 @@
             "title": "Id",
             "type": "string"
           },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/MessageOut"
-            },
-            "title": "Messages",
-            "type": "array"
-          },
           "messages_remaining": {
             "additionalProperties": {
               "type": "integer"
             },
             "title": "Messages Remaining",
             "type": "object"
-          },
-          "pending_cost": {
-            "title": "Pending Cost",
-            "type": "integer"
-          },
-          "plan_summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Plan Summary"
           },
           "reservations": {
             "items": {
@@ -154,15 +110,12 @@
         },
         "required": [
           "id",
-          "attempt_id",
           "type",
           "status",
           "steps",
           "error",
           "debited",
-          "pending_cost",
           "reservations",
-          "messages",
           "balance",
           "created_at",
           "updated_at"
@@ -211,11 +164,6 @@
             ],
             "title": "Error"
           },
-          "free_credit": {
-            "default": false,
-            "title": "Free Credit",
-            "type": "boolean"
-          },
           "index": {
             "title": "Index",
             "type": "integer"
@@ -223,17 +171,6 @@
           "kind": {
             "title": "Kind",
             "type": "string"
-          },
-          "message_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Message Id"
           },
           "reservation_id": {
             "anyOf": [
@@ -291,17 +228,6 @@
       "ActiveActionView": {
         "description": "Action non terminée de la partie (à suivre via `GET /api/actions/{id}`, ou à confirmer / reprendre pour un plan).",
         "properties": {
-          "attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attempt Id"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -327,7 +253,6 @@
         },
         "required": [
           "id",
-          "attempt_id",
           "type",
           "status",
           "created_at",
@@ -461,503 +386,6 @@
         "title": "AdKitOut",
         "type": "object"
       },
-      "AgentView": {
-        "properties": {
-          "label": {
-            "title": "Label",
-            "type": "string"
-          },
-          "owned": {
-            "title": "Owned",
-            "type": "boolean"
-          },
-          "price": {
-            "title": "Price",
-            "type": "integer"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          },
-          "unlock_mission": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Unlock Mission"
-          },
-          "unlocked": {
-            "default": false,
-            "title": "Unlocked",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "role",
-          "label",
-          "price",
-          "owned",
-          "unlock_mission"
-        ],
-        "title": "AgentView",
-        "type": "object"
-      },
-      "AppliedEventView": {
-        "properties": {
-          "added_documents": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Added Documents",
-            "type": "array"
-          },
-          "brief_version": {
-            "title": "Brief Version",
-            "type": "integer"
-          },
-          "credited_roles": {
-            "description": "Rôles recevant un message gratuit (une fois par rôle)",
-            "items": {
-              "$ref": "#/components/schemas/Role"
-            },
-            "title": "Credited Roles",
-            "type": "array"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "diff": {
-            "items": {
-              "$ref": "#/components/schemas/BriefDiffItem"
-            },
-            "title": "Diff",
-            "type": "array"
-          },
-          "event_id": {
-            "title": "Event Id",
-            "type": "string"
-          },
-          "trigger": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Trigger"
-          },
-          "type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
-          }
-        },
-        "required": [
-          "event_id",
-          "brief_version"
-        ],
-        "title": "AppliedEventView",
-        "type": "object"
-      },
-      "ArtifactCreate": {
-        "additionalProperties": false,
-        "description": "Version manuelle (`content`, éventuellement `parent_id` pour une édition) ou assemblage de versions existantes.",
-        "properties": {
-          "content": {
-            "anyOf": [
-              {
-                "maxLength": 20000,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Content"
-          },
-          "kind": {
-            "default": "manual",
-            "enum": [
-              "manual",
-              "assembly"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
-          "parent_id": {
-            "anyOf": [
-              {
-                "maxLength": 64,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Id"
-          },
-          "part_ids": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "maxItems": 10,
-                "minItems": 1,
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Part Ids"
-          },
-          "type": {
-            "default": "text",
-            "pattern": "^[a-z][a-z0-9_]{0,31}$",
-            "title": "Type",
-            "type": "string"
-          }
-        },
-        "title": "ArtifactCreate",
-        "type": "object"
-      },
-      "ArtifactShareOut": {
-        "properties": {
-          "action_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Action Id"
-          },
-          "artifact_version_id": {
-            "title": "Artifact Version Id",
-            "type": "string"
-          },
-          "attempt_id": {
-            "title": "Attempt Id",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          }
-        },
-        "required": [
-          "id",
-          "attempt_id",
-          "artifact_version_id",
-          "role",
-          "action_id",
-          "created_at"
-        ],
-        "title": "ArtifactShareOut",
-        "type": "object"
-      },
-      "ArtifactVersionOut": {
-        "properties": {
-          "attempt_id": {
-            "title": "Attempt Id",
-            "type": "string"
-          },
-          "author": {
-            "title": "Author",
-            "type": "string"
-          },
-          "content": {
-            "title": "Content",
-            "type": "string"
-          },
-          "contributions": {
-            "items": {},
-            "title": "Contributions",
-            "type": "array"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "parent_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Parent Id"
-          },
-          "sources": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Sources",
-            "type": "array"
-          },
-          "type": {
-            "title": "Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "attempt_id",
-          "type",
-          "content",
-          "parent_id",
-          "author",
-          "sources",
-          "contributions",
-          "created_at"
-        ],
-        "title": "ArtifactVersionOut",
-        "type": "object"
-      },
-      "AttemptDetail": {
-        "description": "Reprise complète d'une tentative (F12) : tout ce qu'il faut pour restaurer l'atelier.",
-        "properties": {
-          "artifacts": {
-            "items": {
-              "$ref": "#/components/schemas/ArtifactVersionOut"
-            },
-            "title": "Artifacts",
-            "type": "array"
-          },
-          "attempt": {
-            "$ref": "#/components/schemas/AttemptSummary"
-          },
-          "brief": {
-            "$ref": "#/components/schemas/BriefView"
-          },
-          "content_available": {
-            "title": "Content Available",
-            "type": "boolean"
-          },
-          "documents": {
-            "items": {
-              "$ref": "#/components/schemas/DocumentView"
-            },
-            "title": "Documents",
-            "type": "array"
-          },
-          "evaluations": {
-            "items": {
-              "$ref": "#/components/schemas/EvaluationOut"
-            },
-            "title": "Evaluations",
-            "type": "array"
-          },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/MessageOut"
-            },
-            "title": "Messages",
-            "type": "array"
-          },
-          "mission_title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mission Title"
-          },
-          "shares": {
-            "items": {
-              "$ref": "#/components/schemas/ArtifactShareOut"
-            },
-            "title": "Shares",
-            "type": "array"
-          },
-          "submissions": {
-            "items": {
-              "$ref": "#/components/schemas/SubmissionOut"
-            },
-            "title": "Submissions",
-            "type": "array"
-          }
-        },
-        "required": [
-          "attempt",
-          "content_available",
-          "brief",
-          "documents",
-          "messages",
-          "artifacts",
-          "shares",
-          "submissions",
-          "evaluations"
-        ],
-        "title": "AttemptDetail",
-        "type": "object"
-      },
-      "AttemptSummary": {
-        "properties": {
-          "artifacts_count": {
-            "title": "Artifacts Count",
-            "type": "integer"
-          },
-          "attempt_no": {
-            "title": "Attempt No",
-            "type": "integer"
-          },
-          "brief_version": {
-            "title": "Brief Version",
-            "type": "integer"
-          },
-          "clarifications_used": {
-            "title": "Clarifications Used",
-            "type": "integer"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "failure_reasons": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Failure Reasons",
-            "type": "array"
-          },
-          "free_credit_roles": {
-            "description": "Rôles ayant encore un message gratuit (crédit de correction)",
-            "items": {
-              "$ref": "#/components/schemas/Role"
-            },
-            "title": "Free Credit Roles",
-            "type": "array"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "message_counts": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "title": "Message Counts",
-            "type": "object"
-          },
-          "mission_id": {
-            "title": "Mission Id",
-            "type": "string"
-          },
-          "model_calls": {
-            "title": "Model Calls",
-            "type": "integer"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Score de la dernière livraison évaluée, sinon null",
-            "title": "Score"
-          },
-          "spend_cap": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Spend Cap"
-          },
-          "status": {
-            "enum": [
-              "ACTIVE",
-              "EVALUATING",
-              "COMPLETED",
-              "FAILED"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "submission_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Submission Id"
-          },
-          "unit_price": {
-            "title": "Unit Price",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "id",
-          "mission_id",
-          "attempt_no",
-          "status",
-          "brief_version",
-          "unit_price",
-          "spend_cap",
-          "message_counts",
-          "free_credit_roles",
-          "clarifications_used",
-          "model_calls",
-          "score",
-          "submission_id",
-          "artifacts_count",
-          "created_at"
-        ],
-        "title": "AttemptSummary",
-        "type": "object"
-      },
       "Balance": {
         "properties": {
           "available": {
@@ -979,112 +407,6 @@
           "available"
         ],
         "title": "Balance",
-        "type": "object"
-      },
-      "BriefChange": {
-        "properties": {
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          },
-          "diff": {
-            "items": {
-              "$ref": "#/components/schemas/BriefDiffItem"
-            },
-            "title": "Diff",
-            "type": "array"
-          },
-          "event_id": {
-            "title": "Event Id",
-            "type": "string"
-          },
-          "type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Type"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "version",
-          "event_id"
-        ],
-        "title": "BriefChange",
-        "type": "object"
-      },
-      "BriefDiffItem": {
-        "properties": {
-          "after": {
-            "title": "After",
-            "type": "string"
-          },
-          "before": {
-            "title": "Before",
-            "type": "string"
-          },
-          "field": {
-            "title": "Field",
-            "type": "string"
-          }
-        },
-        "required": [
-          "field",
-          "before",
-          "after"
-        ],
-        "title": "BriefDiffItem",
-        "type": "object"
-      },
-      "BriefView": {
-        "description": "Brief public de la tentative : version courante et historique des changements (diff).",
-        "properties": {
-          "changes": {
-            "items": {
-              "$ref": "#/components/schemas/BriefChange"
-            },
-            "title": "Changes",
-            "type": "array"
-          },
-          "content": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Brief public à la version courante ; null si le contenu de mission est absent",
-            "title": "Content"
-          },
-          "version": {
-            "title": "Version",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "version",
-          "content",
-          "changes"
-        ],
-        "title": "BriefView",
         "type": "object"
       },
       "BriefVisuel": {
@@ -1127,9 +449,58 @@
         "title": "BriefVisuel",
         "type": "object"
       },
-      "BuildingOut": {
-        "description": "Immeuble du joueur, calculé par le serveur (total des paiements d'expédition ; ne baisse jamais).",
+      "Brouillon": {
         "properties": {
+          "canal_cible": {
+            "description": "Type de canal seulement, jamais sa valeur",
+            "enum": [
+              "email_generique",
+              "formulaire",
+              "adresse",
+              "telephone_standard",
+              "reseau_pro"
+            ],
+            "title": "Canal Cible",
+            "type": "string"
+          },
+          "corps": {
+            "title": "Corps",
+            "type": "string"
+          },
+          "mentions": {
+            "description": "Mentions détectées par le code dans le corps",
+            "items": {
+              "enum": [
+                "origine",
+                "opposition"
+              ],
+              "type": "string"
+            },
+            "title": "Mentions",
+            "type": "array"
+          },
+          "objet": {
+            "maxLength": 90,
+            "title": "Objet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "canal_cible",
+          "objet",
+          "corps",
+          "mentions"
+        ],
+        "title": "Brouillon",
+        "type": "object"
+      },
+      "BuildingOut": {
+        "description": "Immeuble du joueur, calculé par le serveur depuis le nombre de clients obtenus (ne baisse jamais).",
+        "properties": {
+          "clients_obtained": {
+            "title": "Clients Obtained",
+            "type": "integer"
+          },
           "level": {
             "title": "Level",
             "type": "integer"
@@ -1144,15 +515,11 @@
               }
             ],
             "title": "Next Level At"
-          },
-          "total_earned": {
-            "title": "Total Earned",
-            "type": "integer"
           }
         },
         "required": [
           "level",
-          "total_earned",
+          "clients_obtained",
           "next_level_at"
         ],
         "title": "BuildingOut",
@@ -1703,21 +1070,6 @@
         "title": "ChecklistRef",
         "type": "object"
       },
-      "ClarificationIn": {
-        "additionalProperties": false,
-        "properties": {
-          "question": {
-            "minLength": 1,
-            "title": "Question",
-            "type": "string"
-          }
-        },
-        "required": [
-          "question"
-        ],
-        "title": "ClarificationIn",
-        "type": "object"
-      },
       "CompanyOut": {
         "properties": {
           "name": {
@@ -1740,6 +1092,12 @@
           "name"
         ],
         "title": "CompanyOut",
+        "type": "object"
+      },
+      "ContactIn": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "ContactIn",
         "type": "object"
       },
       "Controle": {
@@ -1784,28 +1142,6 @@
       "ConversationActionOut": {
         "description": "`ActionOut` + le résultat de l'action de messagerie (synthèse ou brouillon) et ses contrôles par code.",
         "properties": {
-          "answer": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Answer"
-          },
-          "attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attempt Id"
-          },
           "balance": {
             "$ref": "#/components/schemas/Balance"
           },
@@ -1855,34 +1191,12 @@
             "title": "Id",
             "type": "string"
           },
-          "messages": {
-            "items": {
-              "$ref": "#/components/schemas/MessageOut"
-            },
-            "title": "Messages",
-            "type": "array"
-          },
           "messages_remaining": {
             "additionalProperties": {
               "type": "integer"
             },
             "title": "Messages Remaining",
             "type": "object"
-          },
-          "pending_cost": {
-            "title": "Pending Cost",
-            "type": "integer"
-          },
-          "plan_summary": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Plan Summary"
           },
           "reservations": {
             "items": {
@@ -1924,15 +1238,12 @@
         },
         "required": [
           "id",
-          "attempt_id",
           "type",
           "status",
           "steps",
           "error",
           "debited",
-          "pending_cost",
           "reservations",
-          "messages",
           "balance",
           "created_at",
           "updated_at"
@@ -2349,147 +1660,37 @@
         "title": "ConversationOut",
         "type": "object"
       },
-      "DemoEventIn": {
+      "DraftActionIn": {
         "additionalProperties": false,
+        "description": "Corps (facultatif) de `profile` et `message` : consigne du joueur (donnée, jamais une consigne système).",
         "properties": {
-          "attempt_id": {
-            "maxLength": 64,
-            "title": "Attempt Id",
-            "type": "string"
+          "instruction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Consigne facultative (`limits.player_instruction_max_chars`, vérifié par le serveur)",
+            "title": "Instruction"
           },
-          "event_id": {
-            "maxLength": 64,
-            "title": "Event Id",
-            "type": "string"
+          "profile_version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Version de la fiche entreprise lue par le joueur ; périmée : `VERSION_CONFLICT`",
+            "title": "Profile Version"
           }
         },
-        "required": [
-          "attempt_id",
-          "event_id"
-        ],
-        "title": "DemoEventIn",
-        "type": "object"
-      },
-      "DemoEventOut": {
-        "properties": {
-          "attempt": {
-            "$ref": "#/components/schemas/AttemptSummary"
-          },
-          "demo": {
-            "const": true,
-            "default": true,
-            "title": "Demo",
-            "type": "boolean"
-          },
-          "event": {
-            "$ref": "#/components/schemas/AppliedEventView"
-          }
-        },
-        "required": [
-          "event",
-          "attempt"
-        ],
-        "title": "DemoEventOut",
-        "type": "object"
-      },
-      "DocumentView": {
-        "properties": {
-          "authority": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Authority"
-          },
-          "date": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Date"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "kind": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Kind"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Status"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
-          },
-          "title": {
-            "title": "Title",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title"
-        ],
-        "title": "DocumentView",
-        "type": "object"
-      },
-      "DraftEditIn": {
-        "additionalProperties": false,
-        "properties": {
-          "objet": {
-            "anyOf": [
-              {
-                "maxLength": 90,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Objet"
-          },
-          "text": {
-            "minLength": 1,
-            "title": "Text",
-            "type": "string"
-          }
-        },
-        "required": [
-          "text"
-        ],
-        "title": "DraftEditIn",
+        "title": "DraftActionIn",
         "type": "object"
       },
       "ErrorBody": {
@@ -2540,79 +1741,56 @@
         "title": "ErrorResponse",
         "type": "object"
       },
-      "EvaluationOut": {
+      "FicheClient": {
         "properties": {
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "criteria": {
-            "items": {},
-            "title": "Criteria",
+          "a_verifier": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "A Verifier",
             "type": "array"
           },
-          "evidence": {
-            "items": {},
-            "title": "Evidence",
+          "points_d_accroche": {
+            "description": "1 à 5 attendus (contrôle non essentiel : au-delà de 5, tronqué)",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "title": "Points D Accroche",
             "type": "array"
           },
-          "id": {
-            "title": "Id",
+          "pourquoi_ce_prospect": {
+            "items": {
+              "$ref": "#/components/schemas/Raison"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Pourquoi Ce Prospect",
+            "type": "array"
+          },
+          "resume": {
+            "maxLength": 600,
+            "title": "Resume",
             "type": "string"
           },
-          "judge_version": {
-            "title": "Judge Version",
-            "type": "string"
-          },
-          "model": {
-            "title": "Model",
-            "type": "string"
-          },
-          "report": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Report"
-          },
-          "score": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Score"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "submission_id": {
-            "title": "Submission Id",
-            "type": "string"
+          "sources": {
+            "description": "`source_ref` de l'instantané du prospect",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
           }
         },
         "required": [
-          "id",
-          "submission_id",
-          "model",
-          "judge_version",
-          "criteria",
-          "score",
-          "evidence",
-          "status",
-          "created_at"
+          "resume",
+          "pourquoi_ce_prospect",
+          "points_d_accroche",
+          "a_verifier",
+          "sources"
         ],
-        "title": "EvaluationOut",
+        "title": "FicheClient",
         "type": "object"
       },
       "GameState": {
@@ -2625,26 +1803,15 @@
             "title": "Active Actions",
             "type": "array"
           },
-          "agents": {
-            "items": {
-              "$ref": "#/components/schemas/AgentView"
-            },
-            "title": "Agents",
-            "type": "array"
-          },
-          "attempts": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/AttemptSummary"
-            },
-            "title": "Attempts",
-            "type": "array"
-          },
           "balance": {
             "$ref": "#/components/schemas/Balance"
           },
           "building": {
             "$ref": "#/components/schemas/BuildingOut"
+          },
+          "clients_obtained": {
+            "title": "Clients Obtained",
+            "type": "integer"
           },
           "contracts_version": {
             "title": "Contracts Version",
@@ -2661,25 +1828,13 @@
           "llm": {
             "$ref": "#/components/schemas/LLMInfo"
           },
-          "missions": {
+          "planets": {
+            "default": [],
             "items": {
-              "$ref": "#/components/schemas/MissionView"
+              "$ref": "#/components/schemas/PlanetView"
             },
-            "title": "Missions",
+            "title": "Planets",
             "type": "array"
-          },
-          "progress": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Progress"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "quotas": {
-            "$ref": "#/components/schemas/QuotaInfo"
           },
           "session": {
             "$ref": "#/components/schemas/SessionInfo"
@@ -2691,10 +1846,8 @@
         "required": [
           "session",
           "balance",
-          "agents",
-          "missions",
-          "quotas",
           "target_profile",
+          "clients_obtained",
           "building",
           "llm",
           "contracts_version"
@@ -2738,6 +1891,10 @@
       "HangarAgentView": {
         "description": "Rôle du hangar du cap prospection (`scout` / `triage` / `replier` / `ads`), prix et déblocage décidés par le serveur.",
         "properties": {
+          "clients_condition_waived": {
+            "title": "Clients Condition Waived",
+            "type": "boolean"
+          },
           "label": {
             "title": "Label",
             "type": "string"
@@ -2751,11 +1908,7 @@
             "type": "integer"
           },
           "role": {
-            "$ref": "#/components/schemas/HangarRole"
-          },
-          "score_condition_waived": {
-            "title": "Score Condition Waived",
-            "type": "boolean"
+            "$ref": "#/components/schemas/Role"
           },
           "section": {
             "enum": [
@@ -2766,7 +1919,7 @@
             "title": "Section",
             "type": "string"
           },
-          "unlock_min_score": {
+          "unlock_clients": {
             "anyOf": [
               {
                 "type": "integer"
@@ -2775,9 +1928,9 @@
                 "type": "null"
               }
             ],
-            "title": "Unlock Min Score"
+            "title": "Unlock Clients"
           },
-          "unlock_planet": {
+          "unlock_condition": {
             "anyOf": [
               {
                 "type": "string"
@@ -2786,7 +1939,7 @@
                 "type": "null"
               }
             ],
-            "title": "Unlock Planet"
+            "title": "Unlock Condition"
           },
           "unlocked": {
             "title": "Unlocked",
@@ -2799,24 +1952,13 @@
           "section",
           "price",
           "owned",
-          "unlock_planet",
-          "unlock_min_score",
-          "score_condition_waived",
+          "unlock_clients",
+          "unlock_condition",
+          "clients_condition_waived",
           "unlocked"
         ],
         "title": "HangarAgentView",
         "type": "object"
-      },
-      "HangarRole": {
-        "description": "Rôles du hangar du cap prospection (docs/RULES.md §2, 5e décision) : un seul bot de prospection, trois rôles\nde communication. `qualifier`, `profiler` et `outreach` n'existent plus (tri par code, actions portées par `replier`).\nLe moteur d'expédition livré (BE01–BE07) garde l'énumération `Role` tant que le contenu M1–M6 n'est pas remplacé.",
-        "enum": [
-          "scout",
-          "triage",
-          "replier",
-          "ads"
-        ],
-        "title": "HangarRole",
-        "type": "string"
       },
       "HealthOut": {
         "properties": {
@@ -2874,97 +2016,6 @@
           "simulated"
         ],
         "title": "LLMInfo",
-        "type": "object"
-      },
-      "MessageIn": {
-        "additionalProperties": false,
-        "properties": {
-          "linked_artifact_ids": {
-            "items": {
-              "type": "string"
-            },
-            "maxItems": 20,
-            "title": "Linked Artifact Ids",
-            "type": "array"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          },
-          "text": {
-            "description": "Instruction au rôle (longueur maximale contrôlée par le serveur : rules.limits)",
-            "minLength": 1,
-            "title": "Text",
-            "type": "string"
-          }
-        },
-        "required": [
-          "role",
-          "text"
-        ],
-        "title": "MessageIn",
-        "type": "object"
-      },
-      "MessageOut": {
-        "properties": {
-          "action_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Action Id"
-          },
-          "attempt_id": {
-            "title": "Attempt Id",
-            "type": "string"
-          },
-          "author": {
-            "title": "Author",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "linked_artifact_ids": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Linked Artifact Ids",
-            "type": "array"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          },
-          "text": {
-            "title": "Text",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "attempt_id",
-          "role",
-          "author",
-          "text",
-          "linked_artifact_ids",
-          "status",
-          "action_id",
-          "created_at"
-        ],
-        "title": "MessageOut",
         "type": "object"
       },
       "MessageSendIn": {
@@ -3070,103 +2121,6 @@
         "title": "MessageSendOut",
         "type": "object"
       },
-      "MissionView": {
-        "properties": {
-          "active_attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Active Attempt Id"
-          },
-          "attempts_count": {
-            "default": 0,
-            "title": "Attempts Count",
-            "type": "integer"
-          },
-          "best_score": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Best Score"
-          },
-          "can_retry": {
-            "default": false,
-            "title": "Can Retry",
-            "type": "boolean"
-          },
-          "can_start": {
-            "default": false,
-            "title": "Can Start",
-            "type": "boolean"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "label": {
-            "title": "Label",
-            "type": "string"
-          },
-          "max_reward": {
-            "title": "Max Reward",
-            "type": "integer"
-          },
-          "requires": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Requires"
-          },
-          "status": {
-            "enum": [
-              "LOCKED",
-              "AVAILABLE",
-              "ACTIVE",
-              "EVALUATING",
-              "COMPLETED",
-              "FAILED"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "unit_price": {
-            "title": "Unit Price",
-            "type": "integer"
-          },
-          "unlocks": {
-            "default": [],
-            "items": {
-              "$ref": "#/components/schemas/Role"
-            },
-            "title": "Unlocks",
-            "type": "array"
-          }
-        },
-        "required": [
-          "id",
-          "label",
-          "max_reward",
-          "unit_price",
-          "status"
-        ],
-        "title": "MissionView",
-        "type": "object"
-      },
       "Mode": {
         "enum": [
           "beginner",
@@ -3175,52 +2129,27 @@
         "title": "Mode",
         "type": "string"
       },
-      "NextAction": {
+      "PlanIn": {
+        "additionalProperties": false,
         "properties": {
-          "attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attempt Id"
-          },
-          "message": {
-            "title": "Message",
+          "assistant": {
+            "description": "`assistant_prospection` | `assistant_clients` | `assistant_pub`",
+            "title": "Assistant",
             "type": "string"
           },
-          "mission_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mission Id"
-          },
-          "type": {
-            "enum": [
-              "start_mission",
-              "continue_attempt",
-              "await_evaluation",
-              "retry_mission",
-              "start_rescue",
-              "campaign_complete"
-            ],
-            "title": "Type",
+          "message": {
+            "description": "Ce que le joueur demande, en une ou deux phrases",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Message",
             "type": "string"
           }
         },
         "required": [
-          "type",
+          "assistant",
           "message"
         ],
-        "title": "NextAction",
+        "title": "PlanIn",
         "type": "object"
       },
       "PlanKit": {
@@ -3258,6 +2187,252 @@
           "indicateurs"
         ],
         "title": "PlanKit",
+        "type": "object"
+      },
+      "PlanListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlanOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "plans_left": {
+            "title": "Plans Left",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "plans_left"
+        ],
+        "title": "PlanListOut",
+        "type": "object"
+      },
+      "PlanOut": {
+        "properties": {
+          "assistant": {
+            "title": "Assistant",
+            "type": "string"
+          },
+          "assistant_label": {
+            "title": "Assistant Label",
+            "type": "string"
+          },
+          "balance": {
+            "title": "Balance",
+            "type": "integer"
+          },
+          "balance_after": {
+            "title": "Balance After",
+            "type": "integer"
+          },
+          "banner": {
+            "title": "Banner",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "plans_left": {
+            "title": "Plans Left",
+            "type": "integer"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/PlanStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "total_cost": {
+            "description": "Ce que le joueur dépensera s'il confirme (tâches faisables seulement)",
+            "title": "Total Cost",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "assistant",
+          "assistant_label",
+          "headline",
+          "banner",
+          "summary",
+          "status",
+          "steps",
+          "total_cost",
+          "balance",
+          "balance_after",
+          "plans_left",
+          "simule",
+          "created_at"
+        ],
+        "title": "PlanOut",
+        "type": "object"
+      },
+      "PlanStepOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Travail lancé par cette tâche (suivi via /api/actions/{id})",
+            "title": "Action Id"
+          },
+          "blocked_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Phrase simple si la tâche ne peut pas se faire maintenant ; sinon null",
+            "title": "Blocked Reason"
+          },
+          "cost": {
+            "title": "Cost",
+            "type": "integer"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "instruction": {
+            "title": "Instruction",
+            "type": "string"
+          },
+          "result_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Phrase simple : ce qui s'est passé (réussi ou raison de l'échec)",
+            "title": "Result Text"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "target_id": {
+            "title": "Target Id",
+            "type": "string"
+          },
+          "target_label": {
+            "title": "Target Label",
+            "type": "string"
+          },
+          "title": {
+            "description": "Phrase d'action en français courant",
+            "title": "Title",
+            "type": "string"
+          },
+          "tries": {
+            "default": 0,
+            "title": "Tries",
+            "type": "integer"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "who": {
+            "description": "Qui s'en occupe",
+            "title": "Who",
+            "type": "string"
+          },
+          "you_get": {
+            "description": "Ce que le joueur obtiendra",
+            "title": "You Get",
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "type",
+          "target_id",
+          "target_label",
+          "title",
+          "who",
+          "you_get",
+          "instruction",
+          "cost",
+          "blocked_reason",
+          "status"
+        ],
+        "title": "PlanStepOut",
+        "type": "object"
+      },
+      "PlanetView": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Phrase simple si le lieu est verrouillé ; sinon null",
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "AVAILABLE",
+              "LOCKED"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "status"
+        ],
+        "title": "PlanetView",
         "type": "object"
       },
       "ProfileIn": {
@@ -3342,121 +2517,117 @@
         "title": "ProfileIn",
         "type": "object"
       },
-      "Progress": {
+      "ProspectActionOut": {
+        "description": "`ActionOut` + la version créée (fiche ou brouillon) et ses contrôles par code. Rien n'est envoyé.",
         "properties": {
-          "completed_missions": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Completed Missions",
-            "type": "array"
+          "balance": {
+            "$ref": "#/components/schemas/Balance"
           },
-          "next_action": {
-            "$ref": "#/components/schemas/NextAction"
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
           },
-          "reputation": {
+          "debited": {
+            "title": "Debited",
+            "type": "integer"
+          },
+          "error": {
             "anyOf": [
               {
-                "type": "number"
+                "additionalProperties": true,
+                "type": "object"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "Moyenne des meilleurs scores des missions terminées (informative)",
-            "title": "Reputation"
+            "title": "Error"
           },
-          "stage": {
-            "title": "Stage",
+          "id": {
+            "title": "Id",
             "type": "string"
           },
-          "total_missions": {
-            "title": "Total Missions",
-            "type": "integer"
-          },
-          "victory": {
-            "title": "Victory",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "completed_missions",
-          "total_missions",
-          "reputation",
-          "victory",
-          "stage",
-          "next_action"
-        ],
-        "title": "Progress",
-        "type": "object"
-      },
-      "ProspectAddIn": {
-        "additionalProperties": false,
-        "properties": {
-          "expedition_id": {
-            "description": "Expédition (tentative) d'origine",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Expedition Id",
-            "type": "string"
-          },
-          "positions": {
-            "description": "Positions (à partir de 0) des leads du rapport",
-            "items": {
+          "messages_remaining": {
+            "additionalProperties": {
               "type": "integer"
             },
-            "maxItems": 100,
-            "minItems": 1,
-            "title": "Positions",
+            "title": "Messages Remaining",
+            "type": "object"
+          },
+          "pending_cost": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pending Cost"
+          },
+          "prospect_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prospect Id"
+          },
+          "reservations": {
+            "items": {
+              "$ref": "#/components/schemas/ReservationOut"
+            },
+            "title": "Reservations",
             "type": "array"
           },
-          "rapport_version_id": {
-            "description": "Version de rapport (livrable d'un agent) de cette expédition",
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Rapport Version Id",
+          "status": {
+            "title": "Status",
             "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ActionStepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProspectDraftOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "expedition_id",
-          "rapport_version_id",
-          "positions"
+          "id",
+          "type",
+          "status",
+          "steps",
+          "error",
+          "debited",
+          "reservations",
+          "balance",
+          "created_at",
+          "updated_at"
         ],
-        "title": "ProspectAddIn",
-        "type": "object"
-      },
-      "ProspectAddOut": {
-        "properties": {
-          "added": {
-            "items": {
-              "$ref": "#/components/schemas/ProspectOut"
-            },
-            "title": "Added",
-            "type": "array"
-          },
-          "already_present": {
-            "description": "Identifiants des prospects déjà au carnet (dédoublonnage `(source, source_ref)`)",
-            "items": {
-              "type": "string"
-            },
-            "title": "Already Present",
-            "type": "array"
-          },
-          "refused": {
-            "items": {
-              "$ref": "#/components/schemas/RefusedLead"
-            },
-            "title": "Refused",
-            "type": "array"
-          }
-        },
-        "required": [
-          "added",
-          "already_present",
-          "refused"
-        ],
-        "title": "ProspectAddOut",
+        "title": "ProspectActionOut",
         "type": "object"
       },
       "ProspectDetailOut": {
@@ -3540,10 +2711,6 @@
             "title": "Entreprise",
             "type": "string"
           },
-          "expedition_id": {
-            "title": "Expedition Id",
-            "type": "string"
-          },
           "fiabilite": {
             "enum": [
               "verifie",
@@ -3595,6 +2762,29 @@
             "title": "Pertinence",
             "type": "integer"
           },
+          "pertinence_citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Extrait littéral de la source qui justifie l'étiquette (vérifié par le serveur)",
+            "title": "Pertinence Citation"
+          },
+          "pertinence_etiquette": {
+            "default": "a_verifier",
+            "description": "Aide au tri du bot (pas une note) ; prospect jamais trié : « a_verifier »",
+            "enum": [
+              "correspond",
+              "a_verifier",
+              "hors_cible"
+            ],
+            "title": "Pertinence Etiquette",
+            "type": "string"
+          },
           "possible_doublon": {
             "description": "Même entreprise déjà au carnet via une autre source",
             "title": "Possible Doublon",
@@ -3611,8 +2801,9 @@
             "title": "Raisons Fit",
             "type": "array"
           },
-          "rapport_version_id": {
-            "title": "Rapport Version Id",
+          "search_id": {
+            "description": "Recherche du bot (`/api/searches`) qui a rapporté ce prospect",
+            "title": "Search Id",
             "type": "string"
           },
           "signal": {
@@ -3658,8 +2849,7 @@
           "simule",
           "statut",
           "notes",
-          "expedition_id",
-          "rapport_version_id",
+          "search_id",
           "profile_version",
           "possible_doublon",
           "cree_le",
@@ -3670,6 +2860,169 @@
           "historique_statut"
         ],
         "title": "ProspectDetailOut",
+        "type": "object"
+      },
+      "ProspectDraftOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "auteur": {
+            "enum": [
+              "agent",
+              "joueur"
+            ],
+            "title": "Auteur",
+            "type": "string"
+          },
+          "consigne": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consigne"
+          },
+          "controles": {
+            "items": {
+              "$ref": "#/components/schemas/Controle"
+            },
+            "title": "Controles",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fiche": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FicheClient"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "fiche",
+              "message"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Brouillon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "numero": {
+            "description": "Numéro de version, par prospect et par type",
+            "title": "Numero",
+            "type": "integer"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Version dont celle-ci est la copie éditée par le joueur",
+            "title": "Parent Id"
+          },
+          "profile_version": {
+            "title": "Profile Version",
+            "type": "integer"
+          },
+          "prospect_id": {
+            "title": "Prospect Id",
+            "type": "string"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "prospect_id",
+          "kind",
+          "numero",
+          "parent_id",
+          "auteur",
+          "controles",
+          "profile_version",
+          "simule",
+          "action_id",
+          "created_at"
+        ],
+        "title": "ProspectDraftOut",
+        "type": "object"
+      },
+      "ProspectDraftsOut": {
+        "properties": {
+          "couts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Prix d'une génération réussie par action (lu dans les règles) : `prospect_profile`, `prospect_message`",
+            "title": "Couts",
+            "type": "object"
+          },
+          "fiches": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectDraftOut"
+            },
+            "title": "Fiches",
+            "type": "array"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ProspectDraftOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "quota_restant": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Générations restantes par action : `prospect_profile`, `prospect_message`",
+            "title": "Quota Restant",
+            "type": "object"
+          }
+        },
+        "required": [
+          "fiches",
+          "messages",
+          "quota_restant"
+        ],
+        "title": "ProspectDraftsOut",
         "type": "object"
       },
       "ProspectListOut": {
@@ -3786,10 +3139,6 @@
             "title": "Entreprise",
             "type": "string"
           },
-          "expedition_id": {
-            "title": "Expedition Id",
-            "type": "string"
-          },
           "fiabilite": {
             "enum": [
               "verifie",
@@ -3819,6 +3168,29 @@
             "title": "Pertinence",
             "type": "integer"
           },
+          "pertinence_citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Extrait littéral de la source qui justifie l'étiquette (vérifié par le serveur)",
+            "title": "Pertinence Citation"
+          },
+          "pertinence_etiquette": {
+            "default": "a_verifier",
+            "description": "Aide au tri du bot (pas une note) ; prospect jamais trié : « a_verifier »",
+            "enum": [
+              "correspond",
+              "a_verifier",
+              "hors_cible"
+            ],
+            "title": "Pertinence Etiquette",
+            "type": "string"
+          },
           "possible_doublon": {
             "description": "Même entreprise déjà au carnet via une autre source",
             "title": "Possible Doublon",
@@ -3835,8 +3207,9 @@
             "title": "Raisons Fit",
             "type": "array"
           },
-          "rapport_version_id": {
-            "title": "Rapport Version Id",
+          "search_id": {
+            "description": "Recherche du bot (`/api/searches`) qui a rapporté ce prospect",
+            "title": "Search Id",
             "type": "string"
           },
           "signal": {
@@ -3882,8 +3255,7 @@
           "simule",
           "statut",
           "notes",
-          "expedition_id",
-          "rapport_version_id",
+          "search_id",
           "profile_version",
           "possible_doublon",
           "cree_le",
@@ -3939,15 +3311,7 @@
         "additionalProperties": false,
         "properties": {
           "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/HangarRole"
-              },
-              {
-                "$ref": "#/components/schemas/Role"
-              }
-            ],
-            "title": "Role"
+            "$ref": "#/components/schemas/Role"
           }
         },
         "required": [
@@ -3975,15 +3339,7 @@
             "type": "string"
           },
           "role": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/HangarRole"
-              },
-              {
-                "$ref": "#/components/schemas/Role"
-              }
-            ],
-            "title": "Role"
+            "$ref": "#/components/schemas/Role"
           }
         },
         "required": [
@@ -3996,41 +3352,29 @@
         "title": "PurchaseOut",
         "type": "object"
       },
-      "QuotaInfo": {
+      "Raison": {
         "properties": {
-          "clarifications_per_attempt": {
-            "title": "Clarifications Per Attempt",
-            "type": "integer"
-          },
-          "messages_per_agent_per_attempt": {
-            "title": "Messages Per Agent Per Attempt",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "messages_per_agent_per_attempt",
-          "clarifications_per_attempt"
-        ],
-        "title": "QuotaInfo",
-        "type": "object"
-      },
-      "RefusedLead": {
-        "properties": {
-          "code": {
-            "const": "LEAD_UNVERIFIED",
-            "title": "Code",
+          "champ": {
+            "description": "Champ de l'instantané du prospect (ou du prospect) dont la raison est tirée (ex. `secteur`)",
+            "title": "Champ",
             "type": "string"
           },
-          "position": {
-            "title": "Position",
-            "type": "integer"
+          "critere": {
+            "description": "Champ de la fiche entreprise et cible qui justifie la raison (ex. `cible_secteurs`)",
+            "title": "Critere",
+            "type": "string"
+          },
+          "texte": {
+            "title": "Texte",
+            "type": "string"
           }
         },
         "required": [
-          "position",
-          "code"
+          "texte",
+          "critere",
+          "champ"
         ],
-        "title": "RefusedLead",
+        "title": "Raison",
         "type": "object"
       },
       "ReplyDraftOut": {
@@ -4128,17 +3472,6 @@
             "title": "Amount",
             "type": "integer"
           },
-          "attempt_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Attempt Id"
-          },
           "created_at": {
             "format": "date-time",
             "title": "Created At",
@@ -4153,23 +3486,15 @@
             "title": "Id",
             "type": "string"
           },
-          "quota": {
-            "title": "Quota",
-            "type": "integer"
-          },
           "role": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/Role"
               },
               {
-                "$ref": "#/components/schemas/HangarRole"
-              },
-              {
                 "type": "null"
               }
-            ],
-            "title": "Role"
+            ]
           },
           "session_id": {
             "title": "Session Id",
@@ -4186,8 +3511,6 @@
           "action_id",
           "amount",
           "role",
-          "attempt_id",
-          "quota",
           "status",
           "expires_at",
           "created_at"
@@ -4196,17 +3519,319 @@
         "type": "object"
       },
       "Role": {
-        "description": "Ids techniques (docs/RULES.md §2). `researcher` = « chargé de veille ».",
+        "description": "Rôles du hangar du cap prospection (docs/RULES.md §2, 5e décision) : un seul bot de prospection (`scout`), trois\nrôles de communication, plus les assistants personnels (docs/ASSISTANT.md). Les rôles de l'ancien parcours\n(`writer`, `prospector`, `researcher`, `analyst`, `qa`, `lead`) sont retirés (6e décision, API-R2).",
         "enum": [
-          "writer",
-          "prospector",
-          "researcher",
-          "analyst",
-          "qa",
-          "lead"
+          "scout",
+          "triage",
+          "replier",
+          "ads",
+          "assistant_prospection",
+          "assistant_clients",
+          "assistant_pub"
         ],
         "title": "Role",
         "type": "string"
+      },
+      "SearchAddedOut": {
+        "properties": {
+          "citation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Extrait littéral de la source (vérifié par le serveur) ; null sans preuve",
+            "title": "Citation"
+          },
+          "entreprise": {
+            "title": "Entreprise",
+            "type": "string"
+          },
+          "etiquette": {
+            "default": "a_verifier",
+            "description": "Tri de pertinence (aide, pas une note)",
+            "enum": [
+              "correspond",
+              "a_verifier",
+              "hors_cible"
+            ],
+            "title": "Etiquette",
+            "type": "string"
+          },
+          "prospect_id": {
+            "title": "Prospect Id",
+            "type": "string"
+          },
+          "source_ref": {
+            "title": "Source Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prospect_id",
+          "entreprise",
+          "source_ref"
+        ],
+        "title": "SearchAddedOut",
+        "type": "object"
+      },
+      "SearchDiscardedOut": {
+        "properties": {
+          "code": {
+            "description": "UNVERIFIED | DUPLICATE | CLOSED | STALE | OUT_OF_ZONE | OUT_OF_SECTOR | OUT_OF_SIZE | EXCLUDED | CARNET_FULL | INCOMPLETE",
+            "title": "Code",
+            "type": "string"
+          },
+          "entreprise": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nom de l'entreprise si la référence est connue de la source",
+            "title": "Entreprise"
+          },
+          "raison": {
+            "description": "Raison en français courant",
+            "title": "Raison",
+            "type": "string"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Référence du lead ; null si le bot n'en a donné aucune",
+            "title": "Source Ref"
+          }
+        },
+        "required": [
+          "source_ref",
+          "entreprise",
+          "code",
+          "raison"
+        ],
+        "title": "SearchDiscardedOut",
+        "type": "object"
+      },
+      "SearchIn": {
+        "additionalProperties": false,
+        "properties": {
+          "planet_id": {
+            "description": "Lieu à visiter (liste blanche : `data/planets/`)",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Planet Id",
+            "type": "string"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Facultatif, 300 caractères au plus : texte brut traité comme une donnée",
+            "title": "Precision"
+          }
+        },
+        "required": [
+          "planet_id"
+        ],
+        "title": "SearchIn",
+        "type": "object"
+      },
+      "SearchListOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SearchOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "searches_left_today": {
+            "description": "Recherches restantes aujourd'hui (plafond technique, UTC)",
+            "title": "Searches Left Today",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "searches_left_today"
+        ],
+        "title": "SearchListOut",
+        "type": "object"
+      },
+      "SearchOut": {
+        "properties": {
+          "action_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Id"
+          },
+          "added": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SearchAddedOut"
+            },
+            "title": "Added",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "discarded": {
+            "description": "Écartés par le code (found = kept + discarded)",
+            "title": "Discarded",
+            "type": "integer"
+          },
+          "discarded_items": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/SearchDiscardedOut"
+            },
+            "title": "Discarded Items",
+            "type": "array"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "{code, message} si la recherche a échoué ; rien n'a été ajouté",
+            "title": "Error"
+          },
+          "examined": {
+            "description": "Enregistrements renvoyés par le lieu",
+            "title": "Examined",
+            "type": "integer"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "found": {
+            "description": "Leads rapportés par le bot",
+            "title": "Found",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kept": {
+            "description": "Ajoutés au carnet",
+            "title": "Kept",
+            "type": "integer"
+          },
+          "matching": {
+            "default": 0,
+            "description": "Prospects ajoutés d'étiquette `correspond`",
+            "title": "Matching",
+            "type": "integer"
+          },
+          "off_target": {
+            "default": 0,
+            "description": "Prospects ajoutés d'étiquette `hors_cible` (restent au carnet)",
+            "title": "Off Target",
+            "type": "integer"
+          },
+          "planet_id": {
+            "title": "Planet Id",
+            "type": "string"
+          },
+          "planet_label": {
+            "title": "Planet Label",
+            "type": "string"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "profile_version": {
+            "title": "Profile Version",
+            "type": "integer"
+          },
+          "simule": {
+            "title": "Simule",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "PENDING",
+              "RUNNING",
+              "DONE",
+              "FAILED"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "to_check": {
+            "default": 0,
+            "description": "Prospects ajoutés d'étiquette `a_verifier`",
+            "title": "To Check",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "planet_id",
+          "planet_label",
+          "precision",
+          "status",
+          "found",
+          "kept",
+          "discarded",
+          "examined",
+          "profile_version",
+          "simule",
+          "action_id",
+          "created_at",
+          "finished_at"
+        ],
+        "title": "SearchOut",
+        "type": "object"
       },
       "SendIn": {
         "additionalProperties": false,
@@ -4286,10 +3911,6 @@
             "title": "Seed",
             "type": "integer"
           },
-          "stage": {
-            "title": "Stage",
-            "type": "string"
-          },
           "state": {
             "title": "State",
             "type": "string"
@@ -4300,50 +3921,11 @@
           "mode",
           "company",
           "state",
-          "stage",
           "seed",
           "rules_version",
           "created_at"
         ],
         "title": "SessionInfo",
-        "type": "object"
-      },
-      "ShareCreate": {
-        "additionalProperties": false,
-        "description": "Partage d'une version de livrable ou d'un document du corpus avec un rôle possédé.",
-        "properties": {
-          "artifact_version_id": {
-            "anyOf": [
-              {
-                "maxLength": 64,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Artifact Version Id"
-          },
-          "document_id": {
-            "anyOf": [
-              {
-                "maxLength": 64,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Document Id"
-          },
-          "role": {
-            "$ref": "#/components/schemas/Role"
-          }
-        },
-        "required": [
-          "role"
-        ],
-        "title": "ShareCreate",
         "type": "object"
       },
       "StatutEvent": {
@@ -4363,150 +3945,6 @@
           "le"
         ],
         "title": "StatutEvent",
-        "type": "object"
-      },
-      "SubmissionOut": {
-        "properties": {
-          "artifact_version_id": {
-            "title": "Artifact Version Id",
-            "type": "string"
-          },
-          "attempt_id": {
-            "title": "Attempt Id",
-            "type": "string"
-          },
-          "brief_version": {
-            "title": "Brief Version",
-            "type": "integer"
-          },
-          "content_hash": {
-            "title": "Content Hash",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "rubric": {
-            "additionalProperties": true,
-            "title": "Rubric",
-            "type": "object"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "attempt_id",
-          "artifact_version_id",
-          "brief_version",
-          "content_hash",
-          "rubric",
-          "status",
-          "created_at"
-        ],
-        "title": "SubmissionOut",
-        "type": "object"
-      },
-      "SubmitCreate": {
-        "additionalProperties": false,
-        "properties": {
-          "artifact_version_id": {
-            "maxLength": 64,
-            "title": "Artifact Version Id",
-            "type": "string"
-          },
-          "brief_version": {
-            "anyOf": [
-              {
-                "minimum": 1.0,
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Version du brief vue par le joueur ; périmée => VERSION_CONFLICT",
-            "title": "Brief Version"
-          }
-        },
-        "required": [
-          "artifact_version_id"
-        ],
-        "title": "SubmitCreate",
-        "type": "object"
-      },
-      "SubmitOut": {
-        "properties": {
-          "artifact_version_id": {
-            "title": "Artifact Version Id",
-            "type": "string"
-          },
-          "attempt_id": {
-            "title": "Attempt Id",
-            "type": "string"
-          },
-          "attempt_status": {
-            "enum": [
-              "ACTIVE",
-              "EVALUATING",
-              "COMPLETED",
-              "FAILED"
-            ],
-            "title": "Attempt Status",
-            "type": "string"
-          },
-          "brief_version": {
-            "title": "Brief Version",
-            "type": "integer"
-          },
-          "content_hash": {
-            "title": "Content Hash",
-            "type": "string"
-          },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
-          "id": {
-            "title": "Id",
-            "type": "string"
-          },
-          "replayed": {
-            "default": false,
-            "title": "Replayed",
-            "type": "boolean"
-          },
-          "rubric": {
-            "additionalProperties": true,
-            "title": "Rubric",
-            "type": "object"
-          },
-          "status": {
-            "title": "Status",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "attempt_id",
-          "artifact_version_id",
-          "brief_version",
-          "content_hash",
-          "rubric",
-          "status",
-          "created_at",
-          "attempt_status"
-        ],
-        "title": "SubmitOut",
         "type": "object"
       },
       "SynthesisOut": {
@@ -4808,6 +4246,105 @@
         ],
         "title": "VersionEditIn",
         "type": "object"
+      },
+      "app__schemas__conversations__DraftEditIn": {
+        "additionalProperties": false,
+        "properties": {
+          "objet": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objet"
+          },
+          "text": {
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "DraftEditIn",
+        "type": "object"
+      },
+      "app__schemas__prospect_drafts__DraftEditIn": {
+        "additionalProperties": false,
+        "description": "Copie éditée par le joueur. Fiche : `resume`, `points_d_accroche`, `a_verifier`. Message : `corps`, `objet`.\nUn champ d'un autre type de version est refusé (`INVALID_REQUEST`).",
+        "properties": {
+          "a_verifier": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 8,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "A Verifier"
+          },
+          "corps": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corps"
+          },
+          "objet": {
+            "anyOf": [
+              {
+                "maxLength": 90,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objet"
+          },
+          "points_d_accroche": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 5,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points D Accroche"
+          },
+          "resume": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume"
+          }
+        },
+        "title": "DraftEditIn",
+        "type": "object"
       }
     }
   },
@@ -4881,110 +4418,9 @@
         ]
       }
     },
-    "/api/actions/{action_id}/confirm": {
-      "post": {
-        "description": "Confirme séparément les délégations du plan du chef et réserve leur surcoût, sans nouvelle\nplanification. Après un résultat partiel, une nouvelle confirmation reprend sans rejouer les étapes\nterminées. Même clé : aucun nouvel appel ni débit.",
-        "operationId": "confirm_api_actions__action_id__confirm_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "action_id",
-            "required": true,
-            "schema": {
-              "title": "Action Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "responses": {
-          "202": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ActionOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "LLM_UNAVAILABLE"
-          }
-        },
-        "summary": "Confirm",
-        "tags": [
-          "actions"
-        ]
-      }
-    },
     "/api/agents/purchase": {
       "post": {
-        "description": "Achète un rôle débloqué (réussite de la mission requise) si le solde disponible le permet.\nLe prix vient des règles serveur. Même `Idempotency-Key` : même résultat, aucun second débit (200).",
+        "description": "Achète un rôle débloqué (nombre de clients obtenus atteint, ou condition levée en Réel) si le solde disponible le permet.\nLe prix vient des règles serveur. Même `Idempotency-Key` : même résultat, aucun second débit (200).",
         "operationId": "purchase_api_agents_purchase_post",
         "parameters": [
           {
@@ -5064,17 +4500,149 @@
         ]
       }
     },
-    "/api/attempts/{attempt_id}": {
+    "/api/assistant/plans": {
       "get": {
-        "description": "Reprise complète (F12) : brief et diff, documents, messages, versions, partages, livraisons, évaluations.",
-        "operationId": "get_attempt_api_attempts__attempt_id__get",
+        "description": "Plans de la partie, du plus récent au plus ancien, et le nombre de demandes restantes (jamais conditionné par l'argent).",
+        "operationId": "list_plans_api_assistant_plans_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "List Plans",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "post": {
+        "description": "Demande un plan à l'un des assistants (gratuit). Le plan est **proposé** : rien n'est lancé, rien n'est dépensé.\nLimite de demandes par partie (`MESSAGE_LIMIT` ensuite) ; plan inutilisable après une réparation : `INVALID_OUTPUT`, sans plan\nenregistré. Même clé : même plan, aucun nouvel appel (200).",
+        "operationId": "create_plan_api_assistant_plans_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Create Plan",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/assistant/plans/{plan_id}": {
+      "get": {
+        "description": "Détail d'un plan. Le plan d'une autre partie : 404.",
+        "operationId": "get_plan_api_assistant_plans__plan_id__get",
         "parameters": [
           {
             "in": "path",
-            "name": "attempt_id",
+            "name": "plan_id",
             "required": true,
             "schema": {
-              "title": "Attempt Id",
+              "title": "Plan Id",
               "type": "string"
             }
           }
@@ -5084,7 +4652,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AttemptDetail"
+                  "$ref": "#/components/schemas/PlanOut"
                 }
               }
             },
@@ -5110,44 +4678,34 @@
             },
             "description": "NOT_FOUND"
           },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
           "422": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+            "description": "Validation Error"
           }
         },
-        "summary": "Get Attempt",
+        "summary": "Get Plan",
         "tags": [
-          "tentatives et livrables"
+          "assistant"
         ]
       }
     },
-    "/api/attempts/{attempt_id}/artifacts": {
+    "/api/assistant/plans/{plan_id}/confirm": {
       "post": {
-        "description": "Version manuelle ou assemblage. Les versions sont immuables : une édition crée un enfant (auteur `player`).",
-        "operationId": "create_artifact_api_attempts__attempt_id__artifacts_post",
+        "description": "« Oui, lancer » : exécute les tâches faisables du plan dans l'ordre, chacune par son agent (mêmes limites et mêmes prix que\ns'il les lançait lui-même). Une tâche qui échoue n'annule pas les autres (statut `PARTIAL`) ; rejouer la confirmation avec une\nautre clé retente les tâches en échec. Rien n'est envoyé ni publié. Même clé : même résultat, aucun nouveau lancement (200).",
+        "operationId": "confirm_plan_api_assistant_plans__plan_id__confirm_post",
         "parameters": [
           {
             "in": "path",
-            "name": "attempt_id",
+            "name": "plan_id",
             "required": true,
             "schema": {
-              "title": "Attempt Id",
+              "title": "Plan Id",
               "type": "string"
             }
           },
@@ -5170,123 +4728,12 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ArtifactCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ArtifactVersionOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          }
-        },
-        "summary": "Create Artifact",
-        "tags": [
-          "tentatives et livrables"
-        ]
-      }
-    },
-    "/api/attempts/{attempt_id}/clarifications": {
-      "post": {
-        "description": "Question factuelle au client : 2 gratuites par tentative, hors quotas des agents.",
-        "operationId": "clarify_api_attempts__attempt_id__clarifications_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "attempt_id",
-            "required": true,
-            "schema": {
-              "title": "Attempt Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ClarificationIn"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "202": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActionOut"
+                  "$ref": "#/components/schemas/PlanOut"
                 }
               }
             },
@@ -5353,23 +4800,23 @@
             "description": "LLM_UNAVAILABLE"
           }
         },
-        "summary": "Clarify",
+        "summary": "Confirm Plan",
         "tags": [
-          "actions"
+          "assistant"
         ]
       }
     },
-    "/api/attempts/{attempt_id}/messages": {
+    "/api/assistant/plans/{plan_id}/reject": {
       "post": {
-        "description": "Réserve quota + coût, appelle le rôle, règle après réponse exploitable. Une instruction au chef\nprépare un plan (`AWAITING_CONFIRMATION`) à confirmer via `POST /api/actions/{id}/confirm`.\nMême clé : même action, aucun nouvel appel ni débit. Une action échouée rejoue son erreur.",
-        "operationId": "send_message_api_attempts__attempt_id__messages_post",
+        "description": "« Non, annuler » : aucun débit ; un plan annulé ne compte plus dans la limite de demandes. Impossible une fois lancé.",
+        "operationId": "reject_plan_api_assistant_plans__plan_id__reject_post",
         "parameters": [
           {
             "in": "path",
-            "name": "attempt_id",
+            "name": "plan_id",
             "required": true,
             "schema": {
-              "title": "Attempt Id",
+              "title": "Plan Id",
               "type": "string"
             }
           },
@@ -5392,143 +4839,12 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MessageIn"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
-          "202": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActionOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          },
-          "429": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "RATE_LIMITED"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "LLM_UNAVAILABLE"
-          }
-        },
-        "summary": "Send Message",
-        "tags": [
-          "actions"
-        ]
-      }
-    },
-    "/api/attempts/{attempt_id}/shares": {
-      "post": {
-        "description": "Partage journalisé d'une version ou d'un document avec un rôle possédé.",
-        "operationId": "share_piece_api_attempts__attempt_id__shares_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "attempt_id",
-            "required": true,
-            "schema": {
-              "title": "Attempt Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ShareCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ArtifactShareOut"
+                  "$ref": "#/components/schemas/PlanOut"
                 }
               }
             },
@@ -5575,110 +4891,9 @@
             "description": "INVALID_REQUEST ou INVALID_OUTPUT"
           }
         },
-        "summary": "Share Piece",
+        "summary": "Reject Plan",
         "tags": [
-          "tentatives et livrables"
-        ]
-      }
-    },
-    "/api/attempts/{attempt_id}/submit": {
-      "post": {
-        "description": "Fige la version (texte, version du brief, grille, empreinte), passe en EVALUATING puis lance l'évaluation serveur (BE06) :\nscore, paiement et clôture calculés par le serveur. Si l'évaluation échoue, la livraison reste EVALUATING (rejouer `submit`).",
-        "operationId": "submit_api_attempts__attempt_id__submit_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "attempt_id",
-            "required": true,
-            "schema": {
-              "title": "Attempt Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SubmitCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SubmitOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          }
-        },
-        "summary": "Submit",
-        "tags": [
-          "tentatives et livrables"
+          "assistant"
         ]
       }
     },
@@ -6785,7 +6000,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DraftEditIn"
+                "$ref": "#/components/schemas/app__schemas__conversations__DraftEditIn"
               }
             }
           },
@@ -7367,116 +6582,6 @@
         ]
       }
     },
-    "/api/demo/events": {
-      "post": {
-        "description": "Injecte un événement admissible (avant livraison) : nouvelle version du brief + diff ; ne touche ni note ni solde.",
-        "operationId": "inject_demo_event_api_demo_events_post",
-        "parameters": [
-          {
-            "description": "Secret de démo configuré côté serveur.",
-            "in": "header",
-            "name": "X-Demo-Secret",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Secret de démo configuré côté serveur.",
-              "title": "X-Demo-Secret"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/DemoEventIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DemoEventOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          }
-        },
-        "summary": "Inject Demo Event",
-        "tags": [
-          "démo"
-        ]
-      }
-    },
     "/api/health": {
       "get": {
         "operationId": "health_api_health_get",
@@ -7495,274 +6600,6 @@
         "summary": "Health",
         "tags": [
           "santé"
-        ]
-      }
-    },
-    "/api/missions/{mission_id}/retry": {
-      "post": {
-        "description": "Nouvelle tentative (compteurs neufs, historique conservé). Ne rouvre jamais une livraison figée.\nRejouable : la même clé renvoie la même tentative (200), jamais une 2e.",
-        "operationId": "retry_mission_api_missions__mission_id__retry_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "mission_id",
-            "required": true,
-            "schema": {
-              "title": "Mission Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AttemptDetail"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Retry Mission",
-        "tags": [
-          "missions"
-        ]
-      }
-    },
-    "/api/missions/{mission_id}/start": {
-      "post": {
-        "description": "Ouvre une tentative (tarif et plafond figés). Rejouable : une tentative ACTIVE existante est renvoyée (200).",
-        "operationId": "start_mission_api_missions__mission_id__start_post",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "mission_id",
-            "required": true,
-            "schema": {
-              "title": "Mission Id",
-              "type": "string"
-            }
-          },
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AttemptDetail"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Start Mission",
-        "tags": [
-          "missions"
-        ]
-      }
-    },
-    "/api/notebook": {
-      "get": {
-        "operationId": "list_notebook_api_notebook_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_IMPLEMENTED"
-          }
-        },
-        "summary": "List Notebook",
-        "tags": [
-          "à venir (501)"
-        ]
-      },
-      "post": {
-        "operationId": "add_notebook_entry_api_notebook_post",
-        "parameters": [
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_IMPLEMENTED"
-          }
-        },
-        "summary": "Add Notebook Entry",
-        "tags": [
-          "à venir (501)"
         ]
       }
     },
@@ -7949,7 +6786,8 @@
                 "entreprise",
                 "statut",
                 "fiabilite",
-                "source"
+                "source",
+                "etiquette"
               ],
               "title": "Tri",
               "type": "string"
@@ -8026,6 +6864,25 @@
                 }
               ],
               "title": "Fiabilite"
+            }
+          },
+          {
+            "description": "correspond | a_verifier | hors_cible (jamais trié = a_verifier)",
+            "in": "query",
+            "name": "etiquette",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 16,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "correspond | a_verifier | hors_cible (jamais trié = a_verifier)",
+              "title": "Etiquette"
             }
           },
           {
@@ -8138,96 +6995,6 @@
         "tags": [
           "carnet de prospection"
         ]
-      },
-      "post": {
-        "description": "Ajoute au carnet des leads d'un rapport : références seulement (expédition, version de rapport, positions).\nLe serveur recopie depuis l'enregistrement renvoyé par la source et revérifie `source_ref` ; un lead non vérifiable est\nlisté dans `refused` (`LEAD_UNVERIFIED`). Doublon `(source, source_ref)` : `already_present`, sans erreur. 201 si au moins\nun prospect est créé, 200 sinon et au rejeu. Carnet plein (`limits.prospects_max`) : `INVALID_STATE`, rien n'est écrit.",
-        "operationId": "add_prospects_api_prospects_post",
-        "parameters": [
-          {
-            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-            "in": "header",
-            "name": "Idempotency-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
-              "title": "Idempotency-Key"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProspectAddIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProspectAddOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "SESSION_REQUIRED"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "NOT_FOUND"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
-          }
-        },
-        "summary": "Add Prospects",
-        "tags": [
-          "carnet de prospection"
-        ]
       }
     },
     "/api/prospects/export.csv": {
@@ -8249,7 +7016,8 @@
                 "entreprise",
                 "statut",
                 "fiabilite",
-                "source"
+                "source",
+                "etiquette"
               ],
               "title": "Tri",
               "type": "string"
@@ -8326,6 +7094,25 @@
                 }
               ],
               "title": "Fiabilite"
+            }
+          },
+          {
+            "description": "correspond | a_verifier | hors_cible (jamais trié = a_verifier)",
+            "in": "query",
+            "name": "etiquette",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 16,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "correspond | a_verifier | hors_cible (jamais trié = a_verifier)",
+              "title": "Etiquette"
             }
           },
           {
@@ -8670,6 +7457,773 @@
         "summary": "Patch Prospect",
         "tags": [
           "carnet de prospection"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}/contact": {
+      "post": {
+        "description": "« Contacter » : ouvre la conversation du prospect (même logique que `POST /api/conversations`).\n201 à la création, 200 si elle existait ou en cas de rejeu. N'envoie rien, ne change pas le statut, ne coûte rien.",
+        "operationId": "contact_prospect_api_prospects__prospect_id__contact_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ContactIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": " Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Contact Prospect",
+        "tags": [
+          "carnet de prospection",
+          "clients"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}/drafts": {
+      "get": {
+        "description": "Versions de fiche client et de premier message du prospect (numérotées, immuables) et générations restantes. Gratuit.",
+        "operationId": "prospect_drafts_api_prospects__prospect_id__drafts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectDraftsOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Prospect Drafts",
+        "tags": [
+          "carnet de prospection",
+          "clients"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}/drafts/{draft_id}": {
+      "patch": {
+        "description": "Copie éditée par le joueur : crée une version enfant (auteur `joueur`) ; l'original reste intact. Gratuit.",
+        "operationId": "edit_prospect_draft_api_prospects__prospect_id__drafts__draft_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "title": "Draft Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/app__schemas__prospect_drafts__DraftEditIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectDraftOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Edit Prospect Draft",
+        "tags": [
+          "carnet de prospection",
+          "clients"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}/message": {
+      "post": {
+        "description": "Action `prospect_message` (agent `replier`) : crée une version de brouillon de premier message (texte que le joueur copie\nou lie à son contact). Mêmes garanties que `profile`. Aucun envoi, aucun `mailto:`.",
+        "operationId": "prospect_message_api_prospects__prospect_id__message_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DraftActionIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Prospect Message",
+        "tags": [
+          "carnet de prospection",
+          "clients"
+        ]
+      }
+    },
+    "/api/prospects/{prospect_id}/profile": {
+      "post": {
+        "description": "Action `prospect_profile` (agent `replier`, coût lu dans les règles, jamais de gain) : crée une version de fiche client,\ncontrôlée par code. Quota 5 par (prospect, action) (`MESSAGE_LIMIT` ensuite). Contrôle essentiel en échec après une\nréparation : `INVALID_OUTPUT`, sans débit. La version est dans `version` (et `steps[0].artifact_version_id`). Rien n'est envoyé.",
+        "operationId": "prospect_profile_api_prospects__prospect_id__profile_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prospect_id",
+            "required": true,
+            "schema": {
+              "title": "Prospect Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/DraftActionIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProspectActionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Prospect Profile",
+        "tags": [
+          "carnet de prospection",
+          "clients"
+        ]
+      }
+    },
+    "/api/searches": {
+      "get": {
+        "description": "Recherches de la partie, de la plus récente à la plus ancienne, et le nombre de recherches restantes aujourd'hui.",
+        "operationId": "list_searches_api_searches_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchListOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "List Searches",
+        "tags": [
+          "searches"
+        ]
+      },
+      "post": {
+        "description": "Lance une recherche du bot `scout` sur un lieu (gratuite : aucun débit, aucun gain). Les prospects recevables sont recopiés\npar le serveur dans le carnet (`source_ref` revérifié) ; une recherche sans résultat est valide (`DONE`, `kept: 0`).\nErreurs : `PROFILE_INCOMPLETE` et `PLANET_LOCKED` (409), lieu inconnu (404), plafond du jour `RATE_LIMITED` (429),\n`LLM_UNAVAILABLE` (503, dont mode Réel : source non branchée), `INVALID_OUTPUT` (422). Même clé : même recherche, aucun nouvel appel (200).",
+        "operationId": "create_search_api_searches_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "RATE_LIMITED"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "LLM_UNAVAILABLE"
+          }
+        },
+        "summary": "Create Search",
+        "tags": [
+          "searches"
+        ]
+      }
+    },
+    "/api/searches/{search_id}": {
+      "get": {
+        "description": "Détail d'une recherche : bilan, prospects ajoutés, écartés avec leur raison. Celle d'une autre partie : 404.",
+        "operationId": "get_search_api_searches__search_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "search_id",
+            "required": true,
+            "schema": {
+              "title": "Search Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Search",
+        "tags": [
+          "searches"
         ]
       }
     },

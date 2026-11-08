@@ -1,6 +1,6 @@
 """Listes blanches de champs par source : `data/sources/<source>.json` (docs/RULES.md §9, PRODUIT-PROSPECTION.md §14).
 
-Tout champ hors liste est écarté **avant stockage** (instantané d'un prospect, enregistrement d'expédition). Les champs
+Tout champ hors liste est écarté **avant stockage** (instantané d'un prospect). Les champs
 `always_excluded` ne passent jamais, même s'ils figuraient par erreur dans la liste. Aucune liste n'est écrite dans le code."""
 
 from __future__ import annotations

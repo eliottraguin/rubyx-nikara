@@ -1,8 +1,8 @@
-"""Carnet de prospection (API-I1 à API-I3) : ajout depuis un rapport, liste, détail, modification, suppression.
+"""Carnet de prospection : liste, détail, modification, suppression, export.
 
 Règles tenues ici :
-- **Le navigateur ne fournit jamais de contenu** : `POST` reçoit des références (expédition, version de rapport, positions) ;
-  le serveur recopie depuis l'enregistrement renvoyé par la source pendant l'expédition et le revérifie (`LEAD_UNVERIFIED`).
+- **Le navigateur ne fournit jamais de contenu** : les prospects entrent au carnet uniquement par une recherche du bot
+  (`search_actions`), recopiés par le serveur depuis un enregistrement renvoyé par le lieu, `source_ref` revérifié.
 - Propriété de session : une ressource d'une autre session répond `NOT_FOUND`, comme une ressource inconnue.
 - Provenance immuable ; le joueur ne modifie que `statut` et `notes` (concurrence optimiste par `version`).
 - Toute mutation est rejouable par `Idempotency-Key` (empreintes et identifiants stockés, jamais de contenu).
@@ -19,36 +19,36 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, case, delete, false, func, or_, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import and_, case, delete, func, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from ..deps import hash_token
 from ..errors import ApiError, ErrorCode
-from ..models import ArtifactVersion, ExpeditionRecord, GameSession, MissionAttempt, Prospect, ProspectIdempotency, utcnow
-from ..profile_spec import ProfileSpec
+from ..models import (
+    GameSession,
+    Prospect,
+    ProspectIdempotency,
+    utcnow,
+)
+from ..models_drafts import ProspectDraft
 from ..rules_v2 import RulesV2
 from ..schemas.prospects import (
     CanalOut,
-    ProspectAddIn,
-    ProspectAddOut,
     ProspectDetailOut,
     ProspectListOut,
     ProspectOut,
     ProspectPatchIn,
-    RefusedLead,
     StatutEvent,
 )
-from ..sources_spec import SourcesSpec
-from . import ledger, prospects_build as build
-from . import profile as profile_svc
+from . import clients, ledger
+from . import prospects_build as build
 from .purchases import REUSED_KEY, request_hash
 
 log = logging.getLogger("rubix.prospects")
 
 FIABILITES = ("verifie", "partiel", "simule")
-SORTS = ("pertinence", "date_ajout", "entreprise", "statut", "fiabilite", "source")
-NOT_A_REPORT = "Cette version n'est pas un rapport de leads d'un agent pour cette expédition."
+ETIQUETTES = ("correspond", "a_verifier", "hors_cible")
+SORTS = ("pertinence", "date_ajout", "entreprise", "statut", "fiabilite", "source", "etiquette")
 
 
 def _aware(dt: datetime) -> datetime:
@@ -67,8 +67,9 @@ def to_out(row: Prospect, doublons: set[str]) -> ProspectOut:
         id=row.id, entreprise=row.entreprise, contact_nom=row.contact_nom, contact_fonction=row.contact_fonction,
         canal=CanalOut(type=row.canal_type, valeur=row.canal_valeur) if row.canal_type and row.canal_valeur else None,
         source=row.source, source_ref=row.source_ref, raisons_fit=list(row.raisons_fit or []), signal=row.signal,
-        pertinence=row.pertinence, fiabilite=row.fiabilite, simule=row.simule, statut=row.statut, notes=row.notes,
-        collecte_le=row.collecte_le, expedition_id=row.expedition_id, rapport_version_id=row.rapport_version_id,
+        pertinence=row.pertinence, pertinence_etiquette=row.pertinence_etiquette or "a_verifier", pertinence_citation=row.pertinence_citation,
+        fiabilite=row.fiabilite, simule=row.simule, statut=row.statut, notes=row.notes,
+        collecte_le=row.collecte_le, search_id=row.search_id,
         profile_version=row.profile_version, possible_doublon=row.entreprise_cle in doublons,
         cree_le=_aware(row.cree_le), modifie_le=_aware(row.modifie_le),
         contacte_le=_aware(row.contacte_le) if row.contacte_le else None,
@@ -94,7 +95,14 @@ def _outs(db: Session, session_id: str, rows: list[Prospect]) -> list[ProspectOu
 def _detail(db: Session, row: Prospect) -> ProspectDetailOut:
     base = _outs(db, row.session_id, [row])[0]
     hist = [StatutEvent(statut=h["statut"], le=_aware(datetime.fromisoformat(h["le"]))) for h in row.historique or []]
-    return ProspectDetailOut(**base.model_dump(), instantane_source=dict(row.instantane or {}), historique_statut=hist)
+    from . import prospect_actions
+
+    versions = prospect_actions.versions(db, row.id)
+    fiches = [prospect_actions.draft_out(v).model_dump(mode="json") for v in versions if v.kind == "fiche"]
+    brouillons = [prospect_actions.draft_out(v).model_dump(mode="json") for v in versions if v.kind == "message"]
+    return ProspectDetailOut(
+        **base.model_dump(), instantane_source=dict(row.instantane or {}), historique_statut=hist, fiches=fiches, brouillons=brouillons
+    )
 
 
 # ---------------------------------------------------------------- idempotence
@@ -126,120 +134,6 @@ def _owned(db: Session, session_id: str, prospect_id: str) -> Prospect:
     return row
 
 
-# ---------------------------------------------------------------- enregistrements d'expédition (écrits par le serveur)
-
-
-def record_returned(db: Session, sources: SourcesSpec, attempt: MissionAttempt, source: str, source_ref: str, record: dict[str, Any]) -> ExpeditionRecord:
-    """Enregistre un enregistrement **renvoyé par une source pendant l'expédition** (appelé par le moteur, côté serveur).
-    Seuls les champs de la liste blanche sont conservés ; `source_ref` est celui de l'enregistrement. À ne jamais appeler
-    avec un contenu venant du navigateur."""
-    if not sources.known(source):
-        raise ValueError("source hors liste blanche")
-    snap = sources.minimize(source, {**record, "source_ref": source_ref})
-    row = ExpeditionRecord(session_id=attempt.session_id, attempt_id=attempt.id, source=source, source_ref=source_ref, record=snap)
-    db.add(row)
-    db.flush()
-    return row
-
-
-# ---------------------------------------------------------------- ajout (API-I2)
-
-
-def add_prospects(
-    sf: sessionmaker[Session], rules: RulesV2, sources: SourcesSpec, profile_spec: ProfileSpec | None, session_id: str, key: str, payload: ProspectAddIn
-) -> tuple[ProspectAddOut, int]:
-    """Retourne (bilan, statut HTTP). 201 si au moins un prospect créé, 200 sinon (et au rejeu). Atomique."""
-    key_hash = hash_token(key)
-    positions = list(dict.fromkeys(payload.positions))
-    req_hash = request_hash({"op": "add", "e": payload.expedition_id, "r": payload.rapport_version_id, "p": positions})
-    with sf() as db:
-        game = _begin(db, session_id)
-        replay = _replay(db, session_id, key_hash, req_hash)
-        if replay is not None:
-            res = replay.result or {}
-            ids = res.get("added", [])
-            rows = {r.id: r for r in db.scalars(select(Prospect).where(Prospect.session_id == session_id, Prospect.id.in_(ids)))} if ids else {}
-            added = _outs(db, session_id, [rows[i] for i in ids if i in rows])
-            return ProspectAddOut(added=added, already_present=res.get("already_present", []), refused=res.get("refused", [])), 200
-
-        attempt = db.get(MissionAttempt, payload.expedition_id)
-        if attempt is None or attempt.session_id != session_id:
-            raise ApiError(ErrorCode.NOT_FOUND)
-        report = db.get(ArtifactVersion, payload.rapport_version_id)
-        if report is None or report.attempt_id != attempt.id:
-            raise ApiError(ErrorCode.NOT_FOUND)
-        if report.author != "agent":  # une version écrite par le joueur est du contenu du navigateur : jamais une source de prospect
-            raise ApiError(ErrorCode.INVALID_REQUEST, NOT_A_REPORT)
-        leads = build.parse_leads(report.content)
-        if leads is None:
-            raise ApiError(ErrorCode.INVALID_REQUEST, NOT_A_REPORT)
-
-        profile_version = attempt.profile_version or 1
-        profile = profile_svc.version_row(db, session_id, profile_version)
-        sectors = profile_spec.sectors if profile_spec is not None else []
-        created: list[Prospect] = []
-        already: list[str] = []
-        refused: list[RefusedLead] = []
-        for pos in positions:
-            lead = leads[pos] if 0 <= pos < len(leads) else None
-            fields = None
-            record = None
-            if lead is not None:
-                ref = lead.get("source_ref")
-                src = lead.get("source")
-                if isinstance(ref, str) and ref.strip() and len(ref) <= 120 and (src is None or isinstance(src, str)):
-                    q = select(ExpeditionRecord).where(
-                        ExpeditionRecord.attempt_id == attempt.id, ExpeditionRecord.session_id == session_id, ExpeditionRecord.source_ref == ref
-                    )
-                    if src is not None:
-                        q = q.where(ExpeditionRecord.source == src)
-                    found = list(db.scalars(q.limit(2)))
-                    if len(found) == 1 and sources.known(found[0].source):
-                        record = found[0]
-            if record is not None:
-                existing = db.scalar(
-                    select(Prospect).where(Prospect.session_id == session_id, Prospect.source == record.source, Prospect.source_ref == record.source_ref)
-                )
-                if existing is not None:
-                    already.append(existing.id)
-                    continue
-                fields = build.build_prospect_fields(
-                    sources=sources, source=record.source, record=record.record, lead=lead, profile=profile, spec_sectors=sectors,
-                    simulated=game.mode != "expert",
-                )
-            if fields is None or record is None:
-                refused.append(RefusedLead(position=pos, code="LEAD_UNVERIFIED"))
-                continue
-            now = utcnow()
-            row = Prospect(
-                session_id=session_id, source=record.source, source_ref=record.source_ref, expedition_id=attempt.id,
-                rapport_version_id=report.id, profile_version=profile_version, statut="nouveau", notes="",
-                historique=[{"statut": "nouveau", "le": now.isoformat()}], cree_le=now, modifie_le=now, derniere_activite_le=now,
-                version=1, **fields,
-            )
-            db.add(row)
-            db.flush()
-            created.append(row)
-
-        total = db.scalar(select(func.count()).select_from(Prospect).where(Prospect.session_id == session_id)) or 0
-        if total > rules.limits.prospects_max:  # tout ou rien : rien n'est écrit au-delà de la limite
-            db.rollback()
-            raise ApiError(ErrorCode.INVALID_STATE, f"Le carnet est plein ({rules.limits.prospects_max} prospects au maximum).")
-        status = 201 if created else 200
-        added_out = _outs(db, session_id, created)
-        _remember(
-            db, session_id, key_hash, req_hash, status,
-            {"added": [r.id for r in created], "already_present": already, "refused": [r.model_dump() for r in refused]},
-        )
-        try:
-            db.commit()
-        except IntegrityError:
-            db.rollback()
-            raise ApiError(ErrorCode.INVALID_STATE, "Le carnet a changé pendant l'ajout ; réessayez.") from None
-    log.info("prospects_add", extra={"event": "prospects_add", "count": len(created)})
-    return ProspectAddOut(added=added_out, already_present=already, refused=refused), status
-
-
 # ---------------------------------------------------------------- lecture (API-I3)
 
 
@@ -248,6 +142,7 @@ class Filters:
     statut: str | None = None
     source: str | None = None
     fiabilite: str | None = None
+    etiquette: str | None = None
     avec_fiche: bool | None = None
     avec_brouillon: bool | None = None
     a_relancer: bool | None = None
@@ -263,18 +158,23 @@ def _where(rules: RulesV2, session_id: str, f: Filters, now: datetime) -> list:
         raise ApiError(ErrorCode.INVALID_REQUEST, "Statut inconnu.")
     if f.fiabilite is not None and f.fiabilite not in FIABILITES:
         raise ApiError(ErrorCode.INVALID_REQUEST, "Fiabilité inconnue.")
+    if f.etiquette is not None and f.etiquette not in ETIQUETTES:
+        raise ApiError(ErrorCode.INVALID_REQUEST, "Étiquette inconnue.")
     w: list = [Prospect.session_id == session_id]
+    if f.etiquette == "a_verifier":  # jamais triée = « à vérifier »
+        w.append(or_(Prospect.pertinence_etiquette == "a_verifier", Prospect.pertinence_etiquette.is_(None)))
+    elif f.etiquette is not None:
+        w.append(Prospect.pertinence_etiquette == f.etiquette)
     if f.statut is not None:
         w.append(Prospect.statut == f.statut)
     if f.source is not None:
         w.append(Prospect.source == f.source)
     if f.fiabilite is not None:
         w.append(Prospect.fiabilite == f.fiabilite)
-    # Fiches clients et brouillons : tables livrées aux jalons J et K. Tant qu'elles n'existent pas, aucun prospect n'en a.
-    if f.avec_fiche:
-        w.append(false())
-    if f.avec_brouillon:
-        w.append(false())
+    for flag, kind in ((f.avec_fiche, "fiche"), (f.avec_brouillon, "message")):  # fiche client / brouillon de premier message
+        if flag is not None:
+            has = select(ProspectDraft.id).where(ProspectDraft.prospect_id == Prospect.id, ProspectDraft.kind == kind).exists()
+            w.append(has if flag else ~has)
     if f.a_relancer:
         limit = _naive(now - timedelta(days=rules.followup_days))
         w.append(and_(Prospect.statut == "contacte", Prospect.contacte_le.is_not(None), Prospect.contacte_le <= limit))
@@ -303,6 +203,8 @@ def _sort_expr(rules: RulesV2, tri: str):
         return case(*[(Prospect.fiabilite == s, i) for i, s in enumerate(FIABILITES)], else_=len(FIABILITES))
     if tri == "source":
         return Prospect.source
+    if tri == "etiquette":  # correspond, puis à vérifier (dont jamais trié), puis hors cible
+        return case((Prospect.pertinence_etiquette == "correspond", 0), (Prospect.pertinence_etiquette == "hors_cible", 2), else_=1)
     raise ApiError(ErrorCode.INVALID_REQUEST, "Tri inconnu.")
 
 
@@ -321,6 +223,8 @@ def _sort_value(row: Prospect, tri: str, rules: RulesV2) -> Any:
         return rules.prospect_statuses.index(row.statut) if row.statut in rules.prospect_statuses else len(rules.prospect_statuses)
     if tri == "fiabilite":
         return FIABILITES.index(row.fiabilite) if row.fiabilite in FIABILITES else len(FIABILITES)
+    if tri == "etiquette":
+        return {"correspond": 0, "hors_cible": 2}.get(row.pertinence_etiquette or "", 1)
     return row.source
 
 
@@ -429,6 +333,8 @@ def patch_prospect(
         now = utcnow()
         changed = False
         if payload.statut is not None and payload.statut != row.statut:
+            if payload.statut == "gagne":  # seul chemin vers le gain « client obtenu » (API-S4) ; refuse sans réponse du prospect
+                clients.claim(db, rules, session_id, row.id)
             row.statut = payload.statut
             row.historique = [*(row.historique or []), {"statut": payload.statut, "le": now.isoformat()}]
             if payload.statut == "contacte" and row.contacte_le is None:
@@ -459,6 +365,9 @@ def delete_prospect(sf: sessionmaker[Session], session_id: str, prospect_id: str
         from .conversations import delete_for_prospect
 
         delete_for_prospect(db, session_id, prospect_id)  # cascade : conversations, messages, brouillons, synthèses
+        from . import prospect_actions
+
+        prospect_actions.delete_for_prospect(db, session_id, prospect_id)  # fiches clients, premiers messages, compteurs de quota
         db.delete(row)
         _remember(db, session_id, key_hash, req_hash, 204, None)
         db.commit()
@@ -473,10 +382,12 @@ def purge_prospects(sf: sessionmaker[Session], session_id: str, key: str) -> int
         _begin(db, session_id)
         if _replay(db, session_id, key_hash, req_hash) is not None:
             return 0
+        from . import prospect_actions
         from .conversations import delete_for_prospect
 
         for pid in list(db.scalars(select(Prospect.id).where(Prospect.session_id == session_id))):
             delete_for_prospect(db, session_id, pid)
+            prospect_actions.delete_for_prospect(db, session_id, pid)
         n = db.execute(delete(Prospect).where(Prospect.session_id == session_id)).rowcount or 0
         _remember(db, session_id, key_hash, req_hash, 204, None)
         db.commit()

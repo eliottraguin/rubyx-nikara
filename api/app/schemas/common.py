@@ -13,25 +13,21 @@ class Mode(StrEnum):
 
 
 class Role(StrEnum):
-    """Ids techniques (docs/RULES.md §2). `researcher` = « chargé de veille »."""
-
-    WRITER = "writer"
-    PROSPECTOR = "prospector"
-    RESEARCHER = "researcher"
-    ANALYST = "analyst"
-    QA = "qa"
-    LEAD = "lead"
-
-
-class HangarRole(StrEnum):
-    """Rôles du hangar du cap prospection (docs/RULES.md §2, 5e décision) : un seul bot de prospection, trois rôles
-    de communication. `qualifier`, `profiler` et `outreach` n'existent plus (tri par code, actions portées par `replier`).
-    Le moteur d'expédition livré (BE01–BE07) garde l'énumération `Role` tant que le contenu M1–M6 n'est pas remplacé."""
+    """Rôles du hangar du cap prospection (docs/RULES.md §2, 5e décision) : un seul bot de prospection (`scout`), trois
+    rôles de communication, plus les assistants personnels (docs/ASSISTANT.md). Les rôles de l'ancien parcours
+    (`writer`, `prospector`, `researcher`, `analyst`, `qa`, `lead`) sont retirés (6e décision, API-R2)."""
 
     SCOUT = "scout"
     TRIAGE = "triage"
     REPLIER = "replier"
     ADS = "ads"
+    # Assistants personnels (docs/ASSISTANT.md) : un par section, fournis au départ ; ils proposent un plan, ne produisent rien.
+    ASSISTANT_PROSPECTION = "assistant_prospection"
+    ASSISTANT_CLIENTS = "assistant_clients"
+    ASSISTANT_PUB = "assistant_pub"
+
+
+HangarRole = Role  # nom historique (rôles du hangar) : même énumération
 
 
 class ErrorBody(BaseModel):

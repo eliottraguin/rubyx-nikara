@@ -1,0 +1,28 @@
+{
+  "id": "exemple_emballages_restauration",
+  "simule": true,
+  "profile_spec": "target_profile_v1",
+  "entreprise_nom": "Ecopack Ouest (fictive)",
+  "offre": "Ecopack Ouest fournit des emballages à emporter compostables aux restaurants et cafés, avec livraison hebdomadaire et sans minimum de commande.",
+  "besoin": "Les restaurateurs veulent supprimer le plastique de la vente à emporter sans surcoût important.",
+  "cible_secteurs": [
+    "restauration_hotellerie"
+  ],
+  "cible_zone": [
+    "Nantes",
+    "Rennes"
+  ],
+  "cible_taille": {
+    "effectif_min": 1,
+    "effectif_max": 10
+  },
+  "cible_fonctions": [
+    "Gérant",
+    "Chef de cuisine"
+  ],
+  "exclusions": [
+    "Chaînes nationales",
+    "Établissements fermés"
+  ],
+  "ton": "vouvoiement_chaleureux"
+}

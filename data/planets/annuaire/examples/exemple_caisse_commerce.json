@@ -1,0 +1,27 @@
+{
+  "id": "exemple_caisse_commerce",
+  "simule": true,
+  "profile_spec": "target_profile_v1",
+  "entreprise_nom": "Caisselia (fictive)",
+  "offre": "Caisselia propose une caisse enregistreuse sur tablette pour les commerces de proximité : ticket dématérialisé, gestion des stocks, installation en une demi-journée.",
+  "besoin": "Les petits commerçants perdent du temps à compter leur caisse et leurs stocks à la main.",
+  "cible_secteurs": [
+    "commerce_distribution"
+  ],
+  "cible_zone": [
+    "Lyon",
+    "Villeurbanne"
+  ],
+  "cible_taille": {
+    "effectif_min": 1,
+    "effectif_max": 10
+  },
+  "cible_fonctions": [
+    "Gérant"
+  ],
+  "exclusions": [
+    "Grandes surfaces",
+    "Commerces fermés"
+  ],
+  "ton": "vouvoiement_chaleureux"
+}

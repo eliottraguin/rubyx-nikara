@@ -10,24 +10,40 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import CONTRACTS_VERSION, __version__
+from .ads_spec import load_ads_spec
 from .config import ConfigError, Settings
 from .db import make_engine, make_session_factory, run_migrations
 from .errors import install_error_handlers
 from .llm import get_adapter
 from .logging_config import configure_logging, request_log_middleware
-from .routes import actions, agents, attempts, campaigns, conversations, demo, health, messages, missions, ops, profile, prospects, sessions, stubs
 from .profile_spec import load_profile_spec
+from .routes import (
+    actions,
+    agents,
+    assistant,
+    campaigns,
+    conversations,
+    health,
+    ops,
+    profile,
+    prospects,
+    searches,
+    sessions,
+)
 from .rules import load_rules
 from .rules_v2 import load_rules_v2
-from .ads_spec import load_ads_spec
-from .sources_spec import load_sources_spec
-from .services.ad_actions import reconcile_ads
-from .services.campaigns import PubEngine
 from .services.actions import ActionEngine
-from .services.evaluation import evaluate_submission, recover_pending
 from .services.actions_reconcile import reconcile
+from .services.ad_actions import reconcile_ads
+from .services.assistant_actions import AssistantEngine, reconcile_assistant
+from .services.assistant_actions import load_texts as load_assistant_texts
+from .services.campaigns import PubEngine
 from .services.messaging_data import load_messaging_data
+from .services.planet_source import SimulatedPlanetSource
+from .services.prospect_actions import reconcile_prospect_actions
 from .services.prospect_lookup import SqlProspectLookup
+from .services.search_actions import SearchEngine, reconcile_searches
+from .sources_spec import load_sources_spec
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -41,7 +57,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     sources_spec = load_sources_spec(settings.data_dir)  # listes blanches de champs par source (data/sources/)
     # messagerie : personas fictives, mentions, mots-clés de désinscription ; dossier absent (jeu de données réduit) => routes en 501
     messaging_data = load_messaging_data(settings.data_dir) if (settings.data_dir / "clients").is_dir() else None
-    llm = get_adapter(settings.llm_provider)
+    llm = get_adapter(settings.llm_provider, settings)
+    planet_source = SimulatedPlanetSource(settings.data_dir)  # lieux du Tutoriel : corpus fictifs (data/planets/)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -53,10 +70,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         reconcile(app.state.actions)  # RUNNING interrompus et réservations expirées (BE04)
         app.state.pub = PubEngine(app.state.actions, rules_v2, ads_spec, profile_spec)
         reconcile_ads(app.state.pub)  # générations de kit restées réservées après une interruption
-        if settings.auto_evaluate:  # BE06 : évaluateur serveur + reprise des livraisons restées EVALUATING
-            eng = app.state.actions
-            app.state.evaluator = lambda submission_id: evaluate_submission(eng, settings.data_dir, submission_id)
-            recover_pending(eng, settings.data_dir)
+        reconcile_prospect_actions(app.state.session_factory)  # générations de fiche client / premier message restées réservées
+        app.state.searches = SearchEngine(app.state.actions, rules_v2, profile_spec, sources_spec, planet_source)  # recherches du bot scout
+        reconcile_searches(app.state.searches)  # recherches interrompues
+        app.state.assistant = AssistantEngine(  # assistants personnels
+            app.state.actions, rules_v2, profile_spec, load_assistant_texts(settings.data_dir), searches=app.state.searches
+        )
+        reconcile_assistant(app.state.assistant)  # plans interrompus pendant leur exécution
         logging.getLogger("rubix").info(
             "startup", extra={"event": "startup", "provider": settings.llm_provider, "rules_version": rules.version, "db": "ok"}
         )
@@ -77,6 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.ads_spec = ads_spec
     app.state.llm = llm
     app.state.messaging_data = messaging_data
+    app.state.planet_source = planet_source
     app.state.prospects = SqlProspectLookup()  # la messagerie lit le carnet réel par ce `ProspectLookup`
 
     if settings.cors_origins:
@@ -95,14 +116,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(profile.router)
     app.include_router(prospects.router)
     app.include_router(campaigns.router)
-    app.include_router(messages.router)
+    app.include_router(assistant.router)
+    app.include_router(searches.router)
     app.include_router(conversations.router)
     app.include_router(actions.router)
-    app.include_router(missions.router)
-    app.include_router(attempts.router)
-    app.include_router(demo.router)
     app.include_router(ops.router)
-    app.include_router(stubs.router)
     return app
 
 

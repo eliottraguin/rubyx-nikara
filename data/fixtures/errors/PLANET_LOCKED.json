@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "PLANET_LOCKED",
+      "message": "Ce lieu n'est pas encore débloqué : continuez à chercher ailleurs pour l'ouvrir."
+    }
+  }
+}

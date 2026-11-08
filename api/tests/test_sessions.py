@@ -8,8 +8,6 @@ from app.main import create_app
 
 from .conftest import new_key
 
-ROLES = ["writer", "prospector", "researcher", "qa", "analyst", "lead"]
-
 
 def test_health(client):
     r = client.get("/api/health")
@@ -27,11 +25,11 @@ def test_create_session_initial_state(client, make_session, mode):
     assert state["session"]["mode"] == mode
     assert state["session"]["company"] == {"name": "Ma Boîte", "profile": "Café"}
     assert state["balance"] == {"booked": 30, "reserved": 0, "available": 30}
-    owned = [a["role"] for a in state["agents"] if a["owned"]]
-    assert owned == ["writer"]
-    assert [a["role"] for a in state["agents"]] == ROLES
+    assert "agents" not in state and "progress" not in state  # rôles historiques et progression de campagne retirés (API-R2)
+    assert [h["role"] for h in state["hangar"] if h["owned"]] == ["scout", "assistant_prospection", "assistant_clients", "assistant_pub"]
     assert state["llm"] == {"provider": "mock", "simulated": True}
-    assert state["session"]["stage"] == "m1"
+    assert "stage" not in state["session"]  # étape de campagne retirée (API-R3)
+    assert not {"missions", "attempts", "quotas"} & set(state)  # moteur d'expédition retiré (API-R3)
     # cookie opaque, HttpOnly, jamais exposé dans le corps
     set_cookie = r.headers["set-cookie"]
     assert "rubix_session=" in set_cookie and "HttpOnly" in set_cookie and "SameSite=lax" in set_cookie
@@ -92,41 +90,58 @@ def test_delete_session_removes_content(client, settings, make_session):
 
 
 def test_delete_cascades_deep_content(client, make_session):
-    """Une partie avec tentative, livrable, livraison et évaluation se supprime sans erreur de FK."""
+    """Une partie avec action, réservation, appel, prospect, brouillon, conversation et recherche se supprime sans erreur de FK."""
     from app.models import (
         ActionRun,
-        ArtifactVersion,
-        Evaluation,
+        Conversation,
         GameSession,
-        MissionAttempt,
+        LLMCall,
+        Prospect,
         Reservation,
-        Submission,
         utcnow,
     )
+    from app.models_drafts import ProspectDraft
+    from app.models_search import Search
 
     state = make_session(client)
     sid = state["session"]["id"]
     with client.app.state.session_factory() as db:
-        att = MissionAttempt(session_id=sid, mission_id="m1", unit_price=0)
-        db.add(att)
+        search = Search(session_id=sid, planet_id="annuaire", status="DONE", profile_version=1)
+        act = ActionRun(session_id=sid, idempotency_key="k-delete-0001", type="prospect_profile")
+        db.add_all([search, act])
         db.flush()
-        parent = ArtifactVersion(attempt_id=att.id, type="text", content="v1", author="agent")
-        db.add(parent)
+        db.add(Reservation(session_id=sid, action_id=act.id, amount=1, expires_at=utcnow()))
+        db.add(LLMCall(action_id=act.id, role="replier", model="mock"))
+        pro = Prospect(
+            session_id=sid, entreprise="X", entreprise_cle="x", source="annuaire", source_ref="ann_1", raisons_fit=[], pertinence=50,
+            fiabilite="simule", simule=True, instantane={}, search_id=search.id, profile_version=1,
+        )
+        db.add(pro)
         db.flush()
-        child = ArtifactVersion(attempt_id=att.id, type="text", content="v2", author="player", parent_id=parent.id)
-        db.add(child)
-        db.flush()
-        sub = Submission(attempt_id=att.id, artifact_version_id=child.id, brief_version=1, content_hash="h", rubric={})
-        db.add(sub)
-        db.flush()
-        db.add(Evaluation(submission_id=sub.id, model="mock", judge_version="j1", status="DONE"))
-        act = ActionRun(session_id=sid, attempt_id=att.id, idempotency_key="k-delete-0001", type="message")
-        db.add(act)
-        db.flush()
-        db.add(Reservation(session_id=sid, action_id=act.id, amount=1, attempt_id=att.id, expires_at=utcnow()))
+        db.add(ProspectDraft(session_id=sid, prospect_id=pro.id, kind="fiche", numero=1, auteur="agent", contenu={}, controles=[], profile_version=1, simule=True))
+        db.add(Conversation(session_id=sid, prospect_id=pro.id))
         db.commit()
     assert client.delete("/api/session", headers=new_key(5)).status_code == 204
     with client.app.state.session_factory() as db:
         assert db.scalar(select(GameSession).where(GameSession.id == sid)) is None
-        assert db.scalars(select(ArtifactVersion)).all() == []
-        assert db.scalars(select(Evaluation)).all() == []
+        for model in (Search, ActionRun, Reservation, LLMCall, Prospect, ProspectDraft, Conversation):
+            assert db.scalars(select(model)).all() == [], model
+
+
+def test_retired_expedition_routes_are_gone(client, make_session):
+    """Missions, tentatives, livrables, partages et messages d'expédition n'existent plus (API-R3)."""
+    make_session(client)
+    for method, path in (
+        ("POST", "/api/missions/m1/start"),
+        ("GET", "/api/attempts/att_x0000000000"),
+        ("POST", "/api/attempts/att_x0000000000/messages"),
+        ("POST", "/api/attempts/att_x0000000000/artifacts"),
+        ("POST", "/api/attempts/att_x0000000000/shares"),
+    ):
+        r = client.request(method, path, json={}, headers=new_key(9))
+        assert r.status_code in (404, 422) and r.json()["error"]["code"] in ("NOT_FOUND", "INVALID_REQUEST"), (path, r.text)
+        assert client.request(method, path, json={}, headers=new_key(9)).status_code != 202
+    names = {r.path for r in client.app.routes if hasattr(r, "path")}
+    assert not any("/missions" in n or "/attempts" in n for n in names)
+
+

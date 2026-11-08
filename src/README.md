@@ -10,7 +10,7 @@ pnpm typecheck && pnpm lint && pnpm test && pnpm build
 ## Mode mock ou http
 `NEXT_PUBLIC_API_MODE=mock|http` (défaut `mock`). Variable publique lue à la compilation : relancer `pnpm dev`/`pnpm build` après changement.
 
-- `mock` : `src/mocks/` rejoue des fixtures (M1 et mission de secours jouables ; M2–M6 affichées mais non jouables). L'état « serveur » est gardé en mémoire et dans `localStorage` (clé `rubix-mock-server-v1`) pour survivre au rechargement. Il ne recalcule ni score ni règle économique : paiements et notes sont écrits dans `src/mocks/fixtures.ts`. Badge « Mode simulé » toujours visible. Panneau « Accès démo » dans l'atelier : changement de cible (nouvelle version du brief + diff), aperçu du plan du chef, panne d'évaluation.
+- `mock` : `src/mocks/` simule un état minimal (partie, solde, achat d'agents, ouverture d'un lieu), gardé en mémoire et dans `localStorage` (clé `rubix-mock-server-v2`). Il ne recalcule aucune règle économique. Le parcours commande / atelier / livraison / retour est retiré (6e décision) ; la recherche du bot arrive avec UI-S1. Badge « Mode simulé » toujours visible.
 - `http` : `src/lib/api/http.ts` appelle `/api/...` (cookies inclus, `Idempotency-Key` sur chaque mutation). Il faut que `/api` soit servi sur la même origine : ajouter un `rewrites` vers l'API FastAPI dans `next.config.ts` (ex. `/api/:path*` → `http://127.0.0.1:8000/api/:path*`) ou un proxy, à décider avec P2/BE01.
 
 ## Points d'entrée

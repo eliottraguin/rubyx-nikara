@@ -1,10 +1,10 @@
 /**
  * GameState -> MapViewModel (fonction pure, sans Phaser ni React ; docs/CARTE-TECH.md).
  * La carte AFFICHE un état ; elle ne décide ni solde, ni prix, ni quota, ni score, ni déblocage, ni niveau d'immeuble.
- * Jusqu'au ticket API-A1 (lieux dans /state), l'état d'un lieu (ex-planète, id technique `planet`) est dérivé de la
- * mission correspondante (statut serveur) ; sans partie, un aperçu « maquette » figé est affiché et signalé comme tel.
+ * L'état d'un lieu (ex-planète, id technique `planet`) est lu dans `state.planets` (ouvert ou verrouillé, avec la raison :
+ * décidé par le serveur, `GET /api/state`) ; sans partie, un aperçu « maquette » figé est affiché et signalé comme tel.
  */
-import type { GameState, MissionStatus, MissionView } from "@/lib/api/types";
+import type { GameState, PlaceStateView } from "@/lib/api/types";
 import { buildingVM, type BuildingVM } from "./building";
 import { LAYOUT, type MapLayout } from "./layout";
 import type { Pt } from "./iso";
@@ -16,7 +16,7 @@ export type PlanetStatus = "locked" | "available" | "in_progress" | "visited";
 export const PLANET_STATUS_LABEL: Record<PlanetStatus, string> = {
   locked: "Verrouillée",
   available: "Disponible",
-  in_progress: "Expédition en cours",
+  in_progress: "Recherche en cours",
   visited: "Visitée",
 };
 
@@ -41,17 +41,8 @@ export interface PlanetVM {
   status: PlanetStatus;
   /** Libellé texte de l'état (jamais la couleur seule). */
   statusLabel: string;
-  /** 0 à 3 ; dérivé du meilleur paiement serveur (cosmétique). */
-  stars: 0 | 1 | 2 | 3;
-  maxReward: number | null;
-  unitPrice: number | null;
-  bestPayment: number;
+  /** Phrase du serveur qui explique pourquoi le lieu est verrouillé (sinon le texte par défaut du lieu). */
   unlockText: string;
-  missionId: string | null;
-  /** Statut brut de la mission côté serveur (distingue « à retenter » et « visitée » d'une planète disponible). */
-  missionStatus: MissionStatus | null;
-  promptHint: string;
-  examples: string[];
   palette: PlanetPalette;
   grid: Pt;
   world: Pt;
@@ -77,47 +68,19 @@ export interface MapViewModel {
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
 }
 
-export function planetStatusFromMission(status: MissionStatus): PlanetStatus {
-  switch (status) {
-    case "LOCKED":
-      return "locked";
-    case "AVAILABLE":
-    case "FAILED": // non réussie : on peut la retenter
-      return "available";
-    case "ACTIVE":
-    case "EVALUATING":
-      return "in_progress";
-    case "COMPLETED":
-      return "visited";
-  }
-}
-
-/** Étoiles d'affichage selon la part du gain maximal déjà payée (valeurs serveur). Visitée = au moins 1. */
-export function starsFromPayment(best: number, max: number | null, visited: boolean): 0 | 1 | 2 | 3 {
-  if (!visited && best <= 0) return 0;
-  if (!max || max <= 0) return visited ? 1 : 0;
-  const r = best / max;
-  if (r >= 0.9) return 3;
-  if (r >= 0.6) return 2;
-  return 1;
-}
-
-function pickMission(missions: MissionView[], index: number): MissionView | null {
-  const regular = missions.filter((m) => !m.is_rescue);
-  return regular[index] ?? null;
+function placeOf(places: readonly PlaceStateView[], id: string): PlaceStateView | null {
+  return places.find((p) => p.id === id) ?? null;
 }
 
 export function buildMapViewModel(state: GameState | null | undefined, layout: MapLayout = LAYOUT): MapViewModel {
   const source: MapViewModel["source"] = state ? "serveur" : "maquette";
   const planets: PlanetVM[] = layout.places.map((lp, i) => {
     const def = PLANETS.find((d) => d.id === lp.id)!;
-    const mission = state ? pickMission(state.missions, i) : null;
+    const place = state ? placeOf(state.planets, lp.id) : null;
     let status: PlanetStatus;
-    if (mission) status = planetStatusFromMission(mission.status);
+    if (place) status = place.status === "AVAILABLE" ? "available" : "locked";
     else status = state ? "locked" : i === 0 ? "available" : "locked";
-    const best = mission?.best_payment ?? 0;
-    const max = mission?.max_reward ?? null;
-    const label = mission?.status === "FAILED" ? "À retenter" : PLANET_STATUS_LABEL[status];
+    const label = PLANET_STATUS_LABEL[status];
     return {
       id: def.id,
       name: def.name,
@@ -131,15 +94,7 @@ export function buildMapViewModel(state: GameState | null | undefined, layout: M
       blurb: def.blurb,
       status,
       statusLabel: label,
-      stars: starsFromPayment(best, max, status === "visited"),
-      maxReward: max,
-      unitPrice: mission?.unit_price ?? null,
-      bestPayment: best,
-      unlockText: mission?.unavailable_reason?.trim() || def.unlockText,
-      missionId: mission?.id ?? null,
-      missionStatus: mission?.status ?? null,
-      promptHint: def.promptHint,
-      examples: def.examples,
+      unlockText: place?.reason?.trim() || def.unlockText,
       palette: def.palette,
       grid: lp.grid,
       world: lp.world,
@@ -163,14 +118,6 @@ export function buildMapViewModel(state: GameState | null | undefined, layout: M
     places: planets,
     bounds: layout.bounds,
   };
-}
-
-/** Instructions (messages) restantes sur l'expédition en cours, tous bots possédés confondus ; null sans expédition. */
-export function instructionsRemaining(state: GameState | null | undefined): number | null {
-  const attempt = state?.attempt;
-  if (!attempt || attempt.status !== "ACTIVE") return null;
-  const owned = new Set((state?.agents ?? []).filter((a) => a.owned).map((a) => a.role));
-  return attempt.roles.filter((r) => owned.has(r.role)).reduce((n, r) => n + Math.max(0, r.limit - r.used), 0);
 }
 
 /** Libellé du mode (valeurs API `beginner` / `expert`). */

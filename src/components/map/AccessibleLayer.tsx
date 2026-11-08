@@ -42,12 +42,6 @@ export function PlanetList({
                     {p.statusLabel}
                   </span>
                 </span>
-                {p.status === "visited" ? (
-                  <span className="planet-item-stars" aria-label={`${p.stars} étoile${p.stars > 1 ? "s" : ""} sur 3`}>
-                    {"★".repeat(p.stars)}
-                    <span aria-hidden="true">{"☆".repeat(3 - p.stars)}</span>
-                  </span>
-                ) : null}
               </button>
             </li>
           );

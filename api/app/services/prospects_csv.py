@@ -6,7 +6,7 @@ reçoit le préfixe `'`, dans TOUTES les colonnes texte (le contenu des prospect
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from ..models import Prospect
 
@@ -16,7 +16,7 @@ EOL = "\r\n"
 DANGEROUS = ("=", "+", "-", "@", "\t", "\r")
 HEADERS = (
     "id", "entreprise", "contact", "fonction", "canal_type", "canal", "raison_de_correspondance", "pertinence", "fiabilite",
-    "origine", "simule", "statut", "notes", "ajoute_le", "contacte_le", "source_ref",
+    "origine", "simule", "statut", "notes", "ajoute_le", "contacte_le", "source_ref", "etiquette_pertinence", "citation_pertinence",
 )
 
 
@@ -46,6 +46,7 @@ def _row(p: Prospect) -> list[tuple[str, bool]]:
         (p.canal_type or "", True), (p.canal_valeur or "", True), (raison, True), (str(int(p.pertinence)), False),
         (p.fiabilite, True), (p.source, True), ("oui" if p.simule else "non", True), (p.statut, True), (p.notes or "", True),
         (_iso(p.cree_le), True), (_iso(p.contacte_le), True), (p.source_ref, True),
+        (p.pertinence_etiquette or "a_verifier", True), (p.pertinence_citation or "", True),
     ]
 
 

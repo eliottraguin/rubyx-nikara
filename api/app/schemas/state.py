@@ -7,9 +7,9 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .campaign import AttemptSummary, MissionStatus, Progress
-from .common import HangarRole, Mode, Role
+from .common import Mode, Role
 from .profile import TargetProfileOut
+from .searches import PlanetView
 
 
 class CompanyOut(BaseModel):
@@ -22,7 +22,6 @@ class SessionInfo(BaseModel):
     mode: Mode
     company: CompanyOut
     state: str
-    stage: str
     seed: int
     rules_version: str
     created_at: datetime
@@ -34,42 +33,18 @@ class Balance(BaseModel):
     available: int  # booked - reserved
 
 
-class AgentView(BaseModel):
-    role: Role
-    label: str
-    price: int
-    owned: bool
-    unlock_mission: str | None
-    unlocked: bool = False  # mission de déblocage réussie (BE02) ; l'achat reste contrôlé par le serveur
-
-
 class HangarAgentView(BaseModel):
     """Rôle du hangar du cap prospection (`scout` / `triage` / `replier` / `ads`), prix et déblocage décidés par le serveur."""
 
-    role: HangarRole
+    role: Role
     label: str
     section: Literal["prospection", "clients", "pub"]
     price: int
     owned: bool
-    unlock_planet: str | None  # lieu dont le score débloque le rôle en Tutoriel ; null = disponible
-    unlock_min_score: int | None
-    score_condition_waived: bool  # vrai en mode Réel : seule la condition de prix reste
-    unlocked: bool  # condition de score remplie (ou levée) ; l'achat reste contrôlé par le serveur
-
-
-class MissionView(BaseModel):
-    id: str
-    label: str
-    max_reward: int
-    unit_price: int
-    status: MissionStatus  # dérivé des tentatives par le moteur de campagne (BE02)
-    requires: str | None = None  # mission à réussir avant
-    unlocks: list[Role] = []
-    attempts_count: int = 0
-    best_score: int | None = None
-    active_attempt_id: str | None = None
-    can_start: bool = False
-    can_retry: bool = False
+    unlock_clients: int | None  # nombre de clients obtenus qui débloque le rôle ; null = disponible d'emblée
+    unlock_condition: str | None  # phrase simple pour le joueur (« Obtenez 2 clients pour débloquer ce rédacteur ») ; null si disponible
+    clients_condition_waived: bool  # vrai en mode Réel pour triage/replier/ads : seule la condition de prix reste
+    unlocked: bool  # condition de clients remplie (ou levée) ; l'achat reste contrôlé par le serveur (prix, ROLE_LOCKED)
 
 
 class LLMInfo(BaseModel):
@@ -77,42 +52,33 @@ class LLMInfo(BaseModel):
     simulated: bool  # true => badge « mode simulé » obligatoire
 
 
-class QuotaInfo(BaseModel):
-    messages_per_agent_per_attempt: int
-    clarifications_per_attempt: int
-
-
 class ActiveActionView(BaseModel):
     """Action non terminée de la partie (à suivre via `GET /api/actions/{id}`, ou à confirmer / reprendre pour un plan)."""
 
     id: str
-    attempt_id: str | None
-    type: str  # message | lead_plan | clarification | purchase
+    type: str  # search | prospect_profile | … | assistant_plan
     status: str  # PENDING | RESERVED | RUNNING | AWAITING_CONFIRMATION | PARTIAL
     created_at: datetime
     updated_at: datetime
 
 
 class BuildingOut(BaseModel):
-    """Immeuble du joueur, calculé par le serveur (total des paiements d'expédition ; ne baisse jamais)."""
+    """Immeuble du joueur, calculé par le serveur depuis le nombre de clients obtenus (ne baisse jamais)."""
 
     level: int
-    total_earned: int
-    next_level_at: int | None  # null au niveau maximal
+    clients_obtained: int
+    next_level_at: int | None  # nombre de clients obtenus du prochain niveau ; null au niveau maximal
 
 
 class GameState(BaseModel):
     session: SessionInfo
     balance: Balance
-    agents: list[AgentView]  # moteur d'expédition livré (M1–M6, rôles historiques) ; remplacé quand le contenu change
-    hangar: list[HangarAgentView] = []  # hangar du cap prospection : scout, triage, replier, ads
-    missions: list[MissionView]
-    attempts: list[AttemptSummary] = []
-    progress: Progress | None = None
+    hangar: list[HangarAgentView] = []  # hangar du cap prospection : scout, triage, replier, ads (+ assistants)
     active_actions: list[ActiveActionView] = []
-    quotas: QuotaInfo
     target_profile: TargetProfileOut  # fiche entreprise et cible courante (versionnée ; PUT /api/profile)
+    clients_obtained: int  # prospects distincts devenus clients et payés (source : ledger) ; pilote déblocages et immeuble
     building: BuildingOut
+    planets: list[PlanetView] = []  # lieux de la ville : disponible ou verrouillé (avec la raison), calculé par le serveur
     llm: LLMInfo
     contracts_version: str
 

@@ -44,17 +44,17 @@ class Settings:
     cookie_name: str = "rubix_session"
     cookie_secure: bool = False  # mettre RUBIX_COOKIE_SECURE=1 derrière HTTPS
     cors_origins: tuple[str, ...] = field(default_factory=tuple)
-    # Secret du mode démo (BE02) : absent => `POST /api/demo/events` inexistant (404). Jamais affiché (repr=False).
+    # Secret du mode démo (BE02) : absent => routes d'exploitation `/api/demo/*` inexistantes (404). Jamais affiché (repr=False).
     demo_secret: str | None = field(default=None, repr=False)
     # Clé du fournisseur réel (exigée si RUBIX_LLM_PROVIDER=real). Jamais affichée ni journalisée.
     llm_api_key: str | None = field(default=None, repr=False)
+    # URL de base de la relais (https hors localhost), exigée si RUBIX_LLM_PROVIDER=real.
+    llm_base_url: str | None = field(default=None, repr=False)
     retention_days: int = 7  # durée de rétention des parties (commande `purge`)
     token_cap_session: int | None = None  # plafond de tokens (entrée+sortie) par partie ; None = non plafonné
     token_cap_global: int | None = None  # plafond global de tokens ; None = non plafonné
     log_level: str = "INFO"
     log_format: str = "json"
-    # BE06 : évalue automatiquement chaque livraison (après la réponse de `submit`). 0 = livraisons laissées en EVALUATING.
-    auto_evaluate: bool = True
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Settings":
@@ -93,13 +93,13 @@ class Settings:
             cookie_secure=boolean("RUBIX_COOKIE_SECURE", d.cookie_secure),
             cors_origins=_split(env.get("RUBIX_CORS_ORIGINS", "")),
             demo_secret=env.get("RUBIX_DEMO_SECRET") or None,
-            llm_api_key=env.get("RUBIX_LLM_API_KEY") or None,
+            llm_api_key=env.get("RUBIX_LLM_API_KEY") or env.get("AXIS_GATEWAY_KEY") or None,
+            llm_base_url=(env.get("RUBIX_LLM_BASE_URL") or env.get("AXIS_GATEWAY_URL") or "").strip() or None,
             retention_days=integer("RUBIX_RETENTION_DAYS", d.retention_days) or 0,
             token_cap_session=integer("RUBIX_TOKEN_CAP_SESSION", None),
             token_cap_global=integer("RUBIX_TOKEN_CAP_GLOBAL", None),
             log_level=(env.get("RUBIX_LOG_LEVEL") or d.log_level).strip().upper(),
             log_format=(env.get("RUBIX_LOG_FORMAT") or d.log_format).strip().lower(),
-            auto_evaluate=boolean("RUBIX_AUTO_EVALUATE", d.auto_evaluate),
         )
         problems += s.problems()
         if problems:
@@ -118,6 +118,20 @@ class Settings:
             p.append(f"RUBIX_LLM_PROVIDER doit valoir l'une de : {', '.join(LLM_PROVIDERS)}.")
         if self.llm_provider == "real" and not self.llm_api_key:
             p.append("RUBIX_LLM_PROVIDER=real exige RUBIX_LLM_API_KEY (aucune clé par défaut).")
+        if self.llm_provider == "real":
+            if not self.llm_base_url:
+                p.append("RUBIX_LLM_PROVIDER=real exige RUBIX_LLM_BASE_URL (ou AXIS_GATEWAY_URL).")
+            else:
+                u = urlparse(self.llm_base_url)
+                local = u.hostname in {"localhost", "127.0.0.1", "::1"}
+                if u.scheme not in {"http", "https"} or not u.netloc or (u.scheme == "http" and not local):
+                    p.append("RUBIX_LLM_BASE_URL invalide (https obligatoire hors localhost).")
+            from .llm.models_spec import LLMModelsError, load_llm_models
+
+            try:
+                load_llm_models(self.data_dir)
+            except LLMModelsError as exc:
+                p.append(str(exc))
         if self.demo_secret is not None and len(self.demo_secret) < MIN_SECRET_LENGTH:
             p.append(f"RUBIX_DEMO_SECRET est trop court (minimum {MIN_SECRET_LENGTH} caractères) ; laisser vide pour désactiver la démo.")
         if self.retention_days < 1:
@@ -176,6 +190,7 @@ class Settings:
             "cors_origins": list(self.cors_origins),
             "demo_enabled": bool(self.demo_secret),
             "llm_api_key_set": bool(self.llm_api_key),
+            "llm_base_url_set": bool(self.llm_base_url),
             "retention_days": self.retention_days,
             "token_cap_session": self.token_cap_session,
             "token_cap_global": self.token_cap_global,

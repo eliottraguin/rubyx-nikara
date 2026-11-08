@@ -22,6 +22,8 @@ class ErrorCode(StrEnum):
     INVALID_OUTPUT = "INVALID_OUTPUT"
     LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
     LEAD_UNVERIFIED = "LEAD_UNVERIFIED"  # cap prospection : lead sans source_ref vérifiable (refus par position, 422 si levé seul)
+    PLANET_LOCKED = "PLANET_LOCKED"  # 409 recherche : lieu pas encore débloqué (docs/CONTRACTS.md §11)
+    PROFILE_INCOMPLETE = "PROFILE_INCOMPLETE"  # 409 recherche : fiche entreprise et cible incomplète
     OPTED_OUT = "OPTED_OUT"  # 409 messagerie : prospect écarté ou désinscrit, envoi refusé (docs/CONTRACTS.md §5)
     # Compléments BE01 (le contrat décrit ces cas sans code : à valider)
     INVALID_REQUEST = "INVALID_REQUEST"  # 422 validation d'entrée
@@ -42,6 +44,8 @@ CATALOG: dict[ErrorCode, tuple[int, str]] = {
     ErrorCode.INVALID_OUTPUT: (422, "La réponse du modèle est inexploitable, même après réparation. Rien n'a été débité."),
     ErrorCode.LLM_UNAVAILABLE: (503, "Le fournisseur de modèles est indisponible. Rien n'a été débité ; réessayez."),
     ErrorCode.LEAD_UNVERIFIED: (422, "Ce lead ne peut pas être vérifié auprès de la source : il n'est pas ajouté au carnet."),
+    ErrorCode.PLANET_LOCKED: (409, "Ce lieu n'est pas encore débloqué : continuez à chercher ailleurs pour l'ouvrir."),
+    ErrorCode.PROFILE_INCOMPLETE: (409, "Votre fiche entreprise et cible est incomplète : renseignez au moins votre offre, vos secteurs cibles et votre zone."),
     ErrorCode.OPTED_OUT: (409, "Ce prospect a demandé à ne plus être contacté : aucun message ne peut lui être envoyé."),
     ErrorCode.INVALID_REQUEST: (422, "Requête invalide."),
     ErrorCode.RATE_LIMITED: (429, "Trop de demandes en cours ; réessayez dans un instant."),

@@ -9,49 +9,39 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from .. import CONTRACTS_VERSION
 from ..deps import hash_token
 from ..errors import ApiError, ErrorCode
 from ..llm.base import LLMAdapter
-from ..models import ActionRun, AgentOwnership, GameSession, LedgerEntry, Reservation, utcnow
+from ..models import (
+    ActionRun,
+    AgentOwnership,
+    GameSession,
+    LedgerEntry,
+    Reservation,
+    utcnow,
+)
 from ..profile_spec import ProfileSpec
 from ..rules import Rules
 from ..rules_v2 import RulesV2
 from ..schemas.common import Mode
 from ..schemas.state import (
     ActiveActionView,
-    AgentView,
     Balance,
     CompanyOut,
     GameState,
     LLMInfo,
-    QuotaInfo,
     SessionCreate,
     SessionInfo,
 )
-from .. import CONTRACTS_VERSION
-from . import building, campaign, hangar, profile
+from . import building, clients, hangar, profile
 from .purchases import REUSED_KEY, request_hash
+from .search_actions import planets_view
 
 
 def _aware(dt: datetime) -> datetime:
     # SQLite ne stocke pas le fuseau : les dates sont toujours en UTC.
     return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
-
-
-def _creation_replay(db: Session, key_hash: str, req_hash: str, current_token: str | None) -> tuple[GameSession, str | None] | None:
-    """Rejeu d'une création : même partie, jamais une 2e. La clé prouve que l'appelant est le créateur : si le cookie
-    manque ou ne correspond plus (réponse perdue avant réception du cookie), un nouveau jeton est émis."""
-    game = db.scalar(select(GameSession).where(GameSession.creation_key_hash == key_hash))
-    if game is None:
-        return None
-    if game.creation_request_hash != req_hash:
-        raise ApiError(ErrorCode.INVALID_REQUEST, REUSED_KEY)
-    if current_token and hash_token(current_token) == game.token_hash:
-        return game, None
-    token = secrets.token_urlsafe(32)
-    game.token_hash = hash_token(token)
-    db.commit()
-    return game, token
 
 
 def _add_game(
@@ -64,7 +54,6 @@ def _add_game(
         mode=payload.mode.value,
         company={"name": payload.company_name, "profile": payload.profile},
         state="ACTIVE",
-        stage=rules.initial_stage,
         seed=secrets.randbits(31),
         rules_version=rules.version,
         creation_key_hash=key_hash,
@@ -156,17 +145,15 @@ def active_actions(db: Session, session_id: str) -> list[ActiveActionView]:
     )
     return [
         ActiveActionView(
-            id=a.id, attempt_id=a.attempt_id, type=a.type, status=a.status,
+            id=a.id, type=a.type, status=a.status,
             created_at=_aware(a.created_at), updated_at=_aware(a.updated_at),
         )
         for a in rows
     ]
 
 
-def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession, *, rules_v2: RulesV2, profile_spec: ProfileSpec) -> GameState:
+def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSession, *, rules_v2: RulesV2, profile_spec: ProfileSpec, searches=None) -> GameState:
     owned = set(db.scalars(select(AgentOwnership.role).where(AgentOwnership.session_id == game.id)))
-    attempts = campaign.attempts_of(db, game.id)  # moteur de campagne (BE02) : missions, progression, prochaine action
-    unlocked = campaign.unlocked_roles(rules, attempts)
     bal = balance(db, game.id)
     return GameState(
         session=SessionInfo(
@@ -174,30 +161,17 @@ def build_state(db: Session, rules: Rules, adapter: LLMAdapter, game: GameSessio
             mode=Mode(game.mode),
             company=CompanyOut(**game.company),
             state=game.state,
-            stage=game.stage,
             seed=game.seed,
             rules_version=game.rules_version,
             created_at=_aware(game.created_at),
         ),
         balance=bal,
-        agents=[
-            AgentView(
-                role=a.id, label=a.label, price=a.price, owned=a.id.value in owned,
-                unlock_mission=a.unlock_mission, unlocked=a.id in unlocked,
-            )
-            for a in rules.agents
-        ],
-        hangar=hangar.hangar_view(db, rules_v2, game.mode, owned, attempts),
-        missions=campaign.build_missions(db, rules, attempts),
-        attempts=[campaign.summarize_attempt(db, rules, a) for a in attempts],
-        progress=campaign.build_progress(db, rules, game, attempts, bal.available),
+        hangar=hangar.hangar_view(db, rules_v2, game.mode, owned, game.id),
         active_actions=active_actions(db, game.id),
-        quotas=QuotaInfo(
-            messages_per_agent_per_attempt=rules.quotas.messages_per_agent_per_attempt,
-            clarifications_per_attempt=rules.quotas.clarifications_per_attempt,
-        ),
         target_profile=profile.view_for_game(db, profile_spec, game),
+        clients_obtained=clients.obtained_count(db, game.id),
         building=building.building_view(db, rules_v2, game.id),
+        planets=planets_view(searches, db, game.id) if searches is not None else [],
         llm=LLMInfo(provider=adapter.name, simulated=adapter.simulated),
         contracts_version=CONTRACTS_VERSION,
     )

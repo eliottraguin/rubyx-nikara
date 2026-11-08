@@ -1,6 +1,6 @@
 """Actions IA de la messagerie : `conversation_triage` (agent `triage`) et `conversation_reply` (agent `replier`).
 
-Même mécanisme que le moteur d'expédition (BE04), sur la clé de quota `(conversation, rôle)` :
+Même mécanisme que le moteur d'actions partagé (BE04, `services/actions.py`), sur la clé de quota `(conversation, rôle)` :
 1. **réserver avant l'appel** : quota de générations (`target_quotas`, 5, jamais 6) puis argent (`ledger.reserve`), commit ;
 2. **appeler le fournisseur hors transaction** (timeout, une nouvelle tentative technique), contrôler la sortie par code,
    **une réparation** si un contrôle essentiel échoue ;
@@ -167,7 +167,7 @@ def _reserve(m: cv.Messaging, session_id: str, conversation_id: str, key: str, k
         prospect = m.prospects.get(db, session_id, conv.prospect_id)
         ctx = cv.thread_context(m, db, conv, prospect)
         action = ActionRun(
-            session_id=session_id, attempt_id=None, idempotency_key=key, request_hash=req_hash, type=action_type, status="PENDING",
+            session_id=session_id, idempotency_key=key, request_hash=req_hash, type=action_type, status="PENDING",
             steps=[{
                 "index": 0, "kind": "conversation", "role": role, "status": "PENDING", "cost": price,
                 "conversation_id": conversation_id, "quota": {"target_id": conversation_id, "key": role},
@@ -176,7 +176,7 @@ def _reserve(m: cv.Messaging, session_id: str, conversation_id: str, key: str, k
         db.add(action)
         db.flush()
         rsv = ledger.reserve(  # INSUFFICIENT_FUNDS si le solde disponible est trop bas
-            db, session_id=session_id, action_id=action.id, amount=price, role=role, attempt_id=None, quota=0,
+            db, session_id=session_id, action_id=action.id, amount=price, role=role,
             ttl_seconds=m.rules_v2.limits.reservation_ttl_seconds,
         )
         action.reservation_id = rsv.id
@@ -244,7 +244,7 @@ def _settle(m: cv.Messaging, p: Prepared, outcomes: list[act.Outcome], checks: l
             return
         rsv = db.get(Reservation, p.reservation_id)
         for o in outcomes:
-            act.log_call(db, m.eng, action.id, p.role, o, None)
+            act.log_call(db, m.eng, action.id, p.role, o)
         if error is None and (rsv is None or rsv.status != "ACTIVE"):
             error = act.error_dict(ErrorCode.LLM_UNAVAILABLE, reason="reservation_expired")
         if error is None and result is None:

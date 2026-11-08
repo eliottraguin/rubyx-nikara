@@ -239,7 +239,7 @@ def test_text_containing_an_instruction_is_stored_as_data(app):
     st = c.get("/api/state").json()
     assert st["target_profile"]["offre"] == bait  # stocké tel quel, comme une donnée
     assert st["target_profile"]["exclusions"] == ["<script>alert(1)</script>"]  # rendu en texte par l'interface (règle 2)
-    assert st["balance"] == before["balance"] and st["agents"] == before["agents"] and st["missions"] == before["missions"]
+    assert st["balance"] == before["balance"] and st["hangar"] == before["hangar"] and st["planets"] == before["planets"]
     assert st["building"] == before["building"]
 
 
@@ -264,12 +264,14 @@ def test_migration_0005_backfills_existing_games(settings):
                   "values ('ses_old','h1','expert',?, 'ACTIVE','m1',1,'rules_v1','2026-01-01','2026-01-01')", (company,))
         c.execute("insert into mission_attempts (id, session_id, mission_id, brief_version, status, message_counts, clarifications_used, model_calls, attempt_no, unit_price, created_at, updated_at) "
                   "values ('att_old','ses_old','m1',1,'ACTIVE','{}',0,0,1,0,'2026-01-01','2026-01-01')")
+    command.upgrade(cfg, "0005")
+    with sqlite3.connect(settings.db_path) as c:  # l'expédition ancienne reçoit la version 1 (table retirée plus tard par 0015)
+        assert c.execute("select profile_version from mission_attempts where id='att_old'").fetchone()[0] == 1
     command.upgrade(cfg, "head")
     engine = make_engine(settings)
     with make_session_factory(engine)() as db:
         row = db.scalar(select(TargetProfileVersion).where(TargetProfileVersion.session_id == "ses_old"))
         assert row.version == 1 and row.data == {"entreprise_nom": "Vieille Maison", "offre": "Vente de tapis"}
-        assert db.execute(text("select profile_version from mission_attempts where id='att_old'")).scalar() == 1
     engine.dispose()
     with TestClient(create_app(settings)) as client:  # la partie ancienne se lit et se met à jour comme les autres
         with sqlite3.connect(settings.db_path) as c:
