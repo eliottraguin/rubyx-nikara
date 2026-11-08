@@ -30,11 +30,11 @@ Exemple concret : le 2026-11-07, le produit a pivoté cinq fois (prospection ré
 
 Les agents livrent du code, et **les tests décident si c'est acceptable** :
 
-- API (`api/`) : **313 tests pytest** annoncés dans `CLAUDE.md`, avec un fournisseur LLM **simulé déterministe** (aucun appel réseau réel en test).
-- Interface (`src/`) : **25 tests vitest** annoncés dans `CLAUDE.md`.
+- API (`api/`) : **614 tests pytest** verts (mesuré le 2026-11-08), avec un fournisseur LLM **simulé déterministe** (aucun appel réseau réel en test).
+- Interface (`src/`) : **192 tests vitest** verts, 2 ignorés (mesuré le 2026-11-08).
 - OpenAPI et fixtures sont régénérés par du code, et les tests échouent s'ils sont périmés, donc un agent ne peut pas modifier un contrat sans que cela se voie.
 
-À reverrouiller avant la présentation : relancer `uv run pytest` (dans `api/`) et `pnpm test` pour confirmer les chiffres. Je ne les ai pas revalidés au moment d'écrire cette note.
+(`CLAUDE.md` annonce encore 313 et 25 : ces chiffres sont périmés.)
 
 ## 5. Exemples de livraisons par les squads (historique git)
 
