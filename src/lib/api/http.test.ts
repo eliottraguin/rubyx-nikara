@@ -32,8 +32,8 @@ function reads(c: Call): Response | null {
 }
 
 describe("erreurs", () => {
-  it("lit { error: { code, message } } et reconnaît les 13 codes de l'API", () => {
-    expect(API_ERROR_CODES).toHaveLength(13);
+  it("lit { error: { code, message } } et reconnaît les 14 codes de l'API", () => {
+    expect(API_ERROR_CODES).toHaveLength(14);
     for (const code of API_ERROR_CODES) expect(mapErrorCode(code), code).not.toBeNull();
     expect(mapErrorCode("INVALID_REQUEST")).toBe("VALIDATION");
     expect(mapErrorCode("SESSION_REQUIRED")).toBe("NO_SESSION");

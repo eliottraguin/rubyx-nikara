@@ -28,6 +28,7 @@ export type ErrorCode =
   | "VALIDATION"
   | "RATE_LIMITED"
   | "NO_SESSION"
+  | "INVALID_CREDENTIALS"
   | "NOT_FOUND"
   | "NOT_IMPLEMENTED"
   | "INTERNAL_ERROR"
