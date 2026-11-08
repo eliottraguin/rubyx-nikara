@@ -18,7 +18,7 @@ import {
   Vector2,
   type Object3D,
 } from "three";
-import { CityScene } from "@/game/login/CityScene";
+import { CityScene, ISO_ELEVATION } from "@/game/login/CityScene";
 import { appearanceFor } from "../building";
 import { BuildingFactory, type BuildingStyle } from "./BuildingFactory";
 import { seedFromId } from "./buildingPlan";
@@ -29,6 +29,8 @@ import type { MapViewModel, PlanetStatus } from "../viewmodel";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4;
+const DRAG_THRESHOLD = 5;
+const ROTATE_SPEED = 0.008;
 const BASE_ID = "base";
 const STATUS_TINT: Record<PlanetStatus, string> = {
   locked: "#8a8f98",
@@ -156,10 +158,10 @@ export class MapView {
     const cam = this.city.orthoCamera;
     // pixels écran -> unités monde (caméra orthographique : hauteur visible = top - bottom).
     const unit = (cam.top - cam.bottom) / cam.zoom / (this.canvas.clientHeight || 1);
-    // l'axe écran horizontal est la diagonale (1,0,-1)/√2 du plan XZ ; le vertical (1,0,1)/√2 écrasé par l'élévation.
-    const k = Math.SQRT1_2;
-    const ey = unit / Math.sin(Math.atan(1 / Math.SQRT2));
-    this.city.setView({ x: v.x - (dx * unit * k) - dy * ey * k, z: v.z + dx * unit * k - dy * ey * k }, v.zoom);
+    // axes écran sur le plan XZ selon le yaw : h = vers la caméra, droite = (h.z, -h.x) ; vertical écrasé par l'élévation.
+    const h = this.city.horizontalOffset;
+    const ey = unit / Math.sin(ISO_ELEVATION);
+    this.city.setView({ x: v.x - dx * unit * h.z - dy * ey * h.x, z: v.z + dx * unit * h.x - dy * ey * h.z }, v.zoom);
   }
 
   private zoomBy(factor: number): void {
@@ -188,12 +190,49 @@ export class MapView {
         this.bus.emit("planet:hover", id);
       }
     };
-    const onClick = (e: PointerEvent) => this.bus.emit("planet:select", this.pick(toNdc(e)));
+    // glisser = rotation ; un déplacement < DRAG_THRESHOLD px reste un clic (même intention planet:select qu'avant).
+    let down: { x: number; y: number; id: number } | null = null;
+    let dragging = false;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      down = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      dragging = false;
+    };
+    const onDrag = (e: PointerEvent) => {
+      if (!down || e.pointerId !== down.id) return;
+      const dx = e.clientX - down.x;
+      if (!dragging && Math.hypot(dx, e.clientY - down.y) < DRAG_THRESHOLD) return;
+      if (!dragging) {
+        dragging = true;
+        this.canvas.setPointerCapture?.(e.pointerId);
+      }
+      this.city.setYaw(this.city.yaw - dx * ROTATE_SPEED);
+      down = { ...down, x: e.clientX, y: e.clientY };
+    };
+    const onUp = (e: PointerEvent) => {
+      if (!down || e.pointerId !== down.id) return;
+      const wasDrag = dragging;
+      down = null;
+      dragging = false;
+      if (!wasDrag && e.type === "pointerup") this.bus.emit("planet:select", this.pick(toNdc(e)));
+    };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      this.zoomBy(e.deltaY > 0 ? 0.88 : 1.14);
+    };
     this.canvas.addEventListener("pointermove", onMove);
-    this.canvas.addEventListener("click", onClick as unknown as EventListener);
+    this.canvas.addEventListener("pointermove", onDrag);
+    this.canvas.addEventListener("pointerdown", onDown);
+    this.canvas.addEventListener("pointerup", onUp);
+    this.canvas.addEventListener("pointercancel", onUp);
+    this.canvas.addEventListener("wheel", onWheel, { passive: false });
     this.cleanups.push(() => {
       this.canvas.removeEventListener("pointermove", onMove);
-      this.canvas.removeEventListener("click", onClick as unknown as EventListener);
+      this.canvas.removeEventListener("pointermove", onDrag);
+      this.canvas.removeEventListener("pointerdown", onDown);
+      this.canvas.removeEventListener("pointerup", onUp);
+      this.canvas.removeEventListener("pointercancel", onUp);
+      this.canvas.removeEventListener("wheel", onWheel);
     });
   }
 
