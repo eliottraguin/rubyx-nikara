@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { createRng, generateSkyline, parseSeed } from '@/lib/city/generate-skyline';
 
 interface LoginSceneProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -21,7 +22,8 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     scene.background = new THREE.Color(0x87ceeb);
 
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.z = 5;
+    camera.position.set(0, 9, 8);
+    camera.lookAt(0, -2, -3);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -37,21 +39,28 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     lighting.add(ambientLight);
     scene.add(lighting);
 
-    const buildingGeometry = new THREE.BoxGeometry(1, 2, 1);
-    const buildingMaterial = new THREE.MeshStandardMaterial({ color: 0xcccccc });
-
-    for (let i = 0; i < 5; i++) {
-      const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-      building.position.set((i - 2) * 2, 0, Math.random() * 2);
-      building.castShadow = true;
-      building.receiveShadow = true;
+    // Ville d'ambiance vue de haut : seedée (reproductible), seed surchargeable via ?citySeed=
+    const seed = parseSeed(new URLSearchParams(window.location.search).get('citySeed'));
+    const specs = generateSkyline({ seed });
+    const unitBox = new THREE.BoxGeometry(1, 1, 1);
+    const buildingMaterials = new Map<number, THREE.MeshStandardMaterial>();
+    for (const spec of specs) {
+      let material = buildingMaterials.get(spec.color);
+      if (!material) {
+        material = new THREE.MeshStandardMaterial({ color: spec.color });
+        buildingMaterials.set(spec.color, material);
+      }
+      const building = new THREE.Mesh(unitBox, material);
+      building.scale.set(spec.width, spec.height, spec.depth);
+      building.position.set(spec.x, -2 + spec.height / 2, spec.z);
       scene.add(building);
     }
 
     const cloudGeometry = new THREE.BufferGeometry();
     const cloudPositions: number[] = [];
+    const cloudRng = createRng(seed ^ 0x9e3779b9);
     for (let i = 0; i < 20; i++) {
-      cloudPositions.push(Math.random() * 20 - 10, 3 + Math.random() * 4, Math.random() * 5 - 2.5);
+      cloudPositions.push(cloudRng() * 24 - 12, 3 + cloudRng() * 4, cloudRng() * 12 - 9);
     }
     cloudGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(cloudPositions), 3));
 
@@ -59,7 +68,7 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     const clouds = new THREE.Points(cloudGeometry, cloudMaterial);
     scene.add(clouds);
 
-    const groundGeometry = new THREE.PlaneGeometry(20, 20);
+    const groundGeometry = new THREE.PlaneGeometry(60, 60);
     const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x2d5a2d });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
