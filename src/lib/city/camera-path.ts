@@ -39,7 +39,9 @@ export function easeInOutCubic(t: number): number {
 }
 
 function lerpVec(a: Vec3, b: Vec3, t: number): Vec3 {
-  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t };
+  // Forme exacte aux bornes (t=0 -> a, t=1 -> b), sans erreur d'arrondi.
+  const u = 1 - t;
+  return { x: a.x * u + b.x * t, y: a.y * u + b.y * t, z: a.z * u + b.z * t };
 }
 
 /** Pose interpolée pour une progression linéaire `progress` dans [0, 1]. */
