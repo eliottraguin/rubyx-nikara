@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LAYOUT } from "../layout";
 import type { Trip } from "../trips";
-import { botPose, clampDt, perimeterLoop, planWalkers, walkerPose } from "./motion";
+import { botPose, clampDt } from "./motion";
 
 const place = LAYOUT.places[0]!;
 const trip = (over: Partial<Trip> = {}): Trip => ({ id: "t", planetId: place.id, role: "writer" as Trip["role"], startedAt: 1000, doneAt: null, legMs: 2000, ...over });
@@ -27,20 +27,5 @@ describe("motion", () => {
     const p = botPose(LAYOUT, trip(), 1001, true)!;
     expect(p.y).toBeCloseTo(0, 5);
     expect(p.phase).toBe("dialogue");
-  });
-  it("piétons : déterministes, sur le périmètre, rebond borné et nul en mouvement réduit", () => {
-    const ws = planWalkers(LAYOUT);
-    expect(ws).toEqual(planWalkers(LAYOUT));
-    expect(ws.length).toBe((LAYOUT.places.length + 1) * 2);
-    const loop = perimeterLoop({ x: 0, y: 0 }, 2, 2);
-    expect(loop[0]).toEqual(loop[4]);
-    for (const w of ws) {
-      for (const t of [0, 777, 12345]) {
-        const p = walkerPose(w, t, false);
-        expect(p.y).toBeGreaterThanOrEqual(0);
-        expect(p.y).toBeLessThan(0.1);
-        expect(walkerPose(w, t, true).y).toBe(0);
-      }
-    }
   });
 });

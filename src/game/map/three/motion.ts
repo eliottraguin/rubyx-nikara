@@ -8,10 +8,9 @@ import { screenToGrid, type Pt } from "../iso";
 import { PX_PER_FLOOR } from "../building";
 import type { MapLayout } from "../layout";
 import { pathPose, tripPath } from "../paths";
-import { polylinePoint, polylineTangent } from "../streets";
 import { tripFrame, type Trip, type TripPhase } from "../trips";
 import { vehicleOf, type VehicleId } from "../vehicles";
-import { FLOOR_H } from "./buildingPlan";
+import { FLOOR as FLOOR_H } from "./world/scale";
 
 /** Plafond du pas de temps (s) : un onglet en arrière-plan ne fait pas « sauter » les bots. */
 export const MAX_DT = 0.1;
@@ -67,68 +66,4 @@ export function botPose(layout: MapLayout, trip: Trip, now: number, reduced: boo
     phase: f.phase,
     airborne: flying,
   };
-}
-
-// --- Piétons : parcours du périmètre des blocs ------------------------------------------------------------------
-
-export interface Walker {
-  id: string;
-  /** Boucle fermée (points de grille). */
-  loop: Pt[];
-  /** Tours par seconde. */
-  speed: number;
-  /** Décalage de départ 0..1. */
-  offset: number;
-}
-
-const MARGIN = 0.9;
-const WALK_UNITS_PER_S = 0.9;
-
-/** Rectangle fermé (5 points) autour d'une emprise centrée en `c`. */
-export function perimeterLoop(c: Pt, w: number, h: number, margin = MARGIN): Pt[] {
-  const x0 = c.x - w / 2 - margin;
-  const x1 = c.x + w / 2 + margin;
-  const z0 = c.y - h / 2 - margin;
-  const z1 = c.y + h / 2 + margin;
-  return [{ x: x0, y: z0 }, { x: x1, y: z0 }, { x: x1, y: z1 }, { x: x0, y: z1 }, { x: x0, y: z0 }];
-}
-
-const loopLength = (pts: readonly Pt[]): number => {
-  let l = 0;
-  for (let i = 1; i < pts.length; i++) l += Math.hypot(pts[i]!.x - pts[i - 1]!.x, pts[i]!.y - pts[i - 1]!.y);
-  return l;
-};
-
-/** Piétons déterministes : `perBlock` par bloc (immeuble du joueur + lieux), sens et phases répartis. */
-export function planWalkers(layout: Pick<MapLayout, "hq" | "places">, perBlock = 2): Walker[] {
-  const blocks = [
-    { id: "hq", c: layout.hq.grid, w: layout.hq.footprint.w, h: layout.hq.footprint.h },
-    ...layout.places.map((p) => ({ id: p.id, c: p.grid, w: p.footprint.w, h: p.footprint.h })),
-  ];
-  const out: Walker[] = [];
-  for (const b of blocks) {
-    const loop = perimeterLoop(b.c, b.w, b.h);
-    const turns = WALK_UNITS_PER_S / Math.max(1e-6, loopLength(loop));
-    for (let i = 0; i < perBlock; i++) {
-      out.push({ id: `${b.id}#${i}`, loop, speed: (i % 2 === 0 ? 1 : -1) * turns, offset: i / perBlock });
-    }
-  }
-  return out;
-}
-
-export interface WalkerPose {
-  x: number;
-  y: number;
-  z: number;
-  yaw: number;
-}
-
-/** Pose d'un piéton à `timeMs` (ms) ; figé (sans rebond) en animations réduites. */
-export function walkerPose(w: Walker, timeMs: number, reduced: boolean): WalkerPose {
-  const raw = w.offset + (reduced ? 0 : (timeMs / 1000) * w.speed);
-  const u = ((raw % 1) + 1) % 1;
-  const p = polylinePoint(w.loop, u);
-  const t = polylineTangent(w.loop, u);
-  const dir = w.speed < 0 ? -1 : 1;
-  return { x: p.x, y: bounce(timeMs + w.offset * 1000, "foot", true, reduced), z: p.y, yaw: yawOf(dir * t.x, dir * t.y) };
 }

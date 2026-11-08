@@ -47,8 +47,9 @@ afterEach(() => {
   sceneLeave = () => Promise.resolve();
 });
 
-describe("vue Immeuble — scène Three.js (drapeau three)", () => {
-  it("sans drapeau : pas de scène, la liste DOM ouvre toujours les panneaux", () => {
+describe("vue Immeuble — scène Three.js (moteur par défaut, repli DOM)", () => {
+  it("moteur forcé en DOM : pas de scène, la liste DOM ouvre toujours les panneaux", () => {
+    vi.stubEnv("NEXT_PUBLIC_BUILDING_ENGINE", "dom");
     mount();
     expect(screen.queryByTestId("three-building")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /Studio pub/ }));
@@ -127,7 +128,8 @@ describe("vue Immeuble — scène Three.js (drapeau three)", () => {
     expect(onLeave).toHaveBeenCalledTimes(1);
   });
 
-  it("retour sans drapeau (DOM) : navigation immédiate, une seule fois", () => {
+  it("retour en moteur DOM : navigation immédiate, une seule fois", () => {
+    vi.stubEnv("NEXT_PUBLIC_BUILDING_ENGINE", "dom");
     const onLeave = vi.fn();
     mount(onLeave);
     const btn = screen.getByRole("button", { name: /Retour à la ville/ });

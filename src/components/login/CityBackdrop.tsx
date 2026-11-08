@@ -1,67 +1,52 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import type { CityScene, ZoomOptions } from "@/game/login/CityScene";
+import type { LoginCity } from "@/game/login/LoginCity";
 
-/** Poignée impérative exposée au parent (écran de connexion, puis scène cible GR3-17 / GR3-35). */
+/** Poignée impérative exposée à l'écran de connexion. */
 export interface CityBackdropHandle {
-  /** Zoom caméra vers la vue de quartier ; résolu à la fin. Résolu aussitôt si WebGL est indisponible. */
-  zoomToDistrict(opts?: ZoomOptions): Promise<void>;
+  /** Plongée de la caméra vers l'immeuble du joueur ; résolue à la fin, ou aussitôt sans WebGL. */
+  dive(): Promise<void>;
 }
 
 /**
- * Fond décoratif (ville isométrique + nuages) placé sous le formulaire de connexion.
- * Three.js est chargé à la demande ; sans WebGL, le fond uni du conteneur reste affiché.
+ * Fond décoratif de la page de connexion : la ville de jeu vue de loin, sous des nuages. Three.js est chargé à la
+ * demande ; sans WebGL, le fond uni du conteneur reste affiché et le formulaire n'est pas affecté.
+ * `insetLeft` : largeur (px) du formulaire, la ville est décalée pour rester visible à côté.
  */
-export const CityBackdrop = forwardRef<CityBackdropHandle, { seed?: number }>(function CityBackdrop(
-  { seed = 2024 },
+export const CityBackdrop = forwardRef<CityBackdropHandle, { seed?: number; insetLeft?: number }>(function CityBackdrop(
+  { seed = 2024, insetLeft = 0 },
   handle,
 ) {
   const ref = useRef<HTMLCanvasElement>(null);
-  const sceneRef = useRef<CityScene | null>(null);
+  const cityRef = useRef<LoginCity | null>(null);
+  const inset = useRef(insetLeft);
 
-  useImperativeHandle(
-    handle,
-    () => ({
-      zoomToDistrict: (opts) => {
-        const s = sceneRef.current;
-        if (!s) {
-          opts?.onZoomEnd?.();
-          return Promise.resolve();
-        }
-        return s.zoomToDistrict(opts);
-      },
-    }),
-    [],
-  );
+  useImperativeHandle(handle, () => ({ dive: () => cityRef.current?.dive() ?? Promise.resolve() }), []);
+
+  useEffect(() => {
+    inset.current = insetLeft;
+    cityRef.current?.setInset(insetLeft);
+  }, [insetLeft]);
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
     let disposed = false;
-    void Promise.all([import("@/game/login/CityScene"), import("@/game/login/plan")])
-      .then(([{ CityScene }, { planCity }]) => {
+    void import("@/game/login/LoginCity")
+      .then(({ LoginCity }) => {
         if (disposed) return;
-        const s = new CityScene(canvas, planCity(seed));
-        sceneRef.current = s;
-        s.start();
+        cityRef.current = new LoginCity(canvas, seed, inset.current);
       })
       .catch(() => {
         /* WebGL indisponible : le fond reste décoratif, le formulaire n'est pas affecté. */
       });
     return () => {
       disposed = true;
-      sceneRef.current?.dispose();
-      sceneRef.current = null;
+      cityRef.current?.dispose();
+      cityRef.current = null;
     };
   }, [seed]);
 
-  return (
-    <canvas
-      ref={ref}
-      aria-hidden="true"
-      data-testid="city-backdrop"
-      style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: -1, background: "#bcd6ea" }}
-    />
-  );
+  return <canvas ref={ref} aria-hidden="true" data-testid="city-backdrop" className="login-canvas" />;
 });

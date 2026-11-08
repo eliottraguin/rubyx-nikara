@@ -1,17 +1,6 @@
-import Link from "next/link";
-import { ResumeBox } from "@/screens/ResumeBox";
+import { LoginScreen } from "@/screens/LoginScreen";
 
+/** L'accueil EST la page de connexion : la ville vue de loin, sous les nuages, avec le formulaire. */
 export default function Home() {
-  return (
-    <div className="page home">
-      <h1>Trouvez de vrais clients avec des agents IA.</h1>
-      <p className="lead">Décrivez votre entreprise et votre cible : un bot cherche des clients pour vous, vous gardez les meilleurs prospects dans votre carnet.</p>
-      <p>
-        <Link className="btn btn-primary" href="/creer">
-          Nouvelle partie
-        </Link>
-      </p>
-      <ResumeBox />
-    </div>
-  );
+  return <LoginScreen />;
 }

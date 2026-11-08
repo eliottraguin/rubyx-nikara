@@ -19,7 +19,9 @@ interface Srv {
   owned: RoleId[];
 }
 
-const fresh = (): Srv => ({ session: null, booked: 0, owned: [] });
+/** `NEXT_PUBLIC_MOCK_SESSION=1` : le mode simulé démarre avec une partie ouverte (aperçu carte / immeuble sans formulaire). */
+const demoSession = (): Srv["session"] => (process.env.NEXT_PUBLIC_MOCK_SESSION === "1" ? { id: "sess_mock", mode: "beginner", company: "Atelier Démo" } : null);
+const fresh = (): Srv => ({ session: demoSession(), booked: 0, owned: [] });
 
 let srv: Srv = fresh();
 let loaded = false;

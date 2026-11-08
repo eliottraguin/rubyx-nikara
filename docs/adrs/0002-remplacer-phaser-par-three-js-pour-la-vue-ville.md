@@ -118,3 +118,7 @@ Cette décision **diverge de la 4e décision** sur un seul point : le style « S
 * Alternative de repli documentée : option 2 (Phaser) ; le bus et le viewmodel étant indépendants du moteur, le coût de retour est limité à une scène.
 * Suite : mettre à jour `docs/CARTE-TECH.md`, `docs/VILLE-ET-BATIMENT.md` §12 et `docs/ARCHITECTURE.md` lors des tickets d'implémentation (non fait ici : hors périmètre de l'ADR).
 * Statut : `draft`, à valider par Noah.
+
+## Mise à jour du 2026-11-08 : nouveau moteur de ville
+
+`WorldScene.ts`/`art.ts` ne sont plus utilisés par la carte par défaut : la ville est dessinée par `src/game/map/three/world/` (`CityWorld`) à partir de `data/map/city_v1.json` (36 blocs, rues, parc, rivières et ponts, lieux et siège). Éléments statiques fusionnés par matériau, mobiles (voitures, piétons, bateaux, arbres) en instances. Phaser reste livré derrière `NEXT_PUBLIC_MAP_ENGINE=phaser`. Le gate de performance (≥ 30 images/s, 20 montages/démontages) reste **non mesuré** : à faire sur un vrai GPU.

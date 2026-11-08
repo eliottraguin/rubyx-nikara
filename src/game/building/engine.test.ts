@@ -4,11 +4,12 @@ import { FLOORS } from "./floors";
 import { BUILDING_HEIGHT, FLOOR_HEIGHT, ZONES } from "./three/layout";
 
 describe("buildingEngine", () => {
-  it("DOM par défaut (gate ADR 0002 non mesuré), Three.js seulement sur drapeau explicite", () => {
-    expect(buildingEngine(undefined)).toBe("dom");
-    expect(buildingEngine("")).toBe("dom");
-    expect(buildingEngine("autre")).toBe("dom");
+  it("Three.js par défaut, le DOM seulement sur drapeau explicite (et en repli automatique)", () => {
+    expect(buildingEngine(undefined)).toBe("three");
+    expect(buildingEngine("")).toBe("three");
+    expect(buildingEngine("autre")).toBe("three");
     expect(buildingEngine("three")).toBe("three");
+    expect(buildingEngine("dom")).toBe("dom");
   });
 });
 
