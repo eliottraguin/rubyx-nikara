@@ -15,6 +15,7 @@ import {
   PlaneGeometry,
   Raycaster,
   RingGeometry,
+  ShadowMaterial,
   Vector2,
   type Object3D,
 } from "three";
@@ -75,6 +76,19 @@ export class MapView {
     ground.position.y = -0.01;
     this.city.root.add(ground);
 
+    // Ombres : la ville entière sur UNE shadow map modeste. Seuls les immeubles projettent ; seul un voile
+    // ShadowMaterial transparent (au-dessus du décor, y = 0.04) les reçoit : pas d'auto-ombrage ni d'acné.
+    const land = LAYOUT.land;
+    this.city.enableShadows({ bounds: { x: land.x, z: land.y, w: land.w, h: land.h } });
+    const veil = new Mesh(
+      this.city.own(new PlaneGeometry(land.w, land.h)),
+      this.city.own(new ShadowMaterial({ color: "#1b2a3a", opacity: 0.28 })),
+    );
+    veil.rotation.x = -Math.PI / 2;
+    veil.position.set(land.x + land.w / 2, 0.04, land.y + land.h / 2);
+    veil.receiveShadow = true;
+    this.city.root.add(veil);
+
     this.ring = new Mesh(
       this.city.own(new RingGeometry(2.6, 3, 32)),
       this.city.own(new MeshLambertMaterial({ color: "#ffffff", emissive: new Color("#ffffff") })),
@@ -134,12 +148,14 @@ export class MapView {
       this.addBuilding(pl.id, pl.grid, { size: 4, floors: pl.floors, wall: STATUS_TINT[pl.status], glass: PLACE_GLASS, trim: PLACE_TRIM });
     }
     this.applySelected(this.bus.selectedId);
+    this.city.refreshShadows();
     this.city.render();
   }
 
   private addBuilding(id: string, grid: { x: number; y: number }, style: Omit<BuildingStyle, "seed">): void {
     const { group, meshes } = this.factory.build({ ...style, seed: seedFromId(id) });
     group.position.set(grid.x, 0, grid.y);
+    for (const m of meshes) m.castShadow = true;
     this.city.root.add(group);
     this.pickables.set(id, { id, group, meshes });
   }
