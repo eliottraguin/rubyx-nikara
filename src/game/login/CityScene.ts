@@ -15,6 +15,8 @@ import {
   MeshBasicMaterial,
   MeshLambertMaterial,
   OrthographicCamera,
+  PCFShadowMap,
+  PCFSoftShadowMap,
   PlaneGeometry,
   RepeatWrapping,
   Scene,
@@ -82,6 +84,17 @@ const DEFAULT_ZOOM = 3.2;
 const DEFAULT_TARGET = { x: 4, z: 4 };
 const easeInOutCubic = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
+/** Ombres : budget GPU (ADR 0002 : >= 30 images/s sur portable sans GPU dédié). */
+export interface ShadowOptions {
+  /** Emprise de la ville (plan XZ) que la lumière doit couvrir. */
+  bounds: { x: number; z: number; w: number; h: number };
+  /** Côté de la shadow map au niveau de qualité maximal (défaut 1024). */
+  mapSize?: number;
+}
+const SHADOW_SLOW_DT = 1 / 26; // sous ~26 images/s en moyenne : on dégrade
+const SHADOW_WARMUP_FRAMES = 30;
+const SHADOW_SLOW_FRAMES = 60;
+
 export class CityScene {
   private readonly renderer: WebGLRenderer;
   private readonly scene = new Scene();
@@ -91,13 +104,26 @@ export class CityScene {
   private raf = 0;
   private last = 0;
   private readonly reduceMotion: boolean;
+  private readonly baseOffset: Vector3;
   private readonly cameraOffset: Vector3;
+  private yawAngle = 0;
   private zoomRaf = 0;
   private cancelZoom: (() => void) | null = null;
+  private readonly tickHandlers = new Set<(dt: number) => void>();
+  private readonly lookAtPoint = new Vector3(0, 0, 0);
+  private readonly sun: DirectionalLight;
+  private shadowLevel = -1; // -1 = ombres inactives, 0 = PCFSoft pleine taille, 1 = PCF réduit, 2 = coupées
+  private shadowMapSize = 1024;
+  private slowFrames = 0;
+  private frames = 0;
 
+  /**
+   * `plan: null` = scène nue (sol, lumière, caméra, boucle) : la vue de jeu (`MapView`) y ajoute sa propre ville
+   * sans décor de connexion (ADR 0002 : un seul moteur, `CityScene` est le socle).
+   */
   constructor(
     private readonly canvas: HTMLCanvasElement,
-    plan: CityPlan = planCity(2024),
+    plan: CityPlan | null = planCity(2024),
   ) {
     this.reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     this.renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -108,15 +134,130 @@ export class CityScene {
     const horiz = Math.cos(ISO_ELEVATION) * d;
     this.camera.position.set(horiz * Math.SQRT1_2, Math.sin(ISO_ELEVATION) * d, horiz * Math.SQRT1_2);
     this.camera.lookAt(0, 0, 0);
-    this.cameraOffset = this.camera.position.clone();
+    this.baseOffset = this.camera.position.clone();
+    this.cameraOffset = this.baseOffset.clone();
 
     this.scene.add(new AmbientLight("#ffffff", 1.4));
-    const sun = new DirectionalLight("#fff4dd", 1.6);
-    sun.position.set(20, 40, 10);
-    this.scene.add(sun);
-    this.buildCity(plan);
-    this.buildClouds(plan);
+    this.sun = new DirectionalLight("#fff4dd", 1.6);
+    this.sun.position.set(20, 40, 10);
+    this.scene.add(this.sun, this.sun.target);
+    if (plan) {
+      this.buildCity(plan);
+      this.buildClouds(plan);
+    }
     this.resize();
+  }
+
+  /** Points d'extension pour une scène de jeu (affichage seulement) : racine 3D, caméra, ressources, boucle. */
+  get root(): Scene {
+    return this.scene;
+  }
+  get orthoCamera(): OrthographicCamera {
+    return this.camera;
+  }
+  get reducedMotion(): boolean {
+    return this.reduceMotion;
+  }
+  /** Libère la ressource avec la scène (`dispose()` complet : géométries, matériaux, textures). */
+  own<T extends { dispose(): void }>(o: T): T {
+    return this.track(o);
+  }
+  /**
+   * Active les ombres du soleil (opt-in : le fond de connexion reste sans ombres). Coût maîtrisé : une seule
+   * lumière, shadow map carrée modeste, frustum ajusté à `bounds`, et shadow map NON recalculée à chaque image
+   * (`refreshShadows()` après un changement de scène). Si la boucle tourne sous ~26 images/s, la qualité baisse
+   * d'un cran (map réduite + PCF simple), puis les ombres sont coupées. Aux appelants de marquer
+   * `castShadow` / `receiveShadow` sur ce qui compte.
+   */
+  enableShadows(opts: ShadowOptions): void {
+    const { bounds: b } = opts;
+    this.shadowMapSize = opts.mapSize ?? 1024;
+    const cx = b.x + b.w / 2;
+    const cz = b.z + b.h / 2;
+    const r = Math.hypot(b.w, b.h) / 2;
+    this.sun.target.position.set(cx, 0, cz);
+    this.sun.position.set(cx + 20, 40, cz + 10);
+    const cam = this.sun.shadow.camera;
+    cam.left = -r;
+    cam.right = r;
+    cam.top = r;
+    cam.bottom = -r;
+    cam.near = 1;
+    cam.far = 120;
+    cam.updateProjectionMatrix();
+    this.sun.shadow.bias = -0.0005;
+    this.sun.shadow.normalBias = 0.02;
+    this.setShadowLevel(0);
+  }
+  /** Recalcule la shadow map à la prochaine image (la ville est statique entre deux viewmodels). */
+  refreshShadows(): void {
+    this.renderer.shadowMap.needsUpdate = true;
+  }
+  /** Niveau d'ombres courant (-1 inactives, 0 plein, 1 réduit, 2 coupées) : diagnostic / tests. */
+  get shadowQuality(): number {
+    return this.shadowLevel;
+  }
+  private setShadowLevel(level: number): void {
+    const sm = this.renderer.shadowMap;
+    this.shadowLevel = level;
+    sm.enabled = level < 2;
+    sm.autoUpdate = false;
+    sm.type = level === 0 ? PCFSoftShadowMap : PCFShadowMap;
+    this.sun.castShadow = level < 2;
+    const size = level === 0 ? this.shadowMapSize : Math.max(256, this.shadowMapSize >> 1);
+    if (this.sun.shadow.mapSize.x !== size) {
+      this.sun.shadow.map?.dispose();
+      this.sun.shadow.map = null;
+      this.sun.shadow.mapSize.set(size, size);
+    }
+    sm.needsUpdate = true;
+    this.scene.traverse((o) => {
+      const m = (o as Mesh).material as Material | Material[] | undefined;
+      for (const x of Array.isArray(m) ? m : m ? [m] : []) x.needsUpdate = true; // recompilation du programme
+    });
+    this.slowFrames = 0;
+    this.frames = 0;
+  }
+  private watchFrameCost(dt: number): void {
+    if (this.shadowLevel < 0 || this.shadowLevel >= 2 || dt <= 0) return;
+    if (++this.frames <= SHADOW_WARMUP_FRAMES) return;
+    this.slowFrames = dt > SHADOW_SLOW_DT ? this.slowFrames + 1 : Math.max(0, this.slowFrames - 1);
+    if (this.slowFrames >= SHADOW_SLOW_FRAMES) this.setShadowLevel(this.shadowLevel + 1);
+  }
+  /** Appelé à chaque image (jamais en `prefers-reduced-motion` : la boucle n'y tourne pas). */
+  addTick(fn: (dt: number) => void): () => void {
+    this.tickHandlers.add(fn);
+    return () => this.tickHandlers.delete(fn);
+  }
+  /** Rendu à la demande (nécessaire en `prefers-reduced-motion`, où il n'y a pas de boucle). */
+  render(): void {
+    this.renderer.render(this.scene, this.camera);
+  }
+  /** Cadrage instantané : point visé (plan XZ) et zoom caméra. */
+  setView(target: { x: number; z: number }, zoom: number): void {
+    this.lookAtPoint.set(target.x, 0, target.z);
+    this.camera.zoom = zoom;
+    this.camera.position.copy(this.lookAtPoint).add(this.cameraOffset);
+    this.camera.lookAt(this.lookAtPoint);
+    this.camera.updateProjectionMatrix();
+    this.render();
+  }
+  /** Rotation de la caméra autour de l'axe vertical (radians) ; l'élévation isométrique reste fixe. */
+  get yaw(): number {
+    return this.yawAngle;
+  }
+  setYaw(angle: number): void {
+    this.yawAngle = angle;
+    this.cameraOffset.copy(this.baseOffset).applyAxisAngle(new Vector3(0, 1, 0), angle);
+    this.setView({ x: this.lookAtPoint.x, z: this.lookAtPoint.z }, this.camera.zoom);
+  }
+  /** Direction horizontale (plan XZ, unitaire) du point visé vers la caméra. */
+  get horizontalOffset(): { x: number; z: number } {
+    const l = Math.hypot(this.cameraOffset.x, this.cameraOffset.z) || 1;
+    return { x: this.cameraOffset.x / l, z: this.cameraOffset.z / l };
+  }
+  get view(): { x: number; z: number; zoom: number } {
+    return { x: this.lookAtPoint.x, z: this.lookAtPoint.z, zoom: this.camera.zoom };
   }
 
   private track<T extends { dispose(): void }>(o: T): T {
@@ -210,6 +351,8 @@ export class CityScene {
     const tick = (now: number) => {
       const dt = this.last ? Math.min((now - this.last) / 1000, 0.1) : 0;
       this.last = now;
+      this.watchFrameCost(dt);
+      for (const fn of this.tickHandlers) fn(dt);
       for (const c of this.clouds) {
         c.mesh.position.x += c.speed * dt;
         if (c.mesh.position.x > 30) c.mesh.position.x = -30;
@@ -231,7 +374,7 @@ export class CityScene {
     const zoomTo = opts.zoom ?? DEFAULT_ZOOM;
     const duration = this.reduceMotion ? REDUCED_MOTION_ZOOM_MS : (opts.durationMs ?? DEFAULT_ZOOM_MS);
     const zoomFrom = this.camera.zoom;
-    const lookAt = new Vector3(0, 0, 0);
+    const lookAt = this.lookAtPoint;
     const from = lookAt.clone();
     const to = new Vector3(target.x, 0, target.z);
     return new Promise<void>((resolve) => {
@@ -267,8 +410,11 @@ export class CityScene {
   dispose(): void {
     this.cancelZoom?.();
     cancelAnimationFrame(this.raf);
+    this.tickHandlers.clear();
     window.removeEventListener("resize", this.resize);
     for (const d of this.disposables) d.dispose();
+    this.sun.shadow.map?.dispose(); // cible de rendu de la shadow map
+    this.sun.dispose();
     this.renderer.dispose();
   }
 }
