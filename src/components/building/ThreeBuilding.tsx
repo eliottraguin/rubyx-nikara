@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type MutableRefObject } from "react";
 import type { FloorId } from "@/game/building/floors";
 import { BuildingScene } from "@/game/building/three/BuildingScene";
 import { createFpsGuard } from "@/game/map/engine";
@@ -10,7 +10,7 @@ import { createFpsGuard } from "@/game/map/engine";
  * Même repli que `ThreeMap` : sans WebGL, ou si la boucle reste sous `FPS_MIN` images/s, `onError` -> DOM seul.
  * La liste des étages (DOM) reste l'accès clavier / lecteur d'écran ; le canvas est décoratif (aria-hidden).
  */
-export default function ThreeBuilding({ selected, onSelect, onError }: { selected: FloorId | null; onSelect: (id: FloorId) => void; onError: (message: string) => void }) {
+export default function ThreeBuilding({ selected, onSelect, onError, leaveRef }: { selected: FloorId | null; onSelect: (id: FloorId) => void; onError: (message: string) => void; leaveRef?: MutableRefObject<(() => Promise<void>) | null> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<BuildingScene | null>(null);
   const selectRef = useRef(onSelect);
@@ -31,6 +31,8 @@ export default function ThreeBuilding({ selected, onSelect, onError }: { selecte
       scene = new BuildingScene(canvas, { onSelect: (id) => selectRef.current(id) });
       scene.setSelected(selectedRef.current);
       sceneRef.current = scene;
+      const built = scene;
+      if (leaveRef) leaveRef.current = () => built.leave();
     } catch (e) {
       errorRef.current(e instanceof Error ? e.message : "Erreur de rendu");
     }
@@ -52,9 +54,10 @@ export default function ThreeBuilding({ selected, onSelect, onError }: { selecte
     return () => {
       cancelAnimationFrame(raf);
       sceneRef.current = null;
+      if (leaveRef) leaveRef.current = null;
       scene?.dispose();
     };
-  }, []);
+  }, [leaveRef]);
 
   return <canvas ref={canvasRef} className="building-canvas" aria-hidden="true" data-testid="three-building" />;
 }

@@ -17,6 +17,9 @@ export interface BuildingIntents {
 
 const DRAG_THRESHOLD = 5;
 const SLAB_GAP = 0.08;
+/** Zoom de repos de la scène bureau, et zoom d'arrivée du dézoom (inverse de la transition d'entrée côté ville). */
+const REST_ZOOM = 1.6;
+const LEAVE_ZOOM = 0.9;
 const HOVER_EMISSIVE = 0.35;
 const SELECTED_EMISSIVE = 0.2;
 
@@ -45,9 +48,18 @@ export class BuildingScene {
     }
     group.position.y = -BUILDING_HEIGHT / 2; // centré sur le point visé
     this.city.root.add(group);
-    this.city.setView({ x: 0, z: 0 }, 1.6);
+    this.city.setView({ x: 0, z: 0 }, REST_ZOOM);
     this.bindPointer();
     this.city.start();
+  }
+
+  /**
+   * Dézoom animé (retour à la ville), symétrique de `MapView.enterBuilding`. `zoomToDistrict` raccourcit la durée en
+   * animations réduites (pas de coupure brute) et remplace tout zoom en cours. Ne navigue pas : l'appelant enchaîne.
+   */
+  leave(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    return this.city.zoomToDistrict({ target: { x: 0, z: 0 }, zoom: LEAVE_ZOOM });
   }
 
   /** Étage ouvert côté React (surbrillance). Ne déclenche aucune intention. */

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useState, type ReactNode } from "react";
+import { Component, useState, type MutableRefObject, type ReactNode } from "react";
 import { buildingEngine } from "@/game/building/engine";
 import type { FloorId } from "@/game/building/floors";
 
@@ -25,12 +25,12 @@ class Boundary extends Component<{ onError: () => void; children: ReactNode }, {
  * Vue d'immeuble Three.js optionnelle. Rend `null` (DOM seul, comportement actuel) si le moteur n'est pas `three`,
  * ou après tout échec (WebGL absent, scène trop lente) : jamais d'écran vide.
  */
-export function BuildingSceneHost({ selected, onSelect }: { selected: FloorId | null; onSelect: (id: FloorId) => void }) {
+export function BuildingSceneHost({ selected, onSelect, leaveRef }: { selected: FloorId | null; onSelect: (id: FloorId) => void; leaveRef?: MutableRefObject<(() => Promise<void>) | null> }) {
   const [failed, setFailed] = useState(false);
   if (buildingEngine() !== "three" || failed) return null;
   return (
     <Boundary onError={() => setFailed(true)}>
-      <ThreeBuilding selected={selected} onSelect={onSelect} onError={() => setFailed(true)} />
+      <ThreeBuilding selected={selected} onSelect={onSelect} onError={() => setFailed(true)} leaveRef={leaveRef} />
     </Boundary>
   );
 }

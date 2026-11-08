@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { FLOORS, stepFloor, type Floor, type FloorId } from "@/game/building/floors";
 import { ArchivesPanel } from "./ArchivesPanel";
 import { CourrierPanel } from "./CourrierPanel";
@@ -29,6 +29,9 @@ export interface BuildingViewProps {
   onFloorChange?: (floor: Floor | null) => void;
 }
 
+/** Plafond d'attente du dézoom : on navigue au plus tard à ce délai. */
+const LEAVE_MAX_MS = 2000;
+
 function targetIsField(t: EventTarget | null): boolean {
   return t instanceof HTMLElement && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
 }
@@ -46,20 +49,39 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
   const btns = useRef<(HTMLButtonElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const leave = useRef(onLeave);
+  const sceneLeave = useRef<(() => Promise<void>) | null>(null);
+  const leaving = useRef(false);
   useEffect(() => {
     leave.current = onLeave;
   }, [onLeave]);
+
+  /**
+   * Retour à la ville : dézoom de la scène 3D s'il y en a une, puis navigation. Jamais bloquant (course contre un
+   * délai ; sans scène / WebGL la navigation est immédiate). Un second déclenchement pendant la transition est ignoré.
+   */
+  const requestLeave = useCallback(() => {
+    if (leaving.current) return;
+    leaving.current = true;
+    setLive("Retour à la ville.");
+    const run = sceneLeave.current;
+    if (!run) {
+      leave.current();
+      return;
+    }
+    const zoom = run().catch(() => undefined);
+    const timeout = new Promise<void>((r) => setTimeout(r, LEAVE_MAX_MS));
+    void Promise.race([zoom, timeout]).then(() => leave.current());
+  }, []);
 
   useEffect(() => {
     function onKey(e: globalThis.KeyboardEvent) {
       if (e.key !== "Escape" || e.defaultPrevented || targetIsField(e.target)) return;
       e.preventDefault();
-      setLive("Retour à la ville.");
-      leave.current();
+      requestLeave();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [requestLeave]);
 
   function openFloor(i: number, conv: string | null = null) {
     const f = FLOORS[i]!;
@@ -104,12 +126,12 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
     <div className="building-view">
       <div className="building-head">
         <h1 className="h2">Votre immeuble{state.session?.company ? ` : ${state.session.company}` : ""}</h1>
-        <button type="button" className="btn btn-small" onClick={onLeave}>
+        <button type="button" className="btn btn-small" onClick={requestLeave}>
           Retour à la ville (Échap)
         </button>
       </div>
       <p className="help">Flèches haut et bas pour choisir un étage, Entrée pour l&apos;ouvrir, Échap pour revenir à la ville.</p>
-      <BuildingSceneHost selected={open} onSelect={openFloorById} />
+      <BuildingSceneHost selected={open} onSelect={openFloorById} leaveRef={sceneLeave} />
       <div className="building-body">
         <nav aria-label="Étages">
           <ul className="floor-list" onKeyDown={onKeyDown} aria-label="Liste des étages">
