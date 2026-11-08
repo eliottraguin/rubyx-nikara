@@ -56,3 +56,7 @@ data/rules/ data/fixtures/
 - **Erreurs** : `{"error": {"code", "message", "details?"}}`, messages en français ; la validation ne renvoie jamais la valeur reçue ; les erreurs internes sont génériques. Exemples : `data/fixtures/errors/`.
 - **Suppression** : `DELETE /api/session` supprime la partie et toutes ses lignes (cascade) et efface le cookie.
 - **Intégrité en base** : unicités `(session, rôle)`, `Evaluation.submission_id`, `LedgerEntry.source_action`, `ActionRun.idempotency_key` ; triggers refusant tout `UPDATE` d'une version de livrable et des champs figés d'une livraison.
+
+## Comptes de test QA (dev / démo uniquement)
+
+`uv run python -m app.cli qa-seed` crée ou réinitialise 3 comptes `@qa.rubix.test` : `qa-vierge` (sans entreprise), `qa-debutant` et `qa-expert` (entreprise déjà créée). Les identifiants sont écrits **uniquement** dans `api/var/qa-accounts.json` (0600, ignoré par git) ; ils ne sont ni affichés ni journalisés. `RUBIX_QA_PASSWORD` impose un mot de passe commun (sinon un mot de passe aléatoire par compte). La commande est idempotente (mots de passe renouvelés, parties QA recréées) et refuse de s'exécuter si `RUBIX_COOKIE_SECURE=1` (sauf `--allow-prod`).
