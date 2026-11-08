@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { GameState } from "@/lib/api/types";
 import type { FloorId } from "@/game/building/floors";
@@ -8,9 +9,15 @@ import { BuildingView } from "./BuildingView";
 let failScene: (() => void) | null = null;
 let sceneLeave: () => Promise<void> = () => Promise.resolve();
 vi.mock("./ThreeBuilding", () => ({
-  default: ({ selected, onSelect, onError, leaveRef }: { selected: FloorId | null; onSelect: (id: FloorId) => void; onError: (m: string) => void; leaveRef?: { current: (() => Promise<void>) | null } }) => {
+  default: function MockThreeBuilding({ selected, onSelect, onError, leaveRef }: { selected: FloorId | null; onSelect: (id: FloorId) => void; onError: (m: string) => void; leaveRef?: { current: (() => Promise<void>) | null } }) {
     failScene = () => onError("webgl");
-    if (leaveRef) leaveRef.current = () => sceneLeave();
+    // Comme le vrai ThreeBuilding : enregistré au montage, remis à null au démontage (échec WebGL -> navigation immédiate).
+    useEffect(() => {
+      if (leaveRef) leaveRef.current = () => sceneLeave();
+      return () => {
+        if (leaveRef) leaveRef.current = null;
+      };
+    }, [leaveRef]);
     return (
       <div data-testid="three-building" data-selected={selected ?? ""}>
         {(["toit", "pub", "courrier", "archives", "accueil"] as const).map((id) => (
