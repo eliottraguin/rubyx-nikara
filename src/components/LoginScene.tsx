@@ -2,13 +2,28 @@
 
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { FAR_POSE, ZOOM_DURATION_MS, poseAt } from '@/lib/city/camera-path';
 import { createRng, generateSkyline, parseSeed } from '@/lib/city/generate-skyline';
 
 interface LoginSceneProps {
   containerRef: React.RefObject<HTMLDivElement | null>;
+  /** Passe à true après connexion : lance le zoom vers le quartier. */
+  zoom?: boolean;
+  /** Appelé une fois le zoom terminé (immédiatement si mouvement réduit). */
+  onZoomComplete?: () => void;
 }
 
-export function LoginScene({ containerRef }: LoginSceneProps) {
+export function LoginScene({ containerRef, zoom = false, onZoomComplete }: LoginSceneProps) {
+  const zoomStartRef = useRef<number | null>(null);
+  const zoomRequestedRef = useRef(zoom);
+  const onCompleteRef = useRef(onZoomComplete);
+  useEffect(() => {
+    onCompleteRef.current = onZoomComplete;
+  }, [onZoomComplete]);
+  useEffect(() => {
+    zoomRequestedRef.current = zoom;
+  }, [zoom]);
+
   const sceneRef = useRef<{ scene: THREE.Scene; renderer: THREE.WebGLRenderer; camera: THREE.Camera; animate: () => void } | null>(null);
 
   useEffect(() => {
@@ -22,8 +37,13 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     scene.background = new THREE.Color(0x87ceeb);
 
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 9, 8);
-    camera.lookAt(0, -2, -3);
+    const applyPose = (pose: typeof FAR_POSE) => {
+      camera.position.set(pose.position.x, pose.position.y, pose.position.z);
+      camera.lookAt(pose.target.x, pose.target.y, pose.target.z);
+    };
+    applyPose(FAR_POSE);
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    let zoomDone = false;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
@@ -77,8 +97,18 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     scene.add(ground);
 
     let animationFrameId: number;
-    const animate = () => {
+    const animate = (now: number = performance.now()) => {
       animationFrameId = requestAnimationFrame(animate);
+
+      if (zoomRequestedRef.current && !zoomDone) {
+        if (zoomStartRef.current === null) zoomStartRef.current = now;
+        const progress = reducedMotion ? 1 : (now - zoomStartRef.current) / ZOOM_DURATION_MS;
+        applyPose(poseAt(progress));
+        if (progress >= 1) {
+          zoomDone = true;
+          onCompleteRef.current?.();
+        }
+      }
 
       clouds.rotation.z += 0.0001;
 
@@ -96,7 +126,7 @@ export function LoginScene({ containerRef }: LoginSceneProps) {
     window.addEventListener('resize', handleResize);
     animate();
 
-    sceneRef.current = { scene, renderer, camera, animate };
+    sceneRef.current = { scene, renderer, camera, animate: () => animate() };
 
     return () => {
       window.removeEventListener('resize', handleResize);

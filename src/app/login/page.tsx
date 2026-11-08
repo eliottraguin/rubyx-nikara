@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LoginScene } from '@/components/LoginScene';
+import { ZOOM_DURATION_MS } from '@/lib/city/camera-path';
 import styles from './login.module.css';
 
 type AuthMode = 'login' | 'register';
@@ -25,7 +26,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [entering, setEntering] = useState(false);
   const router = useRouter();
+  const navigatedRef = useRef(false);
+  const goHome = useCallback(() => {
+    if (navigatedRef.current) return;
+    navigatedRef.current = true;
+    router.push('/');
+  }, [router]);
+
+  // Filet de sécurité : si la scène ne peut pas animer (WebGL indisponible), on entre quand même.
+  useEffect(() => {
+    if (!entering) return;
+    const id = window.setTimeout(goHome, ZOOM_DURATION_MS + 1500);
+    return () => window.clearTimeout(id);
+  }, [entering, goHome]);
   const isLogin = mode === 'login';
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,7 +62,7 @@ export default function LoginPage() {
         return;
       }
       // Session lives in the httpOnly auth_token cookie set by the API.
-      router.push('/');
+      setEntering(true);
     } catch {
       setError('Impossible de joindre le serveur. Vérifiez votre connexion.');
     } finally {
@@ -63,9 +78,9 @@ export default function LoginPage() {
   return (
     <main className={styles.container}>
       <div ref={containerRef} className={styles.scene} aria-hidden="true">
-        <LoginScene containerRef={containerRef} />
+        <LoginScene containerRef={containerRef} zoom={entering} onZoomComplete={goHome} />
       </div>
-      <div className={styles.form_overlay}>
+      <div className={styles.form_overlay} style={entering ? { display: 'none' } : undefined}>
         <section className={styles.form_container} aria-labelledby="auth-title">
           <h1 id="auth-title">{isLogin ? 'Connexion' : 'Créer mon entreprise'}</h1>
           <p className={styles.subtitle}>
