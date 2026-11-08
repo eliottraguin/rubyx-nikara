@@ -145,7 +145,7 @@ export function ArchivesPanel({ state, client }: { state?: GameState; client?: P
       if (!p) return;
       const next = await api.patch(id, { version: p.version, statut: "contacte" });
       setItems((prev) => prev.map((x) => (x.id === id ? next : x)));
-      if (selected?.id === id) setSelected({ ...selected, ...next });
+      if (selected?.id === id) setSelected(next);
     } catch (e) {
       setError(msg(e));
     } finally {
