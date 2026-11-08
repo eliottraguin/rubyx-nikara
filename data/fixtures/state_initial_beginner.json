@@ -95,6 +95,149 @@
       "unlocked": true
     }
   ],
+  "agents": [],
+  "shop_catalog": [
+    {
+      "id": "scout_t1",
+      "role": "scout",
+      "tier": 1,
+      "label": "Éclaireur",
+      "price": 40,
+      "effects": {
+        "duration_multiplier": 1.0,
+        "quality_bonus": 0
+      },
+      "unlock_clients": null,
+      "unlocked": true,
+      "buyable": true
+    },
+    {
+      "id": "scout_t2",
+      "role": "scout",
+      "tier": 2,
+      "label": "Éclaireur rapide",
+      "price": 90,
+      "effects": {
+        "duration_multiplier": 0.6,
+        "quality_bonus": 5
+      },
+      "unlock_clients": 2,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "scout_t3",
+      "role": "scout",
+      "tier": 3,
+      "label": "Éclaireur spécialisé",
+      "price": 160,
+      "effects": {
+        "duration_multiplier": 0.4,
+        "quality_bonus": 10
+      },
+      "unlock_clients": 7,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "triage_t1",
+      "role": "triage",
+      "tier": 1,
+      "label": "Trieur de boîte",
+      "price": 35,
+      "effects": {
+        "duration_multiplier": 1.0,
+        "quality_bonus": 0
+      },
+      "unlock_clients": 1,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "triage_t2",
+      "role": "triage",
+      "tier": 2,
+      "label": "Trieur de boîte senior",
+      "price": 80,
+      "effects": {
+        "duration_multiplier": 0.6,
+        "quality_bonus": 5
+      },
+      "unlock_clients": 4,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "replier_t1",
+      "role": "replier",
+      "tier": 1,
+      "label": "Rédacteur",
+      "price": 45,
+      "effects": {
+        "duration_multiplier": 1.0,
+        "quality_bonus": 0
+      },
+      "unlock_clients": 2,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "replier_t2",
+      "role": "replier",
+      "tier": 2,
+      "label": "Rédacteur senior",
+      "price": 90,
+      "effects": {
+        "duration_multiplier": 0.7,
+        "quality_bonus": 5
+      },
+      "unlock_clients": 4,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "replier_t3",
+      "role": "replier",
+      "tier": 3,
+      "label": "Rédacteur spécialisé B2B",
+      "price": 150,
+      "effects": {
+        "duration_multiplier": 0.5,
+        "quality_bonus": 10
+      },
+      "unlock_clients": 11,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "ads_t1",
+      "role": "ads",
+      "tier": 1,
+      "label": "Directeur de campagne",
+      "price": 50,
+      "effects": {
+        "duration_multiplier": 1.0,
+        "quality_bonus": 0
+      },
+      "unlock_clients": 3,
+      "unlocked": false,
+      "buyable": false
+    },
+    {
+      "id": "ads_t2",
+      "role": "ads",
+      "tier": 2,
+      "label": "Directeur de campagne senior",
+      "price": 100,
+      "effects": {
+        "duration_multiplier": 0.6,
+        "quality_bonus": 5
+      },
+      "unlock_clients": 7,
+      "unlocked": false,
+      "buyable": false
+    }
+  ],
   "active_actions": [],
   "target_profile": {
     "profile_version": 1,

@@ -386,6 +386,196 @@
         "title": "AdKitOut",
         "type": "object"
       },
+      "AgentConfigOut": {
+        "properties": {
+          "context_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Note"
+          },
+          "instructions": {
+            "title": "Instructions",
+            "type": "string"
+          },
+          "tier_cap": {
+            "title": "Tier Cap",
+            "type": "integer"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "instructions",
+          "context_note",
+          "tools",
+          "tier_cap"
+        ],
+        "title": "AgentConfigOut",
+        "type": "object"
+      },
+      "AgentInstanceOut": {
+        "properties": {
+          "active_config_id": {
+            "title": "Active Config Id",
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/AgentConfigOut"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "price_paid": {
+            "title": "Price Paid",
+            "type": "integer"
+          },
+          "purchased_at": {
+            "format": "date-time",
+            "title": "Purchased At",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "tier",
+          "status",
+          "label",
+          "active_config_id",
+          "config",
+          "price_paid",
+          "purchased_at"
+        ],
+        "title": "AgentInstanceOut",
+        "type": "object"
+      },
+      "AgentInstancePatchIn": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "AgentInstancePatchIn",
+        "type": "object"
+      },
+      "AgentInstanceSummaryOut": {
+        "description": "Vue courte d'une instance, utilisée dans `GameState.agents` (docs/CONTRACTS-V2.md §8).",
+        "properties": {
+          "active_config_id": {
+            "title": "Active Config Id",
+            "type": "string"
+          },
+          "config_version": {
+            "title": "Config Version",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "tier",
+          "status",
+          "label",
+          "active_config_id",
+          "config_version"
+        ],
+        "title": "AgentInstanceSummaryOut",
+        "type": "object"
+      },
+      "AgentInstancesOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AgentInstanceOut"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AgentInstancesOut",
+        "type": "object"
+      },
       "AuthOut": {
         "properties": {
           "email": {
@@ -1847,6 +2037,14 @@
             "title": "Active Actions",
             "type": "array"
           },
+          "agents": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/AgentInstanceSummaryOut"
+            },
+            "title": "Agents",
+            "type": "array"
+          },
           "balance": {
             "$ref": "#/components/schemas/Balance"
           },
@@ -1882,6 +2080,14 @@
           },
           "session": {
             "$ref": "#/components/schemas/SessionInfo"
+          },
+          "shop_catalog": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/ShopItemOut"
+            },
+            "title": "Shop Catalog",
+            "type": "array"
           },
           "target_profile": {
             "$ref": "#/components/schemas/TargetProfileOut"
@@ -3972,6 +4178,124 @@
         "title": "SessionInfo",
         "type": "object"
       },
+      "ShopItemEffects": {
+        "properties": {
+          "duration_multiplier": {
+            "exclusiveMinimum": 0.0,
+            "title": "Duration Multiplier",
+            "type": "number"
+          },
+          "quality_bonus": {
+            "minimum": 0.0,
+            "title": "Quality Bonus",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "duration_multiplier",
+          "quality_bonus"
+        ],
+        "title": "ShopItemEffects",
+        "type": "object"
+      },
+      "ShopItemOut": {
+        "properties": {
+          "buyable": {
+            "title": "Buyable",
+            "type": "boolean"
+          },
+          "effects": {
+            "$ref": "#/components/schemas/ShopItemEffects"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "integer"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "tier": {
+            "title": "Tier",
+            "type": "integer"
+          },
+          "unlock_clients": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unlock Clients"
+          },
+          "unlocked": {
+            "title": "Unlocked",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "tier",
+          "label",
+          "price",
+          "effects",
+          "unlock_clients",
+          "unlocked",
+          "buyable"
+        ],
+        "title": "ShopItemOut",
+        "type": "object"
+      },
+      "ShopOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ShopItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "owned_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Owned Counts",
+            "type": "object"
+          }
+        },
+        "required": [
+          "items",
+          "owned_counts"
+        ],
+        "title": "ShopOut",
+        "type": "object"
+      },
+      "ShopPurchaseIn": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Item Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id"
+        ],
+        "title": "ShopPurchaseIn",
+        "type": "object"
+      },
       "StatutEvent": {
         "properties": {
           "le": {
@@ -4459,6 +4783,129 @@
         "summary": "Get Action",
         "tags": [
           "actions"
+        ]
+      }
+    },
+    "/api/agents/instances": {
+      "get": {
+        "description": "Instances possédées, triées par rôle puis date d'achat (docs/CONTRACTS-V2.md §2).",
+        "operationId": "list_instances_api_agents_instances_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentInstancesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "List Instances",
+        "tags": [
+          "économie"
+        ]
+      }
+    },
+    "/api/agents/instances/{instance_id}": {
+      "patch": {
+        "description": "Le joueur ne modifie que le surnom (`label`, ≤ 40 caractères).",
+        "operationId": "patch_instance_api_agents_instances__instance_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "instance_id",
+            "required": true,
+            "schema": {
+              "title": "Instance Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentInstancePatchIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentInstanceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Patch Instance",
+        "tags": [
+          "économie"
         ]
       }
     },
@@ -8616,6 +9063,130 @@
         "summary": "Create Session",
         "tags": [
           "session"
+        ]
+      }
+    },
+    "/api/shop": {
+      "get": {
+        "description": "Catalogue de la boutique et état d'achat (gratuit à consulter).",
+        "operationId": "get_shop_api_shop_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShopOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          }
+        },
+        "summary": "Get Shop",
+        "tags": [
+          "boutique"
+        ]
+      }
+    },
+    "/api/shop/purchase": {
+      "post": {
+        "description": "Achète une nouvelle instance au palier d'un article du catalogue. Même `Idempotency-Key` : même instance,\naucun second achat (200).",
+        "operationId": "purchase_api_shop_purchase_post",
+        "parameters": [
+          {
+            "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Obligatoire sur toute mutation (8 à 128 caractères : lettres, chiffres, _ . : -).",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShopPurchaseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentInstanceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "SESSION_REQUIRED"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "NOT_FOUND"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INSUFFICIENT_FUNDS, MESSAGE_LIMIT, ROLE_LOCKED, INVALID_STATE, VERSION_CONFLICT"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "INVALID_REQUEST ou INVALID_OUTPUT"
+          }
+        },
+        "summary": "Purchase",
+        "tags": [
+          "boutique"
         ]
       }
     },
