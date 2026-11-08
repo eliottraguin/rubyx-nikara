@@ -32,6 +32,11 @@ function reads(c: Call): Response | null {
 }
 
 describe("erreurs", () => {
+  it("signale une API indisponible quand le proxy renvoie une erreur non JSON", async () => {
+    const { client } = harness(() => new Response("Internal Server Error", { status: 500 }));
+    await expect(client.getState()).rejects.toMatchObject({ code: "NETWORK", status: 500 });
+  });
+
   it("lit { error: { code, message } } et reconnaît les 14 codes de l'API", () => {
     expect(API_ERROR_CODES).toHaveLength(14);
     for (const code of API_ERROR_CODES) expect(mapErrorCode(code), code).not.toBeNull();

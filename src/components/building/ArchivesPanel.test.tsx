@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api/types";
 import type { Prospect, ProspectDetail, ProspectsClient } from "@/lib/api/prospects";
 import { ArchivesPanel } from "./ArchivesPanel";
@@ -22,6 +22,8 @@ function fake(items: Prospect[] = [mk("a"), mk("b")]) {
 }
 
 describe("Archives", () => {
+  beforeEach(() => vi.stubEnv("NEXT_PUBLIC_API_MODE", "mock"));
+  afterEach(() => vi.unstubAllEnvs());
   it("état vide honnête et bandeau « rien n'a été envoyé »", async () => {
     render(<ArchivesPanel client={fake([])} />);
     expect(await screen.findByText(/Aucun prospect dans le carnet/)).toBeInTheDocument();

@@ -3,15 +3,15 @@
 ## Lancer
 ```
 pnpm install
-pnpm dev          # http://localhost:3000, mode mock par défaut
+pnpm dev          # http://localhost:3000, API requise
 pnpm typecheck && pnpm lint && pnpm test && pnpm build
 ```
 
 ## Mode mock ou http
-`NEXT_PUBLIC_API_MODE=mock|http` (défaut `mock`). Variable publique lue à la compilation : relancer `pnpm dev`/`pnpm build` après changement.
+`NEXT_PUBLIC_API_MODE=mock|http` (défaut `http`). Variable publique lue à la compilation : relancer `pnpm dev`/`pnpm build` après changement. Les parties mock et HTTP sont distinctes.
 
-- `mock` : `src/mocks/` simule un état minimal (partie, solde, achat d'agents, ouverture d'un lieu), gardé en mémoire et dans `localStorage` (clé `rubix-mock-server-v2`). Il ne recalcule aucune règle économique. Le parcours commande / atelier / livraison / retour est retiré (6e décision) ; la recherche du bot arrive avec UI-S1. Badge « Mode simulé » toujours visible.
-- `http` : `src/lib/api/http.ts` appelle `/api/...` (cookies inclus, `Idempotency-Key` sur chaque mutation). Il faut que `/api` soit servi sur la même origine : ajouter un `rewrites` vers l'API FastAPI dans `next.config.ts` (ex. `/api/:path*` → `http://127.0.0.1:8000/api/:path*`) ou un proxy, à décider avec P2/BE01.
+- `mock` : `src/mocks/` simule un état minimal, gardé en mémoire et dans `localStorage` (clé `rubix-mock-server-v2`). Les étages Archives, Courrier et Pub ne sont pas disponibles dans cette maquette.
+- `http` : `src/lib/api/http.ts` appelle `/api/...` (cookies inclus, `Idempotency-Key` sur chaque mutation). `next.config.ts` réécrit ces appels vers FastAPI (`RUBIX_API_URL`, par défaut `http://localhost:8000`).
 
 ## Points d'entrée
 - `src/lib/api/types.ts` : types du contrat (état, actions, évaluateur, plan du chef, erreurs stables).

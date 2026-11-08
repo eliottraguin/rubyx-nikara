@@ -266,9 +266,9 @@ export function createDraftsApi(opts: DraftsClientOptions = {}): DraftsApi {
   };
 }
 
-/** Point d'accès unique côté interface : mock hors `NEXT_PUBLIC_API_MODE=http`, chargé à la demande. */
+/** Point d'accès unique côté interface : mock explicite, chargé à la demande. */
 export function createDraftsApiForMode(): DraftsApi {
-  if (process.env.NEXT_PUBLIC_API_MODE === "http") return createDraftsApi();
+  if (process.env.NEXT_PUBLIC_API_MODE !== "mock") return createDraftsApi();
   let mock: Promise<DraftsApi> | null = null;
   const m = () => (mock ??= import("@/mocks/drafts").then((x) => x.createMockDraftsApi()));
   return {
