@@ -79,3 +79,44 @@ export function planBuilding({ seed, size, floors, roof }: PlanInput): BuildingP
     baysPerSide: Math.max(1, Math.round(side / 0.9)),
   };
 }
+
+export interface DecorPiece {
+  feature: string;
+  /** Centre de la pièce, relatif au centre de la base de l'immeuble. */
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+  h: number;
+  d: number;
+  /** `trim` = couleur de corniche ; `glass` = vitre ; sinon couleur fixe. */
+  color: "trim" | "glass" | string;
+  /** Pièce émissive (enseigne, couronne éclairée). */
+  lit?: boolean;
+}
+
+/**
+ * Détails visuels d'un niveau (champ `features` de building_v1.json) : auvent, plantes, terrasse, héliport, couronne…
+ * Pur et déterministe ; les `features` viennent du niveau serveur via l'apparence, jamais d'un calcul de niveau ici.
+ */
+export function decorFor(features: readonly string[], plan: BuildingPlan): DecorPiece[] {
+  const has = (f: string) => features.includes(f);
+  const base = plan.tiers[0]!;
+  const top = plan.tiers[plan.tiers.length - 1]!;
+  const roofY = plan.height;
+  const out: DecorPiece[] = [];
+  const front = base.size / 2;
+  if (has("awning")) out.push({ feature: "awning", x: 0, y: 0.45, z: front + 0.15, w: base.size * 0.6, h: 0.08, d: 0.35, color: "#c0392b" });
+  if (has("plants")) {
+    out.push({ feature: "plants", x: -base.size * 0.4, y: 0.15, z: front + 0.12, w: 0.25, h: 0.3, d: 0.25, color: "#3f8f4f" });
+    out.push({ feature: "plants", x: base.size * 0.4, y: 0.15, z: front + 0.12, w: 0.25, h: 0.3, d: 0.25, color: "#3f8f4f" });
+  }
+  if (has("big_lobby")) out.push({ feature: "big_lobby", x: 0, y: 0.3, z: front + 0.02, w: base.size * 0.8, h: 0.6, d: 0.06, color: "glass" });
+  if (has("rooftop_terrace") && plan.roof === "flat") out.push({ feature: "rooftop_terrace", x: 0, y: roofY + 0.07, z: 0, w: top.size * 0.7, h: 0.14, d: top.size * 0.7, color: "#8a6d4b" });
+  if (has("heliport")) out.push({ feature: "heliport", x: 0, y: roofY + 0.04, z: 0, w: top.size * 0.6, h: 0.08, d: top.size * 0.6, color: "#4a4f57" });
+  if (has("hanging_garden")) out.push({ feature: "hanging_garden", x: 0, y: base.height + 0.1, z: base.size / 2 + 0.1, w: base.size * 0.7, h: 0.2, d: 0.25, color: "#3f8f4f" });
+  if (has("panoramic_elevator")) out.push({ feature: "panoramic_elevator", x: top.size / 2 + 0.08, y: roofY / 2, z: 0, w: 0.16, h: roofY, d: 0.3, color: "glass" });
+  if (has("crown")) out.push({ feature: "crown", x: 0, y: roofY + 0.35, z: 0, w: top.size * 0.5, h: 0.7, d: top.size * 0.5, color: "#f2d45c", lit: true });
+  if (has("grand_hall")) out.push({ feature: "grand_hall", x: 0, y: 0.45, z: front + 0.2, w: base.size * 0.9, h: 0.9, d: 0.4, color: "trim" });
+  return out;
+}

@@ -121,8 +121,9 @@ export class MapView {
     const ap = appearanceFor(vm.building.level);
     // niveau de l'immeuble du joueur : lu dans le viewmodel (ap), jamais calculé ici.
     this.addBuilding(BASE_ID, vm.base.grid, {
-      size: vm.base.size,
+      size: ap.width,
       floors: ap.floors,
+      features: ap.features,
       wall: ap.wall,
       glass: ap.glass,
       trim: ap.trim,

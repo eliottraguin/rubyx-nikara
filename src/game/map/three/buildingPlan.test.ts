@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FLOOR_H, planBuilding, seedFromId } from "./buildingPlan";
+import { FLOOR_H, decorFor, planBuilding, seedFromId } from "./buildingPlan";
 
 describe("planBuilding", () => {
   it("est déterministe pour une même graine", () => {
@@ -31,5 +31,17 @@ describe("planBuilding", () => {
   it("seedFromId est stable et distingue les ids", () => {
     expect(seedFromId("a")).toBe(seedFromId("a"));
     expect(seedFromId("a")).not.toBe(seedFromId("b"));
+  });
+});
+
+describe("decorFor", () => {
+  const plan = planBuilding({ seed: 1, size: 3.2, floors: 26, roof: "flat" });
+  it("ne produit rien sans feature et reste déterministe", () => {
+    expect(decorFor([], plan)).toEqual([]);
+    expect(decorFor(["crown", "heliport"], plan)).toEqual(decorFor(["crown", "heliport"], plan));
+  });
+  it("ajoute une pièce par détail connu et ignore les inconnus", () => {
+    expect(decorFor(["heliport", "inconnu"], plan).map((d) => d.feature)).toEqual(["heliport"]);
+    expect(decorFor(["crown"], plan)[0]!.y).toBeGreaterThan(plan.height);
   });
 });

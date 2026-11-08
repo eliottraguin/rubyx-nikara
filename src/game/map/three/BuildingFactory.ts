@@ -20,7 +20,7 @@ import {
   type Material,
 } from "three";
 import type { CityScene } from "@/game/login/CityScene";
-import { FLOOR_H, planBuilding, type BuildingPlan, type RoofKind } from "./buildingPlan";
+import { FLOOR_H, decorFor, planBuilding, type BuildingPlan, type RoofKind } from "./buildingPlan";
 
 /** Largeur d'une travée de fenêtres en unités de scène. */
 const BAY_W = 0.9;
@@ -37,6 +37,8 @@ export interface BuildingStyle {
   /** Couleur des corniches et du toit plat. */
   trim: string;
   roof?: RoofKind;
+  /** Détails de l'immeuble du joueur (auvent, héliport, couronne…), issus de l'apparence du niveau. */
+  features?: readonly string[];
 }
 
 export interface BuiltBuilding {
@@ -104,7 +106,34 @@ export class BuildingFactory {
       group.add(roof);
       meshes.push(roof);
     }
+    for (const d of decorFor(style.features ?? [], plan)) {
+      const color = d.color === "trim" ? style.trim : d.color === "glass" ? style.glass : d.color;
+      const piece = new Mesh(this.box(d.w, d.h, d.d), this.decorMaterial(color, d.lit === true));
+      piece.position.set(d.x, d.y, d.z);
+      group.add(piece);
+    }
     return { group, meshes, plan };
+  }
+
+  private box(w: number, h: number, d: number): BufferGeometry {
+    const key = `box:${w.toFixed(3)}:${h.toFixed(3)}:${d.toFixed(3)}`;
+    let g = this.geos.get(key);
+    if (!g) {
+      g = this.city.own(new BoxGeometry(w, h, d));
+      this.geos.set(key, g);
+    }
+    return g;
+  }
+
+  private decorMaterial(color: string, lit: boolean): Material {
+    if (!lit) return this.flat(color);
+    const key = `lit:${color}`;
+    let m = this.mats.get(key);
+    if (!m) {
+      m = this.city.own(new MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.6 }));
+      this.mats.set(key, m);
+    }
+    return m;
   }
 
   private tierGeometry(size: number, floors: number): BufferGeometry {
