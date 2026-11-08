@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluator_rewards",
+  "title": "Récompenses calculées par le serveur depuis le score de l'évaluateur (data/evaluator/rewards_v1.json, règle 1 : jamais le modèle)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "prospection": {
+      "type": "object",
+      "properties": {
+        "reward_kind": {
+          "type": "string",
+          "const": "clients"
+        },
+        "bandes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "score_min": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "bonus": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["score_min", "bonus"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["reward_kind", "bandes"],
+      "additionalProperties": false
+    },
+    "clients": {
+      "type": "object",
+      "properties": {
+        "reward_kind": {
+          "type": "string",
+          "const": "argent"
+        },
+        "base": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "min": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formule": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["reward_kind", "base", "min", "formule"],
+      "additionalProperties": false
+    },
+    "pub": {
+      "type": "object",
+      "properties": {
+        "reward_kind": {
+          "type": "string",
+          "const": "visibilite"
+        },
+        "base": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formule": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["reward_kind", "base", "formule"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["id", "prospection", "clients", "pub"],
+  "additionalProperties": false
+}

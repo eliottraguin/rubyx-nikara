@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evaluator_examples",
+  "title": "Jeu de calibration de l'évaluateur, testé contre le fournisseur simulé (data/evaluator/examples_*.json, ticket GR3-63 D3)",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rubric_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "comment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "exemples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "metier": {
+            "type": "string",
+            "enum": ["prospection", "clients", "pub"]
+          },
+          "tag": {
+            "type": "string",
+            "enum": ["bon", "moyen", "mauvais", "injection", "essentiel_manque"]
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1
+          },
+          "messages": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "de": {
+                  "type": "string",
+                  "enum": ["client", "moi"]
+                },
+                "texte": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["de", "texte"],
+              "additionalProperties": false
+            }
+          },
+          "base_appariee": {
+            "type": "string",
+            "minLength": 1
+          },
+          "commentaire": {
+            "type": "string",
+            "minLength": 1
+          },
+          "score_attendu": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "max": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": ["min", "max"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["id", "tag", "score_attendu"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["id", "rubric_id", "comment", "exemples"],
+  "additionalProperties": false
+}
