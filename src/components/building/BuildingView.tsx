@@ -131,7 +131,10 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
         </button>
       </div>
       <p className="help">Flèches haut et bas pour choisir un étage, Entrée pour l&apos;ouvrir, Échap pour revenir à la ville.</p>
-      <BuildingSceneHost selected={open} onSelect={openFloorById} leaveRef={sceneLeave} />
+      <div className="building-layout">
+      <div className="building-stage">
+        <BuildingSceneHost selected={open} onSelect={openFloorById} leaveRef={sceneLeave} />
+      </div>
       <div className="building-body">
         <nav aria-label="Étages">
           <ul className="floor-list" onKeyDown={onKeyDown} aria-label="Liste des étages">
@@ -162,6 +165,7 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
         <div className="floor-panel" ref={panelRef} tabIndex={-1} aria-label={open ? "Étage ouvert" : undefined}>
           {panel ?? <p className="muted">Choisissez un étage pour l&apos;ouvrir.</p>}
         </div>
+      </div>
       </div>
       <p className="sr-only" role="status" aria-live="polite" data-testid="building-live">
         {live}

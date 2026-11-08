@@ -6,7 +6,7 @@ import { BuildingScene } from "@/game/building/three/BuildingScene";
 import { createFpsGuard } from "@/game/map/engine";
 
 /**
- * Scène intérieure Three.js (ADR 0003), chargée seulement si `NEXT_PUBLIC_BUILDING_ENGINE=three`.
+ * Scène intérieure Three.js (ADR 0003), moteur par défaut (`NEXT_PUBLIC_BUILDING_ENGINE=dom` pour l'éviter).
  * Même repli que `ThreeMap` : sans WebGL, ou si la boucle reste sous `FPS_MIN` images/s, `onError` -> DOM seul.
  * La liste des étages (DOM) reste l'accès clavier / lecteur d'écran ; le canvas est décoratif (aria-hidden).
  */

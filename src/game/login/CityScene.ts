@@ -33,6 +33,21 @@ import { FACADE_PALETTE, ROOF_PALETTE, planCity, type CityPlan } from "./plan";
 export const ISO_ELEVATION = Math.atan(1 / Math.SQRT2);
 const VIEW_SIZE = 22;
 
+/** Réglages optionnels du socle (fond, cadrage, lumières) : les valeurs par défaut gardent l'ancien rendu. */
+export interface CityOptions {
+  background?: string;
+  /** Dégradé de ciel plein écran (haut, bas) : remplace la couleur de fond. */
+  sky?: [string, string];
+  /** Demi-hauteur visible (unités) à zoom 1 : nombre fixe, ou fonction du rapport largeur/hauteur de l'écran. */
+  viewSize?: number | ((aspect: number) => number);
+  /** Élévation de la caméra (radians) : isométrique par défaut ; plus basse pour regarder dans une coupe d'immeuble. */
+  elevation?: number;
+  ambient?: number;
+  sun?: number;
+  /** Plafond du ratio de pixels (économie GPU). */
+  maxPixelRatio?: number;
+}
+
 function facadeTexture(color: string): CanvasTexture | null {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 64;
@@ -112,6 +127,9 @@ export class CityScene {
   private readonly tickHandlers = new Set<(dt: number) => void>();
   private readonly lookAtPoint = new Vector3(0, 0, 0);
   private readonly sun: DirectionalLight;
+  private readonly hemi: AmbientLight;
+  private viewSize: number | ((aspect: number) => number);
+  private readonly elevation: number;
   private shadowLevel = -1; // -1 = ombres inactives, 0 = PCFSoft pleine taille, 1 = PCF réduit, 2 = coupées
   private shadowMapSize = 1024;
   private slowFrames = 0;
@@ -124,21 +142,41 @@ export class CityScene {
   constructor(
     private readonly canvas: HTMLCanvasElement,
     plan: CityPlan | null = planCity(2024),
+    opts: CityOptions = {},
   ) {
     this.reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
     this.renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.scene.background = new Color("#bcd6ea");
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, opts.maxPixelRatio ?? 2));
+    this.viewSize = opts.viewSize ?? VIEW_SIZE;
+    this.scene.background = new Color(opts.background ?? "#bcd6ea");
+    if (opts.sky && typeof document !== "undefined") {
+      const c = document.createElement("canvas");
+      c.width = 2;
+      c.height = 256;
+      const g = c.getContext("2d");
+      if (g) {
+        const grad = g.createLinearGradient(0, 0, 0, 256);
+        grad.addColorStop(0, opts.sky[0]);
+        grad.addColorStop(1, opts.sky[1]);
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 2, 256);
+        const tex = new CanvasTexture(c);
+        tex.colorSpace = SRGBColorSpace;
+        this.scene.background = this.track(tex);
+      }
+    }
     this.camera = new OrthographicCamera(-VIEW_SIZE, VIEW_SIZE, VIEW_SIZE, -VIEW_SIZE, 0.1, 200);
     const d = 60;
-    const horiz = Math.cos(ISO_ELEVATION) * d;
-    this.camera.position.set(horiz * Math.SQRT1_2, Math.sin(ISO_ELEVATION) * d, horiz * Math.SQRT1_2);
+    this.elevation = opts.elevation ?? ISO_ELEVATION;
+    const horiz = Math.cos(this.elevation) * d;
+    this.camera.position.set(horiz * Math.SQRT1_2, Math.sin(this.elevation) * d, horiz * Math.SQRT1_2);
     this.camera.lookAt(0, 0, 0);
     this.baseOffset = this.camera.position.clone();
     this.cameraOffset = this.baseOffset.clone();
 
-    this.scene.add(new AmbientLight("#ffffff", 1.4));
-    this.sun = new DirectionalLight("#fff4dd", 1.6);
+    this.hemi = new AmbientLight("#ffffff", opts.ambient ?? 1.4);
+    this.scene.add(this.hemi);
+    this.sun = new DirectionalLight("#fff4dd", opts.sun ?? 1.6);
     this.sun.position.set(20, 40, 10);
     this.scene.add(this.sun, this.sun.target);
     if (plan) {
@@ -148,6 +186,21 @@ export class CityScene {
     this.resize();
   }
 
+  /** Demi-hauteur visible à zoom 1 : valeur fixe ou fonction du rapport d'aspect. */
+  setViewSize(v: number | ((aspect: number) => number)): void {
+    this.viewSize = v;
+    this.resize();
+  }
+  /** Élévation de la caméra (radians). */
+  get elevationAngle(): number {
+    return this.elevation;
+  }
+  get ambientLight(): AmbientLight {
+    return this.hemi;
+  }
+  get sunLight(): DirectionalLight {
+    return this.sun;
+  }
   /** Points d'extension pour une scène de jeu (affichage seulement) : racine 3D, caméra, ressources, boucle. */
   get root(): Scene {
     return this.scene;
@@ -337,10 +390,11 @@ export class CityScene {
     const h = this.canvas.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
     const aspect = w / h;
-    this.camera.left = -VIEW_SIZE * aspect;
-    this.camera.right = VIEW_SIZE * aspect;
-    this.camera.top = VIEW_SIZE;
-    this.camera.bottom = -VIEW_SIZE;
+    const half = typeof this.viewSize === "function" ? this.viewSize(aspect) : this.viewSize;
+    this.camera.left = -half * aspect;
+    this.camera.right = half * aspect;
+    this.camera.top = half;
+    this.camera.bottom = -half;
     this.camera.updateProjectionMatrix();
     this.renderer.render(this.scene, this.camera);
   };
@@ -415,6 +469,11 @@ export class CityScene {
     for (const d of this.disposables) d.dispose();
     this.sun.shadow.map?.dispose(); // cible de rendu de la shadow map
     this.sun.dispose();
+    // le contexte WebGL appartient au <canvas> : un second renderer (StrictMode, retour sur la page) le reprend tel quel,
+    // donc on le laisse dans son état initial (FLIP_Y actif ferait refuser la création des textures 3D vides).
+    const gl = this.renderer.getContext();
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
     this.renderer.dispose();
   }
 }

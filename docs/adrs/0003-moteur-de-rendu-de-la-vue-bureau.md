@@ -121,3 +121,11 @@ Règles d'architecture imposées :
 * [INVESTIGATE: mesurer le gate (a) à (d) sur un portable sans GPU dédié ; aucun rendu navigateur n'a été vérifié à ce jour]
 * [INVESTIGATE: aligner `engines.node` du `package.json` sur Node 22+ ou figer vitest, décision à prendre hors de cet ADR]
 * Statut : `draft`, à valider par Noah, **après** 0002.
+
+## Mise à jour du 2026-11-08 : refonte de la ville et de la coupe
+
+La demande du porteur du projet (rendu « pas à la hauteur », ville inutilisable, coupe trop pauvre) a conduit à **refaire** le rendu plutôt qu'à l'enrichir :
+
+* **Moteur par défaut.** `buildingEngine()` renvoie désormais `three` ; `NEXT_PUBLIC_BUILDING_ENGINE=dom` force le DOM. Le **repli automatique reste en place** : sans WebGL, ou si la boucle reste sous `FPS_MIN` images/s (`createFpsGuard`), la scène se retire et la liste DOM des étages continue de fonctionner. Cela déplace le défaut décidé plus haut (« DOM par défaut tant que le gate n'est pas mesuré ») : **le gate (a) à (d) n'est toujours pas mesuré sur un vrai GPU**, ce qui reste à faire.
+* **Coupe meublée.** `src/game/building/three/BuildingScene.ts` et `rooms.ts` : cinq pièces (terrasse avec héliport, studio pub, salle du courrier avec convoyeur, archives, accueil et garage), robots animés, ascenseur, lueur de survol et de sélection, caméra qui cadre l'étage ouvert. La caméra y est plus basse (24°) que l'isométrique de la ville (35°) : à 35°, la dalle du dessus masque l'intérieur de la pièce du dessous.
+* **Raccord avec la ville.** `src/game/map/handoff.ts` : l'écran qui part (connexion, bureau) dit où sa caméra s'est arrêtée, la carte reprend là puis s'éloigne.

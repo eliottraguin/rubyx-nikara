@@ -1,3 +1,5 @@
+> **Mise à jour 2026-11-08** : l'accueil `/` est maintenant la page de connexion, la ville et la coupe d'immeuble ont été refaites et la coupe Three.js est le moteur par défaut. Les étapes ci-dessous restent valables ; le moteur « DOM par défaut » mentionné plus bas est devenu le repli.
+
 # QA parcours complet : connexion → ville → bureau → retour → déconnexion (GR3-42)
 
 Base : `agent/epic3-bureau-threejs` @ `80b142a` (PR #8, **à ne jamais fusionner** depuis cette tâche). Auteur : Game Designer / QA.
@@ -16,7 +18,7 @@ Je n'ai lancé ni `pnpm test`, ni `typecheck`, ni `lint`, ni `build` pour cette 
 ## 2. Parcours manuel (humain, navigateur avec WebGL et GPU)
 
 Préparation : back-end et front lancés selon `README.md`. `qa-seed` est la **commande** (`uv run python -m app.cli qa-seed`, depuis `api/`) qui crée les comptes de test ; ce n'est pas un identifiant de connexion. Comptes créés : `qa-vierge` (sans entreprise), `qa-debutant`, `qa-expert` (adresses `@qa.rubix.test`). Mots de passe : `api/var/qa-accounts.json` (fichier 0600, hors dépôt). Ne les copiez ni dans le dépôt ni dans un commentaire.
-Deux passes complètes : **A** sans variable (moteur DOM, défaut) ; **B** avec `NEXT_PUBLIC_BUILDING_ENGINE=three` (variable lue au build/démarrage : relancer `pnpm dev`). Ouvrir DevTools (console + Performance) dans les deux passes.
+Deux passes complètes : **A** moteur par défaut (Three.js, depuis la refonte du 2026-11-08) ; **B** avec `NEXT_PUBLIC_BUILDING_ENGINE=dom` (variable lue au build/démarrage : relancer `pnpm dev`). `NEXT_PUBLIC_MOCK_SESSION=1` ouvre le mode simulé avec une partie déjà en cours. Ouvrir DevTools (console + Performance) dans les deux passes.
 
 | # | Action | Résultat attendu (A et B sauf mention) |
 |---|---|---|

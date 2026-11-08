@@ -5,7 +5,7 @@ import { Component, useState, type MutableRefObject, type ReactNode } from "reac
 import { buildingEngine } from "@/game/building/engine";
 import type { FloorId } from "@/game/building/floors";
 
-/** Three.js n'est chargé que si le drapeau est posé (jamais par défaut : gate ADR 0002 non mesuré). */
+/** Three.js n'est chargé que si le moteur est `three` (défaut) et seulement côté navigateur. */
 const ThreeBuilding = dynamic(() => import("./ThreeBuilding"), { ssr: false });
 
 class Boundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
