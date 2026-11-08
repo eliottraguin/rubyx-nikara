@@ -22,6 +22,8 @@ import { CityScene } from "@/game/login/CityScene";
 import { appearanceFor } from "../building";
 import { BuildingFactory, type BuildingStyle } from "./BuildingFactory";
 import { seedFromId } from "./buildingPlan";
+import { LAYOUT } from "../layout";
+import { buildDecor } from "./DecorScene";
 import type { MapBus } from "../bus";
 import type { MapViewModel, PlanetStatus } from "../viewmodel";
 
@@ -62,9 +64,10 @@ export class MapView {
   ) {
     this.city = new CityScene(canvas, null);
     this.factory = new BuildingFactory(this.city);
+    buildDecor(this.city, LAYOUT);
     const ground = new Mesh(
       this.city.own(new PlaneGeometry(200, 200)),
-      this.city.own(new MeshLambertMaterial({ color: "#a9c48f" })),
+      this.city.own(new MeshLambertMaterial({ color: "#8fb07a" })),
     );
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.01;
