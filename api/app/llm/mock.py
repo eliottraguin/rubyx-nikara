@@ -50,6 +50,10 @@ class MockLLMAdapter(LLMAdapter):
             from .mock_relevance import build_triage_json
 
             return self._response(request, build_triage_json({**request.metadata["relevance"], "purpose": request.purpose}), digest)
+        if title in ("PromptEvaluation", "NegotiationEvaluation"):  # évaluateur simulé (rôle `evaluator`, GR3-63/D3) : note la consigne seule ou le fil côté joueur
+            from .mock_evaluator import build_evaluation_json
+
+            return self._response(request, build_evaluation_json(request.metadata.get("evaluator", {}), title), digest)
         if title == "AdKit":  # kit de campagne simulé (rôle `ads`) : uniquement des éléments de la fiche entreprise
             from .mock_ads import build_kit_json
 
