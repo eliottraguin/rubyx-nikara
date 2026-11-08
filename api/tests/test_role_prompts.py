@@ -59,7 +59,8 @@ def test_evaluator_explicitly_documents_the_v2_change_versus_the_old_rule():
     """`docs/CONTRACTS.md` 29g (cap prospection) excluait l'évaluateur de la fiche ; `docs/CONTRACTS-V2.md` §11 (D2)
     l'y inclut désormais : le fichier de rôle doit le dire, pour que personne ne réintroduise l'ancienne règle."""
     role = load_role("evaluator")
-    assert "nouveau pour l'évaluateur en V2" in " ".join(role["accessible_information"])
+    joined = " ".join(role["accessible_information"]).lower()
+    assert "fiche entreprise" in joined  # la version fusionnée (GR3-63) dit « résumé minimisé de la fiche entreprise »
 
 
 def test_evaluator_never_fixes_a_reward_and_refuses_score_manipulation():

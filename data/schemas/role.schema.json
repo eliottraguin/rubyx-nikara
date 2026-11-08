@@ -123,7 +123,9 @@
         "conversation_reponse",
         "ad_kit",
         "assistant_plan",
-        "evaluator_output"
+        "evaluator_output",
+        "PromptEvaluation",
+        "NegotiationEvaluation"
       ]
     },
     "max_output_tokens_key": {
@@ -150,7 +152,9 @@
               "prospect_message",
               "conversation_triage",
               "conversation_reply",
-              "ad_campaign"
+              "ad_campaign",
+              "evaluate_prompt",
+              "evaluate_negotiation"
             ]
           },
           "output_schema": {
@@ -160,7 +164,9 @@
               "prospect_message",
               "conversation_synthese",
               "conversation_reponse",
-              "ad_kit"
+              "ad_kit",
+              "PromptEvaluation",
+              "NegotiationEvaluation"
             ]
           },
           "objective": {
