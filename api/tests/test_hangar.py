@@ -67,7 +67,8 @@ def test_state_exposes_the_four_hangar_roles_and_the_three_starting_assistants(a
     ]
     assert h["scout"]["unlock_clients"] is None and h["scout"]["unlock_condition"] is None
     assert p.state()["clients_obtained"] == 0
-    assert not set(REMOVED) & set(h) and "agents" not in p.state()
+    assert not set(REMOVED) & set(h)
+    assert p.state()["agents"] == []  # instances d'agent (docs/CONTRACTS-V2.md §2) : aucune au départ, pas l'ancien moteur retiré
 
 
 @pytest.mark.parametrize("role", REMOVED)

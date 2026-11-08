@@ -109,6 +109,45 @@ class AgentOwnership(Base):
     purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
 
+class AgentInstance(Base):
+    """Exemplaire acheté d'un métier (`scout`/`triage`/`replier`/`ads`), plusieurs par rôle (docs/CONTRACTS-V2.md §2).
+    `active_config_id` n'a pas de clé étrangère déclarée ici (cycle avec `agent_configs`, ajoutée par la migration)."""
+
+    __tablename__ = "agent_instances"
+    __table_args__ = (Index("ix_agent_instances_session_id", "session_id"),)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("agi"))
+    session_id: Mapped[str] = _fk("game_sessions.id")
+    role: Mapped[str] = mapped_column(String, nullable=False)
+    tier: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="idle")
+    label: Mapped[str | None] = mapped_column(String)
+    active_config_id: Mapped[str | None] = mapped_column(String)
+    price_paid: Mapped[int] = mapped_column(Integer, nullable=False)
+    purchased_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class AgentConfig(Base):
+    """Version immuable (trigger : aucun UPDATE, comme `prospect_drafts`) des instructions et du contexte d'une
+    instance ; la version 1 est créée automatiquement à l'achat, copiée depuis `data/roles/<role>.json`."""
+
+    __tablename__ = "agent_configs"
+    __table_args__ = (UniqueConstraint("instance_id", "version"), Index("ix_agent_configs_instance_id", "instance_id"))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: new_id("acf"))
+    instance_id: Mapped[str] = mapped_column(String, ForeignKey("agent_instances.id", ondelete="CASCADE"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    parent_id: Mapped[str | None] = mapped_column(String, ForeignKey("agent_configs.id", ondelete="CASCADE"))
+    instructions: Mapped[str] = mapped_column(Text, nullable=False)
+    context_note: Mapped[str | None] = mapped_column(Text)
+    tools: Mapped[list] = mapped_column(JSON, nullable=False, default=list)
+    tier_cap: Mapped[int] = mapped_column(Integer, nullable=False)
+    price_paid: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    created_by: Mapped[str] = mapped_column(String, nullable=False)  # system | orchestrator
+    action_id: Mapped[str | None] = mapped_column(String)  # pas de FK : un UPDATE (SET NULL) violerait l'immutabilité
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
 class ActionRun(Base):
     __tablename__ = "action_runs"
     # Clé d'idempotence unique PAR SESSION (migration 0002) : une clé d'une autre partie ne collisionne jamais.

@@ -25,6 +25,7 @@ class ErrorCode(StrEnum):
     PLANET_LOCKED = "PLANET_LOCKED"  # 409 recherche : lieu pas encore débloqué (docs/CONTRACTS.md §11)
     PROFILE_INCOMPLETE = "PROFILE_INCOMPLETE"  # 409 recherche : fiche entreprise et cible incomplète
     OPTED_OUT = "OPTED_OUT"  # 409 messagerie : prospect écarté ou désinscrit, envoi refusé (docs/CONTRACTS.md §5)
+    INSTANCE_LIMIT = "INSTANCE_LIMIT"  # 409 boutique : nombre maximal d'instances du rôle atteint (docs/CONTRACTS-V2.md §2)
     # Compléments BE01 (le contrat décrit ces cas sans code : à valider)
     INVALID_REQUEST = "INVALID_REQUEST"  # 422 validation d'entrée
     RATE_LIMITED = "RATE_LIMITED"  # 429 saturation
@@ -48,6 +49,7 @@ CATALOG: dict[ErrorCode, tuple[int, str]] = {
     ErrorCode.PLANET_LOCKED: (409, "Ce lieu n'est pas encore débloqué : continuez à chercher ailleurs pour l'ouvrir."),
     ErrorCode.PROFILE_INCOMPLETE: (409, "Votre fiche entreprise et cible est incomplète : renseignez au moins votre offre, vos secteurs cibles et votre zone."),
     ErrorCode.OPTED_OUT: (409, "Ce prospect a demandé à ne plus être contacté : aucun message ne peut lui être envoyé."),
+    ErrorCode.INSTANCE_LIMIT: (409, "Nombre maximal d'exemplaires de cet agent atteint."),
     ErrorCode.INVALID_REQUEST: (422, "Requête invalide."),
     ErrorCode.RATE_LIMITED: (429, "Trop de demandes en cours ; réessayez dans un instant."),
     ErrorCode.SESSION_REQUIRED: (401, "Aucune partie active : créez une partie ou reprenez-en une."),

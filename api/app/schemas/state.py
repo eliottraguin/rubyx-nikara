@@ -7,6 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .agent_instances import AgentInstanceSummaryOut, ShopItemOut
 from .common import Mode, Role
 from .profile import TargetProfileOut
 from .searches import PlanetView
@@ -74,6 +75,8 @@ class GameState(BaseModel):
     session: SessionInfo
     balance: Balance
     hangar: list[HangarAgentView] = []  # hangar du cap prospection : scout, triage, replier, ads (+ assistants)
+    agents: list[AgentInstanceSummaryOut] = []  # instances possédées (docs/CONTRACTS-V2.md §2), tous rôles
+    shop_catalog: list[ShopItemOut] = []  # catalogue de la boutique, identique à `GET /api/shop` (lecture seule ici)
     active_actions: list[ActiveActionView] = []
     target_profile: TargetProfileOut  # fiche entreprise et cible courante (versionnée ; PUT /api/profile)
     clients_obtained: int  # prospects distincts devenus clients et payés (source : ledger) ; pilote déblocages et immeuble

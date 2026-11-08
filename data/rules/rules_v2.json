@@ -10,6 +10,7 @@
     "assistant_clients",
     "assistant_pub"
   ],
+  "agents_max_instances_per_role": 3,
   "agents": [
     {
       "id": "scout",

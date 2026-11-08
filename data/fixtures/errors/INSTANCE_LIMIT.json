@@ -1,0 +1,9 @@
+{
+  "http_status": 409,
+  "body": {
+    "error": {
+      "code": "INSTANCE_LIMIT",
+      "message": "Nombre maximal d'exemplaires de cet agent atteint."
+    }
+  }
+}

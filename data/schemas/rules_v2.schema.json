@@ -40,6 +40,10 @@
       },
       "minItems": 1
     },
+    "agents_max_instances_per_role": {
+      "type": "integer",
+      "minimum": 1
+    },
     "agents": {
       "type": "array",
       "items": {
@@ -721,6 +725,7 @@
     "client_reward",
     "initial_agents",
     "agents",
+    "agents_max_instances_per_role",
     "real_mode_waives_clients_unlock",
     "planets",
     "prospect_actions",
