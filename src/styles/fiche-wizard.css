@@ -1,0 +1,46 @@
+/* Assistant pas à pas de la fiche entreprise (UI-H1). Isolé de globals.css (PLAN-V2 §6 règle 7). */
+
+.fiche-meter { height: .5rem; border-radius: 999px; background: var(--accent-soft); overflow: hidden; margin: .3rem 0 .2rem; }
+.fiche-meter-bar { height: 100%; background: var(--accent); border-radius: 999px; transition: width .4s ease; }
+
+.fiche-progress { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 1rem; padding: 0; counter-reset: none; }
+.fiche-progress-item {
+  font: inherit; display: flex; align-items: center; gap: .4rem; min-height: 40px; padding: .35rem .8rem .35rem .4rem;
+  border: 2px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--muted); cursor: pointer;
+  font-weight: 600; transition: background .2s, border-color .2s, color .2s;
+}
+.fiche-progress-item:disabled { cursor: not-allowed; opacity: .55; }
+.fiche-progress-item.is-faite { color: var(--ok); border-color: var(--ok); }
+.fiche-progress-item.is-courante { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.fiche-progress-num {
+  display: inline-flex; align-items: center; justify-content: center; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  background: var(--line); color: var(--ink); font-size: .8rem; flex: none;
+}
+.fiche-progress-item.is-faite .fiche-progress-num { background: var(--ok); color: #fff; }
+.fiche-progress-item.is-courante .fiche-progress-num { background: var(--accent); color: #fff; }
+
+.fiche-wizard-layout { display: grid; gap: 1.25rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .fiche-wizard-layout { grid-template-columns: minmax(0, 1fr) 18rem; } }
+.fiche-step { min-width: 0; }
+.fiche-step h2:focus { outline: none; }
+.fiche-step h2:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+.fiche-secteurs-grid { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); margin-bottom: .6rem; }
+.fiche-secteurs-grid .choice { margin-bottom: 0; transition: background .15s, border-color .15s, transform .1s; }
+.fiche-secteurs-grid .choice:active { transform: scale(.98); }
+
+.fiche-chip { display: inline-flex; align-items: center; font-size: .85rem; padding: .2rem .6rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.fiche-chip-btn { font: inherit; border: 1px solid var(--line); cursor: pointer; background: var(--paper); color: var(--muted); }
+.fiche-chip-btn:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* Carte de visite : aperçu en direct */
+.bc { position: sticky; top: 1rem; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; min-width: 0; }
+.bc-eyebrow { margin: 0 0 .5rem; font-size: .78rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.bc-nom { margin: 0 0 .3rem; font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+.bc-offre { margin: 0 0 .6rem; color: var(--muted); font-size: .92rem; overflow-wrap: anywhere; }
+.bc-chips { list-style: none; margin: 0 0 .6rem; padding: 0; display: flex; flex-wrap: wrap; gap: .3rem; }
+.bc-zone, .bc-ton { margin: 0 0 .3rem; font-size: .9rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fiche-meter-bar, .fiche-progress-item, .fiche-secteurs-grid .choice { transition: none; }
+}
