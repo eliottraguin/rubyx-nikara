@@ -1,7 +1,7 @@
 import { PertinenceBadge } from "@/components/search/PertinenceBadge";
 import { DEFAULT_ORDER, fiabiliteLabel, statutLabel, type Prospect, type ProspectOrdre, type ProspectTri } from "@/lib/api/prospects";
 
-const COLS: { tri: ProspectTri; label: string }[] = [
+export const COLS: { tri: ProspectTri; label: string }[] = [
   { tri: "entreprise", label: "Entreprise" },
   { tri: "statut", label: "Statut" },
   { tri: "pertinence", label: "Correspondance" },
