@@ -1,24 +1,49 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import type { CityScene, ZoomOptions } from "@/game/login/CityScene";
+
+/** Poignée impérative exposée au parent (écran de connexion, puis scène cible GR3-17 / GR3-35). */
+export interface CityBackdropHandle {
+  /** Zoom caméra vers la vue de quartier ; résolu à la fin. Résolu aussitôt si WebGL est indisponible. */
+  zoomToDistrict(opts?: ZoomOptions): Promise<void>;
+}
 
 /**
  * Fond décoratif (ville isométrique + nuages) placé sous le formulaire de connexion.
  * Three.js est chargé à la demande ; sans WebGL, le fond uni du conteneur reste affiché.
  */
-export function CityBackdrop({ seed = 2024 }: { seed?: number }) {
+export const CityBackdrop = forwardRef<CityBackdropHandle, { seed?: number }>(function CityBackdrop(
+  { seed = 2024 },
+  handle,
+) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const sceneRef = useRef<CityScene | null>(null);
+
+  useImperativeHandle(
+    handle,
+    () => ({
+      zoomToDistrict: (opts) => {
+        const s = sceneRef.current;
+        if (!s) {
+          opts?.onZoomEnd?.();
+          return Promise.resolve();
+        }
+        return s.zoomToDistrict(opts);
+      },
+    }),
+    [],
+  );
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
     let disposed = false;
-    let scene: { dispose(): void } | null = null;
     void Promise.all([import("@/game/login/CityScene"), import("@/game/login/plan")])
       .then(([{ CityScene }, { planCity }]) => {
         if (disposed) return;
         const s = new CityScene(canvas, planCity(seed));
-        scene = s;
+        sceneRef.current = s;
         s.start();
       })
       .catch(() => {
@@ -26,7 +51,8 @@ export function CityBackdrop({ seed = 2024 }: { seed?: number }) {
       });
     return () => {
       disposed = true;
-      scene?.dispose();
+      sceneRef.current?.dispose();
+      sceneRef.current = null;
     };
   }, [seed]);
 
@@ -38,4 +64,4 @@ export function CityBackdrop({ seed = 2024 }: { seed?: number }) {
       style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: -1, background: "#bcd6ea" }}
     />
   );
-}
+});

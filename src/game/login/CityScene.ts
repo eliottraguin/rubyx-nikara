@@ -19,6 +19,7 @@ import {
   RepeatWrapping,
   Scene,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
   type BufferGeometry,
   type Material,
@@ -60,6 +61,27 @@ function cloudTexture(): CanvasTexture | null {
   return new CanvasTexture(canvas);
 }
 
+/** Réglages du zoom caméra (vue très haute -> vue de quartier). */
+export interface ZoomOptions {
+  /** Point de la ville visé (plan XZ, unités de scène). Défaut : un quartier légèrement décentré. */
+  target?: { x: number; z: number };
+  /** Facteur de zoom final de la caméra orthographique (1 = vue très haute). Défaut 3,2. */
+  zoom?: number;
+  /** Durée en ms. Raccourcie (REDUCED_MOTION_ZOOM_MS) en `prefers-reduced-motion`. Défaut 1400. */
+  durationMs?: number;
+  /**
+   * Appelé quand la caméra atteint la vue de quartier, AVANT la résolution de la promesse. Point d'accroche
+   * pour la scène cible (GR3-17 / GR3-35) : s'y brancher pour enchaîner sans refaire l'animation.
+   */
+  onZoomEnd?: () => void;
+}
+
+export const DEFAULT_ZOOM_MS = 1400;
+export const REDUCED_MOTION_ZOOM_MS = 200;
+const DEFAULT_ZOOM = 3.2;
+const DEFAULT_TARGET = { x: 4, z: 4 };
+const easeInOutCubic = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
 export class CityScene {
   private readonly renderer: WebGLRenderer;
   private readonly scene = new Scene();
@@ -69,6 +91,9 @@ export class CityScene {
   private raf = 0;
   private last = 0;
   private readonly reduceMotion: boolean;
+  private readonly cameraOffset: Vector3;
+  private zoomRaf = 0;
+  private cancelZoom: (() => void) | null = null;
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -83,6 +108,7 @@ export class CityScene {
     const horiz = Math.cos(ISO_ELEVATION) * d;
     this.camera.position.set(horiz * Math.SQRT1_2, Math.sin(ISO_ELEVATION) * d, horiz * Math.SQRT1_2);
     this.camera.lookAt(0, 0, 0);
+    this.cameraOffset = this.camera.position.clone();
 
     this.scene.add(new AmbientLight("#ffffff", 1.4));
     const sun = new DirectionalLight("#fff4dd", 1.6);
@@ -194,7 +220,52 @@ export class CityScene {
     this.raf = requestAnimationFrame(tick);
   }
 
+  /**
+   * Zoom continu de la caméra vers la vue de quartier. La promesse se résout à la fin (ou immédiatement si
+   * la scène est détruite / un autre zoom la remplace). Ne navigue pas : l'appelant enchaîne ensuite
+   * (router.push) ou branche la scène cible via `onZoomEnd`.
+   */
+  zoomToDistrict(opts: ZoomOptions = {}): Promise<void> {
+    this.cancelZoom?.();
+    const target = opts.target ?? DEFAULT_TARGET;
+    const zoomTo = opts.zoom ?? DEFAULT_ZOOM;
+    const duration = this.reduceMotion ? REDUCED_MOTION_ZOOM_MS : (opts.durationMs ?? DEFAULT_ZOOM_MS);
+    const zoomFrom = this.camera.zoom;
+    const lookAt = new Vector3(0, 0, 0);
+    const from = lookAt.clone();
+    const to = new Vector3(target.x, 0, target.z);
+    return new Promise<void>((resolve) => {
+      let start = 0;
+      let done = false;
+      const finish = (completed: boolean) => {
+        if (done) return;
+        done = true;
+        cancelAnimationFrame(this.zoomRaf);
+        this.cancelZoom = null;
+        if (completed) opts.onZoomEnd?.();
+        resolve();
+      };
+      this.cancelZoom = () => finish(false);
+      const step = (now: number) => {
+        if (done) return;
+        start ||= now;
+        const t = Math.min((now - start) / duration, 1);
+        const k = easeInOutCubic(t);
+        lookAt.lerpVectors(from, to, k);
+        this.camera.zoom = zoomFrom + (zoomTo - zoomFrom) * k;
+        this.camera.position.copy(lookAt).add(this.cameraOffset);
+        this.camera.lookAt(lookAt);
+        this.camera.updateProjectionMatrix();
+        this.renderer.render(this.scene, this.camera);
+        if (t >= 1) finish(true);
+        else this.zoomRaf = requestAnimationFrame(step);
+      };
+      this.zoomRaf = requestAnimationFrame(step);
+    });
+  }
+
   dispose(): void {
+    this.cancelZoom?.();
     cancelAnimationFrame(this.raf);
     window.removeEventListener("resize", this.resize);
     for (const d of this.disposables) d.dispose();

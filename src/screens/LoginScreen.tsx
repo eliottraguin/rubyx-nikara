@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
-import { CityBackdrop } from "@/components/login/CityBackdrop";
+import { useRef, useState, type FormEvent } from "react";
+import { CityBackdrop, type CityBackdropHandle } from "@/components/login/CityBackdrop";
 import { ErrorNote, Notice } from "@/components/ui";
 import { ApiError, isMockMode } from "@/lib/api";
 import { login, signup } from "@/lib/api/auth";
@@ -16,6 +16,7 @@ export function LoginScreen() {
   const { refresh } = useGame();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const backdrop = useRef<CityBackdropHandle>(null);
   const [pending, setPending] = useState<"login" | "signup" | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [touched, setTouched] = useState(false);
@@ -34,6 +35,8 @@ export function LoginScreen() {
         password,
       );
       await refresh();
+      // Zoom caméra (vue très haute -> quartier) AVANT la navigation. Ne doit jamais bloquer la navigation.
+      await backdrop.current?.zoomToDistrict().catch(() => undefined);
       router.push(kind === "login" && account.hasGame ? "/carte" : "/creer");
     } catch (e) {
       setError(
@@ -53,7 +56,7 @@ export function LoginScreen() {
 
   return (
     <div className="page narrow">
-      <CityBackdrop />
+      <CityBackdrop ref={backdrop} />
       <div className="card login-card">
         <h1>Connexion</h1>
         {isMockMode() ? (
