@@ -91,7 +91,9 @@ export class CityScene {
   private raf = 0;
   private last = 0;
   private readonly reduceMotion: boolean;
+  private readonly baseOffset: Vector3;
   private readonly cameraOffset: Vector3;
+  private yawAngle = 0;
   private zoomRaf = 0;
   private cancelZoom: (() => void) | null = null;
   private readonly tickHandlers = new Set<(dt: number) => void>();
@@ -114,7 +116,8 @@ export class CityScene {
     const horiz = Math.cos(ISO_ELEVATION) * d;
     this.camera.position.set(horiz * Math.SQRT1_2, Math.sin(ISO_ELEVATION) * d, horiz * Math.SQRT1_2);
     this.camera.lookAt(0, 0, 0);
-    this.cameraOffset = this.camera.position.clone();
+    this.baseOffset = this.camera.position.clone();
+    this.cameraOffset = this.baseOffset.clone();
 
     this.scene.add(new AmbientLight("#ffffff", 1.4));
     const sun = new DirectionalLight("#fff4dd", 1.6);
@@ -158,6 +161,20 @@ export class CityScene {
     this.camera.lookAt(this.lookAtPoint);
     this.camera.updateProjectionMatrix();
     this.render();
+  }
+  /** Rotation de la caméra autour de l'axe vertical (radians) ; l'élévation isométrique reste fixe. */
+  get yaw(): number {
+    return this.yawAngle;
+  }
+  setYaw(angle: number): void {
+    this.yawAngle = angle;
+    this.cameraOffset.copy(this.baseOffset).applyAxisAngle(new Vector3(0, 1, 0), angle);
+    this.setView({ x: this.lookAtPoint.x, z: this.lookAtPoint.z }, this.camera.zoom);
+  }
+  /** Direction horizontale (plan XZ, unitaire) du point visé vers la caméra. */
+  get horizontalOffset(): { x: number; z: number } {
+    const l = Math.hypot(this.cameraOffset.x, this.cameraOffset.z) || 1;
+    return { x: this.cameraOffset.x / l, z: this.cameraOffset.z / l };
   }
   get view(): { x: number; z: number; zoom: number } {
     return { x: this.lookAtPoint.x, z: this.lookAtPoint.z, zoom: this.camera.zoom };
