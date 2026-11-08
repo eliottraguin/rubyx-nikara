@@ -4,11 +4,10 @@
  *
  * AFFICHAGE seulement : aucune règle de jeu (états, prix, niveau, déblocage viennent du serveur via le viewmodel),
  * aucun appel réseau, aucun texte du modèle injecté en HTML (la scène ne dessine pas de texte).
- * Squelette : volumes simples par lieu + immeuble, sélection, survol, caméra. Bots, véhicules, coupe d'immeuble,
+ * Immeubles et façades procéduraux (BuildingFactory) par lieu + immeuble, sélection, survol, caméra. Bots, véhicules, coupe d'immeuble,
  * rues et art final : tickets suivants.
  */
 import {
-  BoxGeometry,
   Color,
   Group,
   Mesh,
@@ -21,10 +20,11 @@ import {
 } from "three";
 import { CityScene } from "@/game/login/CityScene";
 import { appearanceFor } from "../building";
+import { BuildingFactory, type BuildingStyle } from "./BuildingFactory";
+import { seedFromId } from "./buildingPlan";
 import type { MapBus } from "../bus";
 import type { MapViewModel, PlanetStatus } from "../viewmodel";
 
-const FLOOR_H = 0.6;
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 4;
 const BASE_ID = "base";
@@ -38,12 +38,15 @@ const STATUS_TINT: Record<PlanetStatus, string> = {
 interface Pickable {
   id: string;
   group: Group;
-  body: Mesh;
-  mat: MeshLambertMaterial;
+  meshes: Mesh[];
 }
+
+const PLACE_GLASS = "#cfe6f2";
+const PLACE_TRIM = "#e8e2d4";
 
 export class MapView {
   private readonly city: CityScene;
+  private readonly factory: BuildingFactory;
   private readonly pickables = new Map<string, Pickable>();
   private readonly ring: Mesh;
   private readonly raycaster = new Raycaster();
@@ -58,6 +61,7 @@ export class MapView {
     private readonly bus: MapBus,
   ) {
     this.city = new CityScene(canvas, null);
+    this.factory = new BuildingFactory(this.city);
     const ground = new Mesh(
       this.city.own(new PlaneGeometry(200, 200)),
       this.city.own(new MeshLambertMaterial({ color: "#a9c48f" })),
@@ -106,31 +110,32 @@ export class MapView {
     if (this.disposed) return;
     this.lastPlanned = vm;
     for (const p of this.pickables.values()) {
-      // à chaque nouveau viewmodel : on retire ET libère (évite la fuite mémoire WebGL, cf. ADR 0002).
+      // à chaque nouveau viewmodel : on retire l'immeuble ; géométries, matériaux et textures sont partagés et
+      // libérés par CityScene.dispose() (cf. BuildingFactory, ADR 0002).
       p.group.removeFromParent();
-      p.body.geometry.dispose();
-      p.mat.dispose();
     }
     this.pickables.clear();
     const ap = appearanceFor(vm.building.level);
-    this.addBuilding(BASE_ID, vm.base.grid, vm.base.size, ap.floors, ap.wall);
+    // niveau de l'immeuble du joueur : lu dans le viewmodel (ap), jamais calculé ici.
+    this.addBuilding(BASE_ID, vm.base.grid, {
+      size: vm.base.size,
+      floors: ap.floors,
+      wall: ap.wall,
+      glass: ap.glass,
+      trim: ap.trim,
+    });
     for (const pl of vm.places) {
-      this.addBuilding(pl.id, pl.grid, 4, pl.floors, STATUS_TINT[pl.status]);
+      this.addBuilding(pl.id, pl.grid, { size: 4, floors: pl.floors, wall: STATUS_TINT[pl.status], glass: PLACE_GLASS, trim: PLACE_TRIM });
     }
     this.applySelected(this.bus.selectedId);
     this.city.render();
   }
 
-  private addBuilding(id: string, grid: { x: number; y: number }, size: number, floors: number, color: string): void {
-    const h = Math.max(1, floors) * FLOOR_H;
-    const mat = this.city.own(new MeshLambertMaterial({ color }));
-    const body = new Mesh(this.city.own(new BoxGeometry(size, h, size)), mat);
-    body.position.y = h / 2;
-    const group = new Group();
-    group.add(body);
+  private addBuilding(id: string, grid: { x: number; y: number }, style: Omit<BuildingStyle, "seed">): void {
+    const { group, meshes } = this.factory.build({ ...style, seed: seedFromId(id) });
     group.position.set(grid.x, 0, grid.y);
     this.city.root.add(group);
-    this.pickables.set(id, { id, group, body, mat });
+    this.pickables.set(id, { id, group, meshes });
   }
 
   private applySelected(id: string | null): void {
@@ -190,10 +195,10 @@ export class MapView {
 
   private pick(ndc: Vector2): string | null {
     this.raycaster.setFromCamera(ndc, this.city.orthoCamera);
-    const bodies: Object3D[] = [...this.pickables.values()].map((p) => p.body);
+    const bodies: Object3D[] = [...this.pickables.values()].flatMap((p) => p.meshes);
     const hit = this.raycaster.intersectObjects(bodies, false)[0];
     if (!hit) return null;
-    for (const p of this.pickables.values()) if (p.body === hit.object) return p.id;
+    for (const p of this.pickables.values()) if (p.meshes.includes(hit.object as Mesh)) return p.id;
     return null;
   }
 
