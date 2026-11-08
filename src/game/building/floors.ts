@@ -2,7 +2,7 @@
  * Étages de l'immeuble du joueur (docs/VILLE-ET-BATIMENT.md §7, §8). Pur : ni React ni Phaser.
  * L'ordre est celui de la coupe, du haut vers le bas.
  */
-export type FloorId = "toit" | "pub" | "courrier" | "archives" | "accueil";
+export type FloorId = "toit" | "orchestrateur" | "pub" | "courrier" | "archives" | "accueil";
 
 export interface Floor {
   id: FloorId;
@@ -10,12 +10,13 @@ export interface Floor {
   slug: string;
   label: string;
   /** Section du produit à laquelle l'étage appartient. */
-  section: "Prospection" | "Clients" | "Pub" | "Immeuble";
+  section: "Prospection" | "Clients" | "Pub" | "Immeuble" | "Orchestrateur";
   summary: string;
 }
 
 export const FLOORS: readonly Floor[] = [
   { id: "toit", slug: "toit", label: "Toit", section: "Immeuble", summary: "Niveau de l'immeuble et total gagné." },
+  { id: "orchestrateur", slug: "orchestrateur", label: "Orchestrateur", section: "Orchestrateur", summary: "Donnez vos ordres, validez le plan, améliorez vos agents." },
   { id: "pub", slug: "pub", label: "Studio pub", section: "Pub", summary: "Contenus de pub prêts à publier, par l'agent publicitaire." },
   { id: "courrier", slug: "courrier", label: "Salle du courrier", section: "Clients", summary: "Conversations avec vos prospects, gérées par vos agents." },
   { id: "archives", slug: "archives", label: "Archives", section: "Prospection", summary: "Votre carnet de prospection." },
