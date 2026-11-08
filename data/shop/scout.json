@@ -1,0 +1,29 @@
+{
+  "role": "scout",
+  "items": [
+    {
+      "id": "scout_t1",
+      "tier": 1,
+      "label": "Éclaireur",
+      "price": 40,
+      "effects": { "duration_multiplier": 1.0, "quality_bonus": 0 },
+      "unlock_clients": null
+    },
+    {
+      "id": "scout_t2",
+      "tier": 2,
+      "label": "Éclaireur rapide",
+      "price": 90,
+      "effects": { "duration_multiplier": 0.6, "quality_bonus": 5 },
+      "unlock_clients": 2
+    },
+    {
+      "id": "scout_t3",
+      "tier": 3,
+      "label": "Éclaireur spécialisé",
+      "price": 160,
+      "effects": { "duration_multiplier": 0.4, "quality_bonus": 10 },
+      "unlock_clients": 7
+    }
+  ]
+}

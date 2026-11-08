@@ -1,0 +1,11 @@
+{
+  "id": "rubrics_prompt_v1",
+  "criteres": [
+    { "id": "clarte", "label": "Clarté de la demande", "poids": 30 },
+    { "id": "contexte", "label": "Reprend un élément de la fiche entreprise", "poids": 30 },
+    { "id": "contraintes", "label": "Précise une contrainte utile (zone, ton, délai…)", "poids": 25 },
+    { "id": "ton", "label": "Ton cohérent avec la fiche", "poids": 15 }
+  ],
+  "note_min": 0,
+  "note_max": 100
+}
