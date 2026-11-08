@@ -7,6 +7,7 @@ import { CourrierPanel } from "./CourrierPanel";
 import { PubPanel } from "./PubPanel";
 import { ToitPanel } from "./ToitPanel";
 import { AccueilPanel } from "./AccueilPanel";
+import { BuildingSceneHost } from "./BuildingSceneHost";
 import { useSearch } from "@/components/search/useSearch";
 import { useAssistant } from "@/components/assistant/useAssistant";
 import { useTips } from "@/components/search/useTips";
@@ -108,6 +109,7 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
         </button>
       </div>
       <p className="help">Flèches haut et bas pour choisir un étage, Entrée pour l&apos;ouvrir, Échap pour revenir à la ville.</p>
+      <BuildingSceneHost selected={open} onSelect={openFloorById} />
       <div className="building-body">
         <nav aria-label="Étages">
           <ul className="floor-list" onKeyDown={onKeyDown} aria-label="Liste des étages">
