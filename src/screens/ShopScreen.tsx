@@ -1,33 +1,35 @@
 "use client";
 
-import { SECTION_LABEL } from "@/components/map/BasePanel";
-import { useState } from "react";
-import { BackLink, ErrorNote, Notice, Pill, RequireSession } from "@/components/ui";
-import type { AgentView, ApiError, GameState, RoleId } from "@/lib/api";
-import { ROLE_LABEL, money } from "@/lib/format";
-import { clientsProgressText } from "@/lib/api/adapt";
-import { useGame } from "@/lib/game-context";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BackLink, Loading, RequireSession } from "@/components/ui";
+import { InstanceList } from "@/components/shop/InstanceList";
+import { ShopCatalog } from "@/components/shop/ShopCatalog";
+import { createShopApiForMode, type AgentInstance, type ShopCatalog as Catalog } from "@/lib/api/shop";
+import type { GameState } from "@/lib/api";
+import { money } from "@/lib/format";
 
 function Shop({ state }: { state: GameState }) {
-  const { mutate, busy } = useGame();
-  const [pending, setPending] = useState<RoleId | null>(null);
-  const [error, setError] = useState<ApiError | null>(null);
-  const [done, setDone] = useState<RoleId | null>(null);
+  const api = useMemo(() => createShopApiForMode(), []);
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [instances, setInstances] = useState<AgentInstance[] | null>(null);
 
-  async function buy(role: RoleId) {
-    setError(null);
-    const r = await mutate((api) => api.purchaseAgent(role));
-    setPending(null);
-    if (r.ok) setDone(role);
-    else setError(r.error);
+  const load = useCallback(async () => {
+    const [c, i] = await Promise.all([api.getCatalog(), api.listInstances()]);
+    setCatalog(c);
+    setInstances(i);
+  }, [api]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- synchronisation avec une source externe (API)
+    void load();
+  }, [load]);
+
+  function onPurchased(instance: AgentInstance) {
+    setInstances((prev) => [...(prev ?? []), instance]);
+    void load();
   }
-
-  function blocker(a: AgentView): string | null {
-    if (a.owned) return "Déjà possédé.";
-    if (!a.unlocked) return `Verrouillé : ${a.unlock_condition}.`;
-    if (a.price > state.balance.available)
-      return `Fonds insuffisants : prix ${money(a.price)}, solde disponible ${money(state.balance.available)}.`;
-    return null;
+  function onRenamed(instance: AgentInstance) {
+    setInstances((prev) => (prev ?? []).map((i) => (i.id === instance.id ? instance : i)));
   }
 
   return (
@@ -35,67 +37,16 @@ function Shop({ state }: { state: GameState }) {
       <BackLink href="/carte">Carte</BackLink>
       <h1>Boutique</h1>
       <p>
-        Solde disponible : <strong>{money(state.balance.available)}</strong>. Chaque agent s&apos;achète une seule fois ; le
-        serveur vérifie votre solde.
+        Solde disponible : <strong>{money(state.balance.available)}</strong>. Chaque instance s&apos;achète séparément ; le serveur vérifie
+        votre solde et vos droits.
       </p>
-      {done ? (
-        <Notice tone="ok" title="Achat confirmé.">
-          {ROLE_LABEL[done]} fait maintenant partie de votre équipe.
-        </Notice>
-      ) : null}
-      <ErrorNote error={error} />
-      <ul className="grid3 list">
-        {state.agents.map((a) => {
-          const why = blocker(a);
-          return (
-            <li key={a.role} className="card">
-              <h2 className="h3">{ROLE_LABEL[a.role]}</h2>
-              {a.section ? <p className="help">Section {SECTION_LABEL[a.section]}</p> : null}
-              <p>
-                <strong>{a.price === 0 ? "Gratuit" : money(a.price)}</strong>{" "}
-                {a.owned ? <Pill tone="ok">Possédé</Pill> : !a.unlocked ? <Pill>Verrouillé</Pill> : a.price > state.balance.available ? <Pill tone="warn">Fonds insuffisants</Pill> : <Pill tone="info">À acheter</Pill>}
-              </p>
-              <p>{a.teaches}</p>
-              <p className="help">Condition : {a.unlock_condition}</p>
-              {!a.owned && !a.unlocked && typeof a.unlock_clients === "number" ? (
-                <p className="help" data-testid={`progress-${a.role}`}>
-                  Progression : {clientsProgressText(state.building?.clients_obtained ?? 0, a.unlock_clients)}
-                </p>
-              ) : null}
-              {pending === a.role ? (
-                <div className="confirm" role="group" aria-label={`Confirmer l'achat de ${ROLE_LABEL[a.role]}`}>
-                  <p>
-                    Acheter <strong>{ROLE_LABEL[a.role]}</strong> pour <strong>{money(a.price)}</strong> ?
-                  </p>
-                  <button type="button" className="btn btn-primary" onClick={() => void buy(a.role)} disabled={busy}>
-                    Confirmer l&apos;achat
-                  </button>{" "}
-                  <button type="button" className="btn" onClick={() => setPending(null)}>
-                    Annuler
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={() => setPending(a.role)}
-                    disabled={!!why || busy}
-                    aria-describedby={why ? `why-${a.role}` : undefined}
-                  >
-                    Acheter
-                  </button>
-                  {why ? (
-                    <p id={`why-${a.role}`} className="help">
-                      {why}
-                    </p>
-                  ) : null}
-                </>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      {catalog ? (
+        <ShopCatalog catalog={catalog} balanceAvailable={state.balance.available} api={api} onPurchased={onPurchased} />
+      ) : (
+        <Loading label="Chargement du catalogue…" />
+      )}
+      <h2 className="h3">Vos agents</h2>
+      {instances ? <InstanceList instances={instances} api={api} onRenamed={onRenamed} /> : <Loading label="Chargement de vos agents…" />}
     </div>
   );
 }
