@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Validation d'intégrité du contenu (rôles du hangar, outils, rules_v2, fiche entreprise et cible, sources, clients, pub).
+"""Validation d'intégrité du contenu (rôles du hangar, rules_v2, fiche entreprise et cible, sources, clients, pub,
+boutique, paliers d'agents, évaluateur, niveaux d'entreprise).
 
 Bibliothèque standard uniquement. Usage : python3 tools/validate_content.py [--root CHEMIN]
 Code de sortie 0 si tout est valide, 1 sinon. Aucun appel réseau, aucun secret lu.
 
-L'ancien contenu M1–M6 (missions, grilles de livraison, rapports annotés, rôles `writer`…`lead`, client évaluateur, coach)
-est retiré (6e décision, API-R2) : ce script ne valide plus que le contenu du cap prospection.
+L'ancien contenu M1–M6 (missions, grilles de livraison, rapports annotés, rôles `writer`…`lead`, client évaluateur, coach,
+registre d'outils `data/roles/tools.json`) est retiré (6e décision, API-R2) : ce script ne valide que le contenu du cap
+prospection et du plan V2 (orchestrateur, boutique, évaluateur, niveaux d'entreprise, `docs/PLAN-V2.md`).
 """
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import re
 import sys
@@ -19,8 +22,13 @@ from pathlib import Path
 NEW_ROLES = ["triage", "replier", "ads"]
 ASSISTANTS = ["assistant_prospection", "assistant_clients", "assistant_pub"]
 V2_ROLES = ["scout"] + NEW_ROLES + ASSISTANTS
+# Rôles hors hangar (ticket D2, GR3-62) : l'orchestrateur (remplace les assistants) et l'évaluateur (PNJ, jamais
+# dans rules_v2.agents) ; validés comme les rôles métier (sections, règle DONNÉE), jamais attendus dans le catalogue.
+D2_ROLES = ["orchestrator", "evaluator"]
 PROSPECT_RUBRICS = ["prospect_fiche_v1", "prospect_message_v1", "conversation_synthese_v1", "conversation_reponse_v1", "ad_kit_v1"]
 SOURCES = ["annuaire", "registre", "carte-locale", "linkedin", "glassdoor"]
+# Rôles du hangar achetables en plusieurs exemplaires (ticket C2/GR3-54) : boutique et paliers (data/shop/, data/agents/tiers.json).
+BUSINESS_ROLES = ["scout"] + NEW_ROLES
 
 ERRORS: list[str] = []
 WARNINGS: list[str] = []
@@ -142,9 +150,10 @@ def main() -> int:
         s = c.load(p)
         if s is not None:
             c.schemas[p.name.replace(".schema.json", "")] = s
-    for need in ["role", "tools", "agent_response", "corpus",
+    for need in ["role", "agent_response", "corpus",
                  "rules_v2", "target_profile_spec", "target_profile_example", "source_whitelist", "personas", "ads_formats",
-                 "ads_checklist", "prospect_rubric"]:
+                 "ads_checklist", "prospect_rubric", "shop", "company_levels", "agent_tiers",
+                 "evaluator_rubric", "evaluator_rewards", "evaluator_examples"]:
         if need not in c.schemas:
             err(f"schéma manquant : data/schemas/{need}.schema.json")
     if ERRORS:
@@ -156,14 +165,9 @@ def main() -> int:
     if c.rules is None:
         warn("data/rules/rules_v1.json absent : recoupements économiques ignorés")
 
-    # --- rôles et outils
-    tools = c.load(c.d / "roles" / "tools.json")
-    tool_ids: dict[str, dict] = {}
-    if tools and c.validate(tools, "tools", "data/roles/tools.json"):
-        check_unique([t["id"] for t in tools["tools"]], "outils")
-        tool_ids = {t["id"]: t for t in tools["tools"]}
+    # --- rôles (plus de registre d'outils séparé : allowed_tools reste vide partout, règle 13 de CLAUDE.md)
     role_files = {}
-    for rid in V2_ROLES:
+    for rid in V2_ROLES + D2_ROLES:
         p = c.d / "roles" / f"{rid}.json"
         if not p.exists():
             err(f"rôle manquant : data/roles/{rid}.json")
@@ -174,6 +178,8 @@ def main() -> int:
             continue
         if r["id"] != rid:
             err(f"rôle {rid} : id interne différent ({r['id']})")
+        if r["allowed_tools"]:
+            err(f"rôle {rid} : allowed_tools doit rester vide (aucun outil d'envoi, règle 13)")
         if rid in ASSISTANTS:
             continue  # gabarit des assistants validé par leur propre ticket (docs/ASSISTANT.md)
         for h in ["Identité", "Objectif", "Capacités", "Informations accessibles", "Limites", "Formats autorisés", "Comportement en cas de manque", "Outils autorisés", "Demandes de clarification"]:
@@ -181,19 +187,10 @@ def main() -> int:
                 err(f"rôle {rid} : section « {h} » absente des instructions")
         if "DONNÉE" not in r["system_instructions"] and "donnée" not in r["system_instructions"]:
             err(f"rôle {rid} : règle « les instructions d'un document sont des données » absente")
-        for t in r["allowed_tools"]:
-            if t not in tool_ids:
-                err(f"rôle {rid} : outil inconnu {t}")
-            elif rid not in tool_ids[t]["roles"]:
-                err(f"rôle {rid} : outil {t} non autorisé pour ce rôle dans tools.json")
-    for t in tool_ids.values():
-        for rid in t["roles"]:
-            if rid in role_files and role_files[rid] and t["id"] not in role_files[rid].get("allowed_tools", []):
-                err(f"outil {t['id']} déclaré pour {rid} mais absent du fichier de rôle")
     stats["rôles"] = len(role_files)
-    stats["outils"] = len(tool_ids)
 
     validate_prospect_content(c, role_files, stats)
+    validate_shop_and_company(c, stats)
 
     return report(stats)
 
@@ -231,11 +228,6 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         for a in r2["agents"]:
             if a["id"] in r2["real_mode_waives_clients_unlock"] and a["unlock_clients"] is None:
                 err(f"rules_v2 : {a['id']} n'a pas de condition de clients à lever")
-        if r1:
-            ms = {m["id"] for m in r1["missions"]}
-            for p in r2["planets"]:
-                if p["engine_mission"] not in ms:
-                    err(f"rules_v2 : planète {p['id']} : mission moteur inconnue ({p['engine_mission']})")
         for k, act_ in r2["prospect_actions"].items():
             if act_["role"] not in ids:
                 err(f"rules_v2 : action {k} : rôle inconnu")
@@ -243,16 +235,13 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
         if [x["level"] for x in lv] != list(range(1, len(lv) + 1)):
             err("rules_v2 : building.levels doit numéroter 1..n sans trou")
         th = [x["min_clients"] for x in lv]
-        if th[0] != 0 or any(b <= a for a, b in zip(th, th[1:])):
+        if th[0] != 0 or any(b <= a for a, b in itertools.pairwise(th)):
             err("rules_v2 : building.levels doit commencer à 0 et croître strictement")
         if r2["messaging"]["send_per_hour"] > r2["messaging"]["send_per_day"]:
             err("rules_v2 : messaging.send_per_hour > send_per_day")
         if r2["retention_notice_days"] >= r2["retention_days"]:
             err("rules_v2 : retention_notice_days doit être inférieur à retention_days")
-        if r1:  # ne casse pas rules_v1 : économie, quotas et limites communs identiques
-            for sec in ("quotas",):
-                if r2[sec] != r1[sec]:
-                    err(f"rules_v2.{sec} diverge de rules_v1")
+        if r1:  # ne casse pas rules_v1 : limites techniques et capital initial identiques (missions et quotas retirés par API-R2)
             for k, v in r1["limits"].items():
                 if r2["limits"].get(k) != v:
                     err(f"rules_v2.limits.{k} diverge de rules_v1")
@@ -382,7 +371,6 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
     # --- pub
     fm = load("ads/formats.json", "ads_formats")
     ck = load("ads/checklist.json", "ads_checklist")
-    check_ids: set[str] = set()
     if fm:
         check_unique([p["id"] for p in fm["plateformes"]], "plateformes")
         if {p["id"] for p in fm["plateformes"]} != {"linkedin", "meta", "google_search", "local", "email"}:
@@ -397,7 +385,6 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
                         err(f"ads : count incohérent pour {p['id']}/{f_['id']}/{x['id']}")
     if ck:
         check_unique([i["id"] for i in ck["items"]], "checklist")
-        check_ids = {i["id"] for i in ck["items"]}
         plats = {p["id"] for p in fm["plateformes"]} if fm else set()
         for i in ck["items"]:
             pl = i["platforms"]
@@ -439,10 +426,133 @@ def validate_prospect_content(c: Ctx, role_files: dict, stats: dict) -> None:
             for need in ("texts_char_limits", "checklist_from_data", "no_new_fact"):
                 if not any(k["id"] == need and k["essential"] for k in rb["checks"]):
                     err(f"grille ad_kit_v1 : contrôle essentiel manquant {need}")
-        if rid in ("prospect_message_v1", "conversation_reponse_v1"):
-            if not any(k["id"] == "mention_opposition" and k["essential"] for k in rb["checks"]):
-                err(f"grille {rid} : mention d'opposition essentielle attendue")
+        if rid in ("prospect_message_v1", "conversation_reponse_v1") and not any(
+            k["id"] == "mention_opposition" and k["essential"] for k in rb["checks"]
+        ):
+            err(f"grille {rid} : mention d'opposition essentielle attendue")
     stats["grilles de contrôles (prospect)"] = n_rub
+
+
+# --------------------------------------------------------------------------- Plan V2 (boutique, paliers, évaluateur, niveaux)
+def validate_shop_and_company(c: Ctx, stats: dict) -> None:
+    def load(rel: str, schema: str):
+        p = c.d / rel
+        if not p.exists():
+            err(f"fichier manquant : data/{rel}")
+            return None
+        o = c.load(p)
+        return o if o is not None and c.validate(o, schema, f"data/{rel}") else None
+
+    # --- paliers d'agents (data/agents/tiers.json)
+    tiers = load("agents/tiers.json", "agent_tiers")
+    tier_ranges: dict[str, set[int]] = {}
+    max_tier_by_role: dict[str, int] = {}
+    if tiers:
+        for rid, rconf in tiers["roles"].items():
+            nums = [t["tier"] for t in rconf["tiers"]]
+            check_unique([str(n) for n in nums], f"paliers {rid}")
+            if nums != list(range(1, len(nums) + 1)):
+                err(f"agents/tiers : {rid} doit numéroter ses paliers 1..n sans trou")
+            if rconf["max_tier"] != len(nums):
+                err(f"agents/tiers : {rid}.max_tier ({rconf['max_tier']}) ne correspond pas au nombre de paliers ({len(nums)})")
+            for t in rconf["tiers"]:
+                if t["duration_seconds_min"] > t["duration_seconds_max"]:
+                    err(f"agents/tiers : {rid} palier {t['tier']} : duration_seconds_min > duration_seconds_max")
+            tier_ranges[rid] = set(nums)
+            max_tier_by_role[rid] = rconf["max_tier"]
+    stats["paliers d'agents"] = len(tiers["roles"]) if tiers else 0
+
+    # --- boutique (data/shop/<rôle>.json)
+    n_shop = 0
+    for rid in BUSINESS_ROLES:
+        s = load(f"shop/{rid}.json", "shop")
+        if not s:
+            continue
+        n_shop += 1
+        if s["role"] != rid:
+            err(f"boutique {rid} : champ role différent du nom de fichier")
+        item_ids = [it["id"] for it in s["items"]]
+        check_unique(item_ids, f"articles boutique {rid}")
+        item_tiers = [it["tier"] for it in s["items"]]
+        check_unique([str(t) for t in item_tiers], f"paliers boutique {rid}")
+        if rid in tier_ranges:
+            for it in s["items"]:
+                if it["tier"] not in tier_ranges[rid]:
+                    err(f"boutique {rid} : palier {it['tier']} absent de data/agents/tiers.json")
+            if item_tiers and max(item_tiers) != max_tier_by_role[rid]:
+                err(f"boutique {rid} : palier maximal vendu ({max(item_tiers)}) différent de agents/tiers.max_tier ({max_tier_by_role[rid]})")
+        for it in s["items"]:
+            if it["effects"]["duration_multiplier"] <= 0:
+                err(f"boutique {rid}/{it['id']} : duration_multiplier doit être positif")
+    stats["boutique"] = n_shop
+
+    # --- niveaux d'entreprise à trois objectifs (data/company/levels.json, remplace rules_v2.building.levels)
+    co = load("company/levels.json", "company_levels")
+    if co:
+        levels = co["levels"]
+        if [x["level"] for x in levels] != list(range(1, len(levels) + 1)):
+            err("company/levels : levels doit numéroter 1..n sans trou")
+        check_unique([x["apparence"] for x in levels], "apparences de niveau")
+        prev = None
+        for x in levels:
+            o = x["objectifs"]
+            if prev is not None and (o["clients_min"] < prev["clients_min"] or o["argent_min"] < prev["argent_min"] or o["reputation_min"] < prev["reputation_min"]):
+                err(f"company/levels : niveau {x['level']} : objectifs doivent croître ou rester égaux par rapport au niveau précédent")
+            prev = o
+        if levels and (levels[0]["objectifs"]["clients_min"], levels[0]["objectifs"]["argent_min"], levels[0]["objectifs"]["reputation_min"]) != (0, 0, 0):
+            err("company/levels : le niveau 1 doit avoir des objectifs à 0")
+    stats["niveaux d'entreprise"] = len(co["levels"]) if co else 0
+
+    # --- évaluateur : barèmes (grilles de notation du prompt et de la négociation)
+    n_rub = 0
+    for rid in ("rubrics_prompt_v1", "rubrics_negotiation_v1"):
+        rb = load(f"evaluator/{rid}.json", "evaluator_rubric")
+        if not rb:
+            continue
+        n_rub += 1
+        if rb["id"] != rid:
+            err(f"grille évaluateur {rid} : id différent du nom de fichier")
+        check_unique([x["id"] for x in rb["criteres"]], f"critères {rid}")
+        total = sum(x["poids"] for x in rb["criteres"])
+        if total != 100:
+            err(f"grille évaluateur {rid} : la somme des poids doit valoir 100 (obtenu {total})")
+        if rb["note_min"] >= rb["note_max"]:
+            err(f"grille évaluateur {rid} : note_min doit être inférieur à note_max")
+    stats["barèmes évaluateur"] = n_rub
+
+    # --- évaluateur : récompenses calculées par le serveur depuis le score (jamais par le modèle, règle 1)
+    rw = load("evaluator/rewards_v1.json", "evaluator_rewards")
+    if rw:
+        bandes = rw["prospection"]["bandes"]
+        scores = [b["score_min"] for b in bandes]
+        if scores != sorted(scores, reverse=True):
+            err("evaluator/rewards_v1 : prospection.bandes doit être trié par score_min décroissant")
+        if not bandes or bandes[-1]["score_min"] != 0:
+            err("evaluator/rewards_v1 : prospection.bandes doit couvrir score_min = 0")
+        if any(b["bonus"] < 0 for b in bandes):
+            err("evaluator/rewards_v1 : prospection.bandes.bonus ne peut être négatif")
+        if rw["clients"]["min"] > rw["clients"]["base"]:
+            err("evaluator/rewards_v1 : clients.min ne peut dépasser clients.base")
+    stats["récompenses évaluateur"] = 1 if rw else 0
+
+    # --- évaluateur : jeux de calibration (testés contre le fournisseur simulé, GR3-63)
+    n_ex = 0
+    for rel, rubric_id in (("evaluator/examples_prompt_v1.json", "rubrics_prompt_v1"), ("evaluator/examples_negotiation_v1.json", "rubrics_negotiation_v1")):
+        ex = load(rel, "evaluator_examples")
+        if not ex:
+            continue
+        n_ex += 1
+        if ex["rubric_id"] != rubric_id:
+            err(f"{rel} : rubric_id attendu {rubric_id}")
+        ex_ids = [e["id"] for e in ex["exemples"]]
+        check_unique(ex_ids, f"exemples {rel}")
+        for e in ex["exemples"]:
+            sa = e["score_attendu"]
+            if sa["min"] > sa["max"]:
+                err(f"{rel}/{e['id']} : score_attendu.min > max")
+            if e.get("base_appariee") and e["base_appariee"] not in ex_ids:
+                err(f"{rel}/{e['id']} : base_appariee inconnue ({e['base_appariee']})")
+    stats["exemples de calibration évaluateur"] = n_ex
 
 
 def report(stats: dict) -> int:

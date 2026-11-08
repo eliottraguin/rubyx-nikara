@@ -28,11 +28,12 @@ describe("disposition cosmétique de la ville (data/map/city_v1.json)", () => {
     expect(LAYOUT.bounds.maxX).toBeGreaterThan(0);
   });
 
-  it("aucun îlot, lieu ni l'immeuble ne se chevauchent, ni ne mordent sur le parc ou les fleuves", () => {
+  it("aucun îlot, lieu, bâtiment ni l'immeuble ne se chevauchent, ni ne mordent sur le parc ou les fleuves", () => {
     const rects = [
       { id: "hq", x: -2, y: -2, w: 4, h: 4 },
       ...LAYOUT.blocks,
       ...LAYOUT.places.map((p) => ({ id: p.id, x: p.grid.x - p.footprint.w / 2, y: p.grid.y - p.footprint.h / 2, w: p.footprint.w, h: p.footprint.h })),
+      ...LAYOUT.navBuildings.map((n) => ({ id: n.id, x: n.grid.x - n.footprint.w / 2, y: n.grid.y - n.footprint.h / 2, w: n.footprint.w, h: n.footprint.h })),
     ];
     const hit = (a: { x: number; y: number; w: number; h: number }, b: { x: number; y: number; w: number; h: number }) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
     for (let i = 0; i < rects.length; i++) {
@@ -47,6 +48,17 @@ describe("disposition cosmétique de la ville (data/map/city_v1.json)", () => {
     for (const id of all) expect(shortestPath(LAYOUT.graph, LAYOUT.hq.doorNode, id), id).not.toBeNull();
     for (const p of LAYOUT.places) expect(LAYOUT.graph.nodes.has(p.streetNode), p.id).toBe(true);
     expect(LAYOUT.graph.nodes.has(LAYOUT.hq.doorNode)).toBe(true);
+  });
+
+  it("place la boutique et l'évaluateur dans la ville, sans règle de jeu, avec une route distincte", () => {
+    expect(LAYOUT.navBuildings.map((n) => n.id).sort()).toEqual(["boutique", "evaluateur"]);
+    for (const n of LAYOUT.navBuildings) {
+      expect(n.name.length).toBeGreaterThan(2);
+      expect(LAYOUT.graph.nodes.has(n.streetNode), n.id).toBe(true);
+      expect(n.route.startsWith("/")).toBe(true);
+    }
+    const routes = new Set(LAYOUT.navBuildings.map((n) => n.route));
+    expect(routes.size).toBe(LAYOUT.navBuildings.length);
   });
 
   it("aucune rue ne traverse le parc", () => {

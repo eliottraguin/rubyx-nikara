@@ -127,6 +127,9 @@ class World:
     def buy(self, role: str, key: dict | None = None):
         return self.client.post("/api/agents/purchase", json={"role": role}, headers=key or self.key())
 
+    def shop_buy(self, item_id: str, key: dict | None = None):
+        return self.client.post("/api/shop/purchase", json={"item_id": item_id}, headers=key or self.key())
+
 
 def rules_copy(data_copy: Path, **limits: int) -> Settings:
     """Copie des règles avec des limites modifiées (ex. timeout court pour les tests)."""

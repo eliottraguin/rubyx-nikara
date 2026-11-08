@@ -1,0 +1,21 @@
+{
+  "role": "triage",
+  "items": [
+    {
+      "id": "triage_t1",
+      "tier": 1,
+      "label": "Trieur de boîte",
+      "price": 35,
+      "effects": { "duration_multiplier": 1.0, "quality_bonus": 0 },
+      "unlock_clients": 1
+    },
+    {
+      "id": "triage_t2",
+      "tier": 2,
+      "label": "Trieur de boîte senior",
+      "price": 80,
+      "effects": { "duration_multiplier": 0.6, "quality_bonus": 5 },
+      "unlock_clients": 4
+    }
+  ]
+}

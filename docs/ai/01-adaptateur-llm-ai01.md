@@ -1,6 +1,14 @@
 # AI01 — Adaptateur LLM : ce qu'il doit exposer (documentation uniquement)
 
-**Statut** : adaptateur réel **écrit et testé sur faux transport** (`api/app/llm/real.py`, `api/tests/test_llm_real.py`, aucun réseau). L'étape **« un appel réel réussi » reste À FAIRE par le propriétaire** avec ses accès (commande ci-dessous). Aucun fichier de secret n'a été lu. L'adaptateur `mock` reste le défaut.
+**Statut (GR3-62, D2)** : deux fichiers de rôle ajoutés, `data/roles/orchestrator.json` et `data/roles/evaluator.json`
+(`docs/CONTRACTS-V2.md` §11) — l'orchestrateur remplace les trois assistants (`assistant_prospection/clients/pub`) et
+l'évaluateur reçoit désormais la fiche entreprise (nouveau : `docs/CONTRACTS.md` 29g l'en excluait avant la 7e décision).
+**Aucun code n'a changé** : `RealLLMAdapter._system(role)` lit déjà `data/roles/<role>.json` par nom de fichier,
+sans énumération Python à étendre ; ces deux rôles sont donc chargés dès aujourd'hui, sans attendre que C1
+(orchestrateur) ou C4/GR3-63 (évaluateur) construisent leur route. Pas de nouvelle valeur ajoutée à `Role`
+(`api/app/schemas/common.py`) ni de nouvelle route : ce choix revient à ces tickets. Tests : `api/tests/test_role_prompts.py`.
+
+**Statut (GR3-61)** : fournisseur `codex` ajouté (`api/app/llm/codex.py`, `api/tests/test_llm_codex.py`), même contrat et même protocole que `real` (`api/app/llm/real.py`) — **investigation** : la relais AXIS parle directement le protocole Messages d'Anthropic en HTTP, appelable depuis le serveur Python sans pont Node ; `index.mjs` (essai isolé `@axis/sdk`) reste inutilisé, aucune dépendance Node ajoutée. Les deux fournisseurs sont **écrits et testés sur faux transport**, aucun réseau. L'étape **« un appel réel réussi » reste À FAIRE par le propriétaire** avec ses accès (commande ci-dessous, `RUBIX_LLM_PROVIDER=codex` ou `real`). Aucun fichier de secret n'a été lu. L'adaptateur `mock` reste le défaut. Rappel (`docs/OPEN-QUESTIONS.md` #65) : le groupe AXIS sondé jusqu'ici ne sert que des modèles Claude, aucun modèle « codex » à proprement parler — `codex` est le nom de fournisseur attendu par le produit (`docs/PLAN-V2.md` §5), pas un modèle distinct ; décision de modèles par rôle toujours portée par `data/llm/models.json`.
 
 ## Protocole vérifié (relais AXIS, sondée en amont)
 - Protocole **Messages d'Anthropic** : `POST {base}/v1/messages`, en-têtes `x-api-key` (et/ou `Authorization: Bearer`), `anthropic-version: 2023-06-01`, `content-type: application/json`.
@@ -10,9 +18,11 @@
 - Non vérifié : limites de débit, sorties structurées natives (on demande du JSON dans le message), conservation des données du fournisseur (étapes 6 et 8).
 
 ## Configuration et premier appel réel (propriétaire)
-Variables serveur : `RUBIX_LLM_PROVIDER=real`, `RUBIX_LLM_API_KEY` (repli : `AXIS_GATEWAY_KEY`), `RUBIX_LLM_BASE_URL` (repli : `AXIS_GATEWAY_URL` ; https hors localhost). Au démarrage, une variable manquante ou un modèle inconnu dans `data/llm/models.json` est signalé.
-Premier appel, depuis `api/`, clés déjà dans l'environnement (rien n'est affiché) :
-`RUBIX_LLM_PROVIDER=real uv run python -c "import asyncio; from app.config import Settings; from app.llm import get_adapter, LLMRequest; s=Settings.from_env(); r=asyncio.run(get_adapter('real', s).generate(LLMRequest(role='scout', context='Réponds par le mot OK.', max_output_tokens=20))); print(r.status, r.usage, r.duration_ms)"`
+Variables serveur : `RUBIX_LLM_PROVIDER=codex` (ou `real`, même protocole), `RUBIX_LLM_API_KEY` (repli : `AXIS_GATEWAY_KEY`), `RUBIX_LLM_BASE_URL` (repli : `AXIS_GATEWAY_URL` ; https hors localhost). Au démarrage, une variable manquante ou un modèle inconnu dans `data/llm/models.json` est signalé.
+Diagnostic manuel (GR3-61), depuis `api/`, clés déjà dans l'environnement (affiche seulement succès/échec, latence, tokens — jamais la clé ni le contenu) :
+`RUBIX_LLM_PROVIDER=codex uv run python -m app.cli llm-check`
+Équivalent explicite :
+`RUBIX_LLM_PROVIDER=codex uv run python -c "import asyncio; from app.config import Settings; from app.llm import get_adapter, LLMRequest; s=Settings.from_env(); r=asyncio.run(get_adapter('codex', s).generate(LLMRequest(role='scout', context='Réponds par le mot OK.', max_output_tokens=20))); print(r.status, r.usage, r.duration_ms)"`
 
 ## Interface (rappel de `docs/CONTRACTS.md`)
 Entrée : `role`, `context`, `allowed_tools`, `expected_schema`, `max_output_tokens`.

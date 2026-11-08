@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shop",
+  "title": "Catalogue de la boutique pour un métier (data/shop/<rôle>.json, ticket C2)",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": ["scout", "triage", "replier", "ads"]
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_0-9]+$"
+          },
+          "tier": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "price": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "effects": {
+            "type": "object",
+            "properties": {
+              "duration_multiplier": {
+                "type": "number",
+                "minimum": 0
+              },
+              "quality_bonus": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": ["duration_multiplier", "quality_bonus"],
+            "additionalProperties": false
+          },
+          "unlock_clients": {
+            "type": ["integer", "null"],
+            "minimum": 0
+          }
+        },
+        "required": ["id", "tier", "label", "price", "effects", "unlock_clients"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["role", "items"],
+  "additionalProperties": false
+}

@@ -100,7 +100,7 @@ Chaque point a une valeur par défaut pour que l'équipe avance.
 ## À confirmer au démarrage (hérité de la phase hackathon, toujours ouvert)
 | Sujet | Défaut retenu | À vérifier |
 |---|---|---|
-| Fournisseur LLM | Adaptateur neutre + fournisseur **simulé** d'abord | Le cahier cite « SuperFlix » (nom à confirmer). Le dépôt contient un essai `@axis/sdk` (Node, `index.mjs`) alors que l'API est Python : le SDK n'est pas utilisable tel quel. Option à évaluer : passerelle HTTP (`AXIS_GATEWAY_URL`) si son protocole est compatible — **non présumé**. Vérifier URL, modèles, clés serveur, formats de messages, sorties structurées, limites de débit, remontée des tokens. |
+| Fournisseur LLM | Adaptateur neutre + fournisseur **simulé** d'abord | Le cahier cite « SuperFlix » (nom à confirmer). **GR3-61 (2026-11-08)** : la passerelle `AXIS_GATEWAY_URL` parle HTTP, protocole Messages d'Anthropic, vérifié compatible depuis le serveur Python **sans** pont Node (`docs/ai/01-adaptateur-llm-ai01.md`) ; `@axis/sdk` (Node, `index.mjs`) reste inutilisé. Fournisseurs `real`/`codex` branchés et testés sur faux transport ; **reste à faire** : un appel réel réussi avec une vraie clé (`uv run python -m app.cli llm-check`), limites de débit, remontée des tokens en conditions réelles. |
 | Orchestrateur de Noah | Exécuteur interne du cahier | Adoption possible seulement s'il respecte contrats, traces, plafonds ; décision au 1er jalon |
 | Budget tokens | Réserve 60 M, ≤ 240 M | Conditions réelles du hackathon |
 | Rétention des données | 7 jours ou fin du hackathon | Politique effective du fournisseur |

@@ -18,6 +18,7 @@ export interface FloorZone {
 
 const COLORS: Record<FloorId, string> = {
   toit: "#4a90d9",
+  orchestrateur: "#c9484a",
   pub: "#d9548f",
   courrier: "#e0a526",
   archives: "#7a62c9",

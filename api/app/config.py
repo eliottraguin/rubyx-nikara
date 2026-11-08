@@ -14,7 +14,10 @@ from urllib.parse import urlparse
 API_DIR = Path(__file__).resolve().parent.parent
 REPO_DIR = API_DIR.parent
 
-LLM_PROVIDERS = ("mock", "real")
+LLM_PROVIDERS = ("mock", "real", "codex")
+# "real" et "codex" parlent le même protocole (relais AXIS, Messages d'Anthropic) ; "codex" est le nom de
+# fournisseur attendu par le produit (docs/PLAN-V2.md §5, AXIS/Codex), "real" reste disponible pour compatibilité.
+_LLM_PROVIDERS_NEEDING_KEY = ("real", "codex")
 LOG_FORMATS = ("json", "text")
 LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 MIN_SECRET_LENGTH = 16
@@ -116,11 +119,11 @@ class Settings:
         p: list[str] = []
         if self.llm_provider not in LLM_PROVIDERS:
             p.append(f"RUBIX_LLM_PROVIDER doit valoir l'une de : {', '.join(LLM_PROVIDERS)}.")
-        if self.llm_provider == "real" and not self.llm_api_key:
-            p.append("RUBIX_LLM_PROVIDER=real exige RUBIX_LLM_API_KEY (aucune clé par défaut).")
-        if self.llm_provider == "real":
+        if self.llm_provider in _LLM_PROVIDERS_NEEDING_KEY and not self.llm_api_key:
+            p.append(f"RUBIX_LLM_PROVIDER={self.llm_provider} exige RUBIX_LLM_API_KEY (ou AXIS_GATEWAY_KEY ; aucune clé par défaut).")
+        if self.llm_provider in _LLM_PROVIDERS_NEEDING_KEY:
             if not self.llm_base_url:
-                p.append("RUBIX_LLM_PROVIDER=real exige RUBIX_LLM_BASE_URL (ou AXIS_GATEWAY_URL).")
+                p.append(f"RUBIX_LLM_PROVIDER={self.llm_provider} exige RUBIX_LLM_BASE_URL (ou AXIS_GATEWAY_URL).")
             else:
                 u = urlparse(self.llm_base_url)
                 local = u.hostname in {"localhost", "127.0.0.1", "::1"}

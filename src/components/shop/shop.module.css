@@ -1,0 +1,36 @@
+.tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .8rem; }
+.tab { font: inherit; font-weight: 700; border: 2px solid var(--line); border-radius: 999px; padding: .3rem .8rem; min-height: 40px; background: var(--paper); color: var(--ink); cursor: pointer; }
+.tab:hover { background: var(--accent-soft); }
+.tab[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+
+.grid { display: grid; gap: .8rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); margin: 0 0 1.2rem; padding: 0; list-style: none; }
+
+.itemCard { border: 2px solid var(--line); border-radius: var(--radius); background: var(--paper); padding: .8rem .9rem; display: flex; flex-direction: column; gap: .5rem; }
+.itemCard.owned { border-color: var(--ok); }
+.itemCard.locked { opacity: .72; }
+
+.cardHead { display: flex; gap: .55rem; align-items: center; }
+.avatar { flex: none; width: 2.3rem; height: 2.3rem; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 1rem; }
+.cardTitle strong { display: block; }
+.cardTitle span { color: var(--muted); font-size: .82rem; }
+
+.stats { display: flex; flex-wrap: wrap; gap: .35rem; }
+.stat { font-size: .82rem; font-weight: 700; border-radius: 999px; padding: .15rem .55rem; background: var(--accent-soft); color: var(--accent); }
+
+.price { font-size: 1.05rem; font-weight: 700; }
+
+.confirm { border: 2px solid var(--accent); border-radius: var(--radius); padding: .6rem .8rem; background: var(--accent-soft); }
+
+.instanceGrid { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); margin: 0; padding: 0; list-style: none; }
+.instanceCard { border: 2px solid var(--line); border-radius: var(--radius); background: var(--paper); padding: .7rem .8rem; display: flex; flex-direction: column; gap: .4rem; }
+
+.statusDot { display: inline-block; width: .55rem; height: .55rem; border-radius: 50%; margin-right: .35rem; }
+.status-idle { background: var(--ok); }
+.status-busy { background: var(--warn); }
+.status-traveling { background: var(--info); }
+.status-disabled { background: var(--bad); }
+
+.labelForm { display: flex; gap: .35rem; align-items: center; }
+.labelForm input { font: inherit; flex: 1; min-width: 0; border: 2px solid var(--line); border-radius: 8px; padding: .3rem .5rem; min-height: 36px; }
+
+.emptyState { text-align: center; padding: 1.4rem 1rem; color: var(--muted); }

@@ -91,6 +91,15 @@ def populate(db, sid: str, tag: str = "a") -> None:
     db.add(ConversationMessage(conversation_id=conv.id, seq=1, sens="envoye", etat="ENVOYE", text="t"))
     db.add(ReplyDraft(conversation_id=conv.id, auteur="agent", corps="c"))
     db.add(ConversationSynthesis(conversation_id=conv.id, intention="question", urgence="normale"))
+    from app.models import AgentConfig, AgentInstance
+
+    inst = AgentInstance(session_id=sid, role="scout", tier=1, status="idle", price_paid=0)
+    db.add(inst)
+    db.flush()
+    cfg = AgentConfig(instance_id=inst.id, version=1, instructions="i", tools=[], tier_cap=2, created_by="system")
+    db.add(cfg)
+    db.flush()
+    inst.active_config_id = cfg.id
     db.commit()
 
 

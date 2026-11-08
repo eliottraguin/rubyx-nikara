@@ -23,6 +23,9 @@ def make_settings(tmp_path: Path, *, demo_secret: str | None = None, name: str =
     shutil.copytree(REPO_DIR / "data" / "ads", data / "ads", dirs_exist_ok=True)  # section Pub : formats, checklist, réglages du kit
     (data / "rubrics").mkdir(parents=True, exist_ok=True)
     shutil.copy(REPO_DIR / "data" / "rubrics" / "ad_kit_v1.json", data / "rubrics" / "ad_kit_v1.json")
+    shutil.copytree(REPO_DIR / "data" / "shop", data / "shop", dirs_exist_ok=True)  # boutique (docs/CONTRACTS-V2.md §2)
+    shutil.copytree(REPO_DIR / "data" / "agents", data / "agents", dirs_exist_ok=True)  # paliers (`tiers.json`)
+    shutil.copytree(REPO_DIR / "data" / "roles", data / "roles", dirs_exist_ok=True)  # instructions initiales des instances
     return Settings(db_path=tmp_path / name, data_dir=data, demo_secret=demo_secret)
 
 

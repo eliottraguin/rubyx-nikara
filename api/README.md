@@ -7,7 +7,7 @@ Ticket BE01 : socle lançable, schémas partagés, sessions, migrations. Les rou
 - **Base : SQLite** via SQLAlchemy 2, fichier `api/var/rubix.db` (ignoré par git ; `RUBIX_DB_PATH` pour changer).
 - **Migrations : Alembic** (`api/migrations/`). Elles sont aussi appliquées automatiquement au démarrage de l'API (idempotent).
 - **Règles** chargées depuis `data/rules/rules_v1.json` (moteur : prix, gains, capital initial, quotas, limites) et `data/rules/rules_v2.json` (cap prospection : `app/rules_v2.py`, niveaux de l'immeuble, prix des 7 rôles, actions sur prospect, rétention). Fiche entreprise et cible : bornes lues dans `data/profile/` (`app/profile_spec.py`). Aucune de ces valeurs n'est en dur dans le code.
-- **LLM** : interface `app/llm/base.py`, seule implémentation `mock` (déterministe, sans réseau). L'état renvoyé contient `llm.simulated = true` (badge obligatoire).
+- **LLM** : interface `app/llm/base.py` ; implémentations `mock` (déterministe, sans réseau, défaut), `real` et `codex` (relais AXIS, protocole Messages d'Anthropic, GR3-61). L'état renvoyé contient `llm.simulated = true` (badge obligatoire) tant que `mock` est actif.
 
 ## Commandes (depuis `api/`)
 ```bash
@@ -28,7 +28,7 @@ Les tests échouent si `api/openapi.json` ou `data/fixtures/` sont périmés : r
 | `RUBIX_DB_PATH` | `api/var/rubix.db` |
 | `RUBIX_DATA_DIR` | `data/` à la racine du dépôt |
 | `RUBIX_RULES_VERSION` | `rules_v1` |
-| `RUBIX_LLM_PROVIDER` | `mock` (seule valeur disponible) |
+| `RUBIX_LLM_PROVIDER` | `mock` (défaut) ; `real` ou `codex` exigent `RUBIX_LLM_API_KEY`/`RUBIX_LLM_BASE_URL` (ou `AXIS_GATEWAY_KEY`/`AXIS_GATEWAY_URL`) |
 | `RUBIX_COOKIE_SECURE` | `0` (mettre `1` derrière HTTPS) |
 | `RUBIX_CORS_ORIGINS` | vide (liste séparée par des virgules, ex. `http://localhost:3000`) |
 | `RUBIX_DEMO_SECRET` | vide = routes d'exploitation `/api/demo/*` **inactives** (404). Sinon secret attendu dans l'en-tête `X-Demo-Secret` |

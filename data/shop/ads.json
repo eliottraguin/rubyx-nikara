@@ -1,0 +1,21 @@
+{
+  "role": "ads",
+  "items": [
+    {
+      "id": "ads_t1",
+      "tier": 1,
+      "label": "Directeur de campagne",
+      "price": 50,
+      "effects": { "duration_multiplier": 1.0, "quality_bonus": 0 },
+      "unlock_clients": 3
+    },
+    {
+      "id": "ads_t2",
+      "tier": 2,
+      "label": "Directeur de campagne senior",
+      "price": 100,
+      "effects": { "duration_multiplier": 0.6, "quality_bonus": 5 },
+      "unlock_clients": 7
+    }
+  ]
+}

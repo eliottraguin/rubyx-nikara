@@ -116,6 +116,7 @@ class RulesV2(_Strict):
     client_reward: int = Field(ge=0)  # $ gagnés une seule fois par prospect devenu client (API-S4)
     initial_agents: list[HangarRole]
     agents: list[AgentRuleV2]
+    agents_max_instances_per_role: int = Field(ge=1)  # boutique (docs/CONTRACTS-V2.md §2) : exemplaires achetables au plus par métier
     real_mode_waives_clients_unlock: list[HangarRole]
     planets: list[PlanetRule]
     prospect_actions: dict[str, ProspectActionRule]

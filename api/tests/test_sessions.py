@@ -25,7 +25,8 @@ def test_create_session_initial_state(client, make_session, mode):
     assert state["session"]["mode"] == mode
     assert state["session"]["company"] == {"name": "Ma Boîte", "profile": "Café"}
     assert state["balance"] == {"booked": 30, "reserved": 0, "available": 30}
-    assert "agents" not in state and "progress" not in state  # rôles historiques et progression de campagne retirés (API-R2)
+    assert "progress" not in state  # progression de campagne retirée (API-R2)
+    assert state["agents"] == []  # instances d'agent (docs/CONTRACTS-V2.md §2) : aucune au départ
     assert [h["role"] for h in state["hangar"] if h["owned"]] == ["scout", "assistant_prospection", "assistant_clients", "assistant_pub"]
     assert state["llm"] == {"provider": "mock", "simulated": True}
     assert "stage" not in state["session"]  # étape de campagne retirée (API-R3)

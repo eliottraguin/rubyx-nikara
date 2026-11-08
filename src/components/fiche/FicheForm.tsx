@@ -2,109 +2,24 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { BORNES, CHAMPS, ERREURS, EXEMPLE, SECTEURS, TEXTES, TONS, type Ton } from "@/content/fiche";
+import { ASSISTANT, BORNES, CHAMPS, EXEMPLE, ETAPES, SECTEURS, TEXTES, TONS, type EtapeId } from "@/content/fiche";
 import { FICHE_EXEMPLES } from "@/content/fiche-exemples";
-import { ProfileError, type Fiche, type FicheValeurs, type ProfileApi } from "@/lib/api/profile";
+import { ProfileError, type Fiche, type ProfileApi } from "@/lib/api/profile";
+import "@/styles/fiche-wizard.css";
+import {
+  erreursVisibles,
+  ETAPE_DU_CHAMP,
+  FOCUS_ID,
+  LABEL_OF,
+  niveauCompletion,
+  ORDER,
+  toSaisie,
+  validerSaisie,
+  type Erreurs,
+  type Saisie,
+} from "./ficheWizard";
 
-/** Valeurs en cours de saisie : les listes sont des textes (une ligne par élément), la taille deux champs texte. */
-interface Saisie {
-  entreprise_nom: string;
-  offre: string;
-  besoin: string;
-  secteurs: string[]; // identifiants cochés
-  secteursAutres: string;
-  zone: string;
-  taille_min: string;
-  taille_max: string;
-  fonctions: string;
-  exclusions: string;
-  ton: Ton;
-}
-
-const SECTEUR_IDS = new Set(SECTEURS.map((s) => s.id));
-const lines = (s: string) => s.split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean);
-
-export function toSaisie(v: FicheValeurs): Saisie {
-  return {
-    entreprise_nom: v.entreprise_nom,
-    offre: v.offre,
-    besoin: v.besoin,
-    secteurs: v.cible_secteurs.filter((s) => SECTEUR_IDS.has(s)),
-    secteursAutres: v.cible_secteurs.filter((s) => !SECTEUR_IDS.has(s)).join("\n"),
-    zone: v.cible_zone.join("\n"),
-    taille_min: v.cible_taille ? String(v.cible_taille.effectif_min) : "",
-    taille_max: v.cible_taille ? String(v.cible_taille.effectif_max) : "",
-    fonctions: v.cible_fonctions.join("\n"),
-    exclusions: v.exclusions.join("\n"),
-    ton: v.ton,
-  };
-}
-
-type Erreurs = Partial<Record<"entreprise_nom" | "offre" | "besoin" | "cible_secteurs" | "cible_zone" | "cible_taille" | "cible_fonctions" | "exclusions" | "ton", string>>;
-
-/** Valide côté écran (le serveur revérifie). Renvoie les valeurs prêtes à envoyer, ou les erreurs par champ. */
-export function validerSaisie(s: Saisie): { values: FicheValeurs; errors: Erreurs } {
-  const errors: Erreurs = {};
-  const nom = s.entreprise_nom.trim();
-  const offre = s.offre.trim();
-  const besoin = s.besoin.trim();
-  if (nom.length > BORNES.nom) errors.entreprise_nom = ERREURS.tropLong(BORNES.nom);
-  if (!offre) errors.offre = ERREURS.requis;
-  else if (offre.length > BORNES.offre) errors.offre = ERREURS.tropLong(BORNES.offre);
-  if (besoin.length > BORNES.besoin) errors.besoin = ERREURS.tropLong(BORNES.besoin);
-
-  const listCheck = (items: string[], b: { max: number; item: number }, required: boolean): string | undefined => {
-    if (!items.length) return required ? ERREURS.requis : undefined;
-    if (items.length > b.max) return ERREURS.tropDElements(b.max);
-    if (items.some((i) => i.length > b.item)) return ERREURS.elementLong(b.item);
-    return undefined;
-  };
-  const secteurs = [...s.secteurs, ...lines(s.secteursAutres)];
-  const zone = lines(s.zone);
-  const fonctions = lines(s.fonctions);
-  const exclusions = lines(s.exclusions);
-  const e1 = listCheck(secteurs, BORNES.secteurs, true);
-  if (e1) errors.cible_secteurs = e1;
-  const e2 = listCheck(zone, BORNES.zone, true);
-  if (e2) errors.cible_zone = e2;
-  const e3 = listCheck(fonctions, BORNES.fonctions, false);
-  if (e3) errors.cible_fonctions = e3;
-  const e4 = listCheck(exclusions, BORNES.exclusions, false);
-  if (e4) errors.exclusions = e4;
-
-  let taille: FicheValeurs["cible_taille"] = null;
-  const lo = s.taille_min.trim();
-  const hi = s.taille_max.trim();
-  if (lo || hi) {
-    const a = /^\d+$/.test(lo) ? Number(lo) : NaN;
-    const b = /^\d+$/.test(hi) ? Number(hi) : NaN;
-    if (!lo || !hi) errors.cible_taille = ERREURS.tailleIncomplete;
-    else if (![a, b].every((n) => n >= BORNES.taille.min && n <= BORNES.taille.max)) errors.cible_taille = ERREURS.taille(BORNES.taille.min, BORNES.taille.max);
-    else if (a > b) errors.cible_taille = ERREURS.tailleOrdre;
-    else taille = { effectif_min: a, effectif_max: b };
-  }
-  return {
-    values: { entreprise_nom: nom, offre, besoin, cible_secteurs: secteurs, cible_zone: zone, cible_taille: taille, cible_fonctions: fonctions, exclusions, ton: s.ton },
-    errors,
-  };
-}
-
-const LABEL_OF: Record<keyof Erreurs, string> = {
-  entreprise_nom: CHAMPS.entreprise_nom.label,
-  offre: CHAMPS.offre.label,
-  besoin: CHAMPS.besoin.label,
-  cible_secteurs: CHAMPS.cible_secteurs.label,
-  cible_zone: CHAMPS.cible_zone.label,
-  cible_taille: CHAMPS.cible_taille.label,
-  cible_fonctions: CHAMPS.cible_fonctions.label,
-  exclusions: CHAMPS.exclusions.label,
-  ton: CHAMPS.ton.label,
-};
-const ORDER = Object.keys(LABEL_OF) as (keyof Erreurs)[];
-/** Identifiant (relatif) du premier contrôle de chaque champ, pour le lien du résumé d'erreurs. */
-const FOCUS_ID: Record<keyof Erreurs, string> = {
-  entreprise_nom: "nom", offre: "offre", besoin: "besoin", cible_secteurs: "secteur-0", cible_zone: "zone", cible_taille: "taille-min", cible_fonctions: "fonctions", exclusions: "exclusions", ton: "ton-0",
-};
+export { toSaisie, validerSaisie } from "./ficheWizard";
 
 function Tag({ required }: { required: boolean }) {
   return <span className={required ? "fiche-req" : "muted"}> ({required ? TEXTES.obligatoire : TEXTES.facultatif})</span>;
@@ -133,9 +48,45 @@ function Field({ id, label, required, help, error, count, children }: { id: stri
 
 type Etat = { kind: "idle" } | { kind: "saving" } | { kind: "saved"; version: number } | { kind: "conflict" } | { kind: "reloaded" } | { kind: "problem"; message: string };
 
+const ZONE_EXEMPLES = ["Île-de-France", "Auvergne-Rhône-Alpes", "Nouvelle-Aquitaine", "Hauts-de-France", "Occitanie"];
+
+/** Carte de visite : aperçu en direct de l'entreprise d'après la saisie en cours. Toujours du texte, jamais du HTML. */
+function CarteVisite({ s }: { s: Saisie }) {
+  const secteurLabel = (id: string) => SECTEURS.find((x) => x.id === id)?.label ?? id;
+  const secteursAutres = s.secteursAutres.split("\n").map((l) => l.trim()).filter(Boolean);
+  const secteurs = [...s.secteurs.map(secteurLabel), ...secteursAutres];
+  const zone = s.zone.split("\n").map((l) => l.trim()).filter(Boolean);
+  const ton = TONS.find((t) => t.id === s.ton);
+  const offreApercu = s.offre.trim().length > 90 ? `${s.offre.trim().slice(0, 90)}…` : s.offre.trim();
+  return (
+    <aside className="bc" aria-label={ASSISTANT.carteVisite}>
+      <p className="bc-eyebrow">{ASSISTANT.carteVisite}</p>
+      <p className="bc-nom">{s.entreprise_nom.trim() || ASSISTANT.carteVisiteVide}</p>
+      <p className="bc-offre">{offreApercu || ASSISTANT.carteVisiteVide}</p>
+      {secteurs.length ? (
+        <ul className="bc-chips" aria-label={CHAMPS.cible_secteurs.label}>
+          {secteurs.map((lbl) => (
+            <li key={lbl} className="fiche-chip">
+              {lbl}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {zone.length ? <p className="bc-zone">📍 {zone.join(", ")}</p> : null}
+      {ton ? (
+        <p className="bc-ton">
+          <span aria-hidden="true">{ton.icone}</span> {ton.label}
+        </p>
+      ) : null}
+    </aside>
+  );
+}
+
 /**
- * Formulaire de la fiche entreprise et cible. `initial` = fiche lue sur le serveur ; `api` injectable pour les tests.
- * Tout texte saisi ou reçu est rendu comme texte (React échappe), jamais comme HTML.
+ * Formulaire de la fiche entreprise et cible, en assistant pas à pas (5 étapes courtes, UI-H1).
+ * `initial` = fiche lue sur le serveur ; `api` injectable pour les tests. Tout texte saisi ou reçu est rendu comme
+ * texte (React échappe), jamais comme HTML ; la saisie reste en mémoire d'une étape à l'autre, rien n'est envoyé
+ * au serveur avant « Enregistrer ma fiche » (une seule version créée, comme avant l'assistant).
  */
 export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche; api: ProfileApi; tutoriel: boolean; onSaved?: (f: Fiche) => void }) {
   const uid = useId().replace(/:/g, "");
@@ -143,12 +94,16 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
   const [s, setS] = useState<Saisie>(() => toSaisie(initial));
   const [errors, setErrors] = useState<Erreurs>({});
   const [etat, setEtat] = useState<Etat>({ kind: "idle" });
+  const [etapeIdx, setEtapeIdx] = useState(0);
+  const [visitees, setVisitees] = useState<ReadonlySet<EtapeId>>(() => new Set([ETAPES[0]!.id]));
   const [exemple, setExemple] = useState("");
   const [infoExemple, setInfoExemple] = useState("");
   const summaryRef = useRef<HTMLDivElement>(null);
+  const titreRef = useRef<HTMLHeadingElement>(null);
   const id = useCallback((k: string) => `${uid}-${k}`, [uid]);
   const set = <K extends keyof Saisie>(k: K, v: Saisie[K]) => setS((p) => ({ ...p, [k]: v }));
 
+  const etape = ETAPES[etapeIdx]!;
   const dirty = useMemo(() => JSON.stringify(s) !== JSON.stringify(toSaisie(fiche)), [s, fiche]);
   const errorKeys = ORDER.filter((k) => errors[k]);
 
@@ -156,18 +111,45 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
     if (errorKeys.length) summaryRef.current?.focus();
   }, [errors]); // eslint-disable-line react-hooks/exhaustive-deps -- le résumé reçoit le focus quand de nouvelles erreurs apparaissent
 
+  useEffect(() => {
+    titreRef.current?.focus();
+  }, [etapeIdx]); // le titre de l'étape reçoit le focus au changement, pour l'orientation au clavier/lecteur d'écran
+
   const err = (k: keyof Erreurs, base: string) => ({
     "aria-invalid": errors[k] ? (true as const) : undefined,
     "aria-describedby": `${base}-aide${errors[k] ? ` ${base}-err` : ""}`,
   });
 
+  function allerA(i: number) {
+    setEtapeIdx(i);
+  }
+
+  function suivant() {
+    const { errors: errs } = validerSaisie(s);
+    const nextVisitees = new Set(visitees);
+    nextVisitees.add(etape.id);
+    setVisitees(nextVisitees);
+    setErrors(erreursVisibles(errs, nextVisitees));
+    const bloque = ORDER.some((k) => ETAPE_DU_CHAMP[k] === etape.id && errs[k]);
+    if (bloque) return;
+    setEtapeIdx((i) => Math.min(i + 1, ETAPES.length - 1));
+  }
+
+  function precedent() {
+    setEtapeIdx((i) => Math.max(i - 1, 0));
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (etat.kind === "saving") return;
     const { values, errors: errs } = validerSaisie(s);
-    setErrors(errs);
+    const toutesEtapes = new Set(ETAPES.map((x) => x.id));
+    setVisitees(toutesEtapes);
     if (Object.keys(errs).length) {
+      setErrors(errs);
       setEtat({ kind: "idle" });
+      const premier = ORDER.find((k) => errs[k]);
+      if (premier) setEtapeIdx(ETAPES.findIndex((x) => x.id === ETAPE_DU_CHAMP[premier]));
       return;
     }
     if (!dirty) {
@@ -188,6 +170,8 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
         const mapped: Erreurs = {};
         for (const [k, m] of Object.entries(x.fields)) if (k in LABEL_OF) mapped[k as keyof Erreurs] = m;
         setErrors(mapped);
+        const premier = ORDER.find((k) => mapped[k]);
+        if (premier) setEtapeIdx(ETAPES.findIndex((x2) => x2.id === ETAPE_DU_CHAMP[premier]));
         setEtat(Object.keys(mapped).length ? { kind: "idle" } : { kind: "problem", message: TEXTES.unknown });
       } else if (x instanceof ProfileError && x.code === "NETWORK") setEtat({ kind: "problem", message: TEXTES.network });
       else if (x instanceof ProfileError && x.code === "SESSION_REQUIRED") setEtat({ kind: "problem", message: TEXTES.session });
@@ -218,8 +202,16 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
     setInfoExemple(EXEMPLE.rempli(ex.valeurs.entreprise_nom));
   }
 
+  function ajouterZoneExemple(valeur: string) {
+    const existantes = s.zone.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (existantes.includes(valeur) || existantes.length >= BORNES.zone.max) return;
+    set("zone", [...existantes, valeur].join("\n"));
+  }
+
   const busy = etat.kind === "saving";
-  const nbSecteurs = s.secteurs.length + lines(s.secteursAutres).length;
+  const nbSecteurs = s.secteurs.length + s.secteursAutres.split("\n").map((l) => l.trim()).filter(Boolean).length;
+  const completion = niveauCompletion(s);
+  const estDerniere = etapeIdx === ETAPES.length - 1;
 
   return (
     <form onSubmit={(e) => void submit(e)} noValidate aria-labelledby={id("titre")}>
@@ -234,6 +226,10 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
         <p className={fiche.complete ? "note note-ok" : "note note-warn"}>
           {fiche.complete ? TEXTES.complete : TEXTES.incomplete} <span className="muted">{TEXTES.version(fiche.version)}.</span>
         </p>
+        <div className="fiche-meter" aria-hidden="true">
+          <div className="fiche-meter-bar" style={{ width: `${completion}%` }} />
+        </div>
+        <p className="help">{ASSISTANT.completion(completion)}</p>
       </div>
 
       {tutoriel ? (
@@ -274,6 +270,7 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
                   href={`#${id(FOCUS_ID[k])}`}
                   onClick={(e) => {
                     e.preventDefault();
+                    setEtapeIdx(ETAPES.findIndex((x) => x.id === ETAPE_DU_CHAMP[k]));
                     document.getElementById(id(FOCUS_ID[k]))?.focus();
                   }}
                 >
@@ -286,136 +283,202 @@ export function FicheForm({ initial, api, tutoriel, onSaved }: { initial: Fiche;
         </div>
       ) : null}
 
-      <Field id={id("nom")} label={CHAMPS.entreprise_nom.label} required={false} help={CHAMPS.entreprise_nom.aide} error={errors.entreprise_nom} count={`${s.entreprise_nom.length} / ${BORNES.nom}`}>
-        <input id={id("nom")} type="text" maxLength={BORNES.nom + 20} autoComplete="organization" value={s.entreprise_nom} onChange={(e) => set("entreprise_nom", e.target.value)} {...err("entreprise_nom", id("nom"))} />
-      </Field>
-
-      <Field id={id("offre")} label={CHAMPS.offre.label} required help={CHAMPS.offre.aide} error={errors.offre} count={`${s.offre.length} / ${BORNES.offre}`}>
-        <textarea id={id("offre")} rows={4} value={s.offre} onChange={(e) => set("offre", e.target.value)} aria-required="true" {...err("offre", id("offre"))} />
-      </Field>
-
-      <Field id={id("besoin")} label={CHAMPS.besoin.label} required={false} help={CHAMPS.besoin.aide} error={errors.besoin} count={`${s.besoin.length} / ${BORNES.besoin}`}>
-        <textarea id={id("besoin")} rows={3} value={s.besoin} onChange={(e) => set("besoin", e.target.value)} {...err("besoin", id("besoin"))} />
-      </Field>
-
-      <fieldset className="field" aria-describedby={`${id("secteur")}-aide${errors.cible_secteurs ? ` ${id("secteur")}-err` : ""}`}>
-        <legend>
-          {CHAMPS.cible_secteurs.label}
-          <Tag required />
-        </legend>
-        <p className="help" id={`${id("secteur")}-aide`}>
-          {CHAMPS.cible_secteurs.aide} <span>{nbSecteurs} / {BORNES.secteurs.max}</span>
-        </p>
-        {SECTEURS.map((sec, i) => (
-          <label key={sec.id} className="check" htmlFor={id(`secteur-${i}`)}>
-            <input
-              id={id(`secteur-${i}`)}
-              type="checkbox"
-              checked={s.secteurs.includes(sec.id)}
-              onChange={(e) => set("secteurs", e.target.checked ? [...s.secteurs, sec.id] : s.secteurs.filter((x) => x !== sec.id))}
-            />{" "}
-            {sec.label}
-          </label>
-        ))}
-        <div className="field">
-          <label htmlFor={id("secteurs-autres")}>
-            {CHAMPS.secteurs_autres.label}
-            <Tag required={false} />
-          </label>
-          <p className="help" id={id("secteurs-autres-aide")}>
-            {CHAMPS.secteurs_autres.aide}
-          </p>
-          <textarea id={id("secteurs-autres")} rows={2} value={s.secteursAutres} onChange={(e) => set("secteursAutres", e.target.value)} aria-describedby={id("secteurs-autres-aide")} />
-        </div>
-        {errors.cible_secteurs ? (
-          <p className="note note-bad" id={`${id("secteur")}-err`}>
-            {errors.cible_secteurs}
-          </p>
-        ) : null}
-      </fieldset>
-
-      <Field id={id("zone")} label={CHAMPS.cible_zone.label} required help={CHAMPS.cible_zone.aide} error={errors.cible_zone}>
-        <textarea id={id("zone")} rows={3} value={s.zone} onChange={(e) => set("zone", e.target.value)} aria-required="true" {...err("cible_zone", id("zone"))} />
-      </Field>
-
-      <fieldset className="field" aria-describedby={`${id("taille")}-aide${errors.cible_taille ? ` ${id("taille")}-err` : ""}`}>
-        <legend>
-          {CHAMPS.cible_taille.label}
-          <Tag required={false} />
-        </legend>
-        <p className="help" id={`${id("taille")}-aide`}>
-          {CHAMPS.cible_taille.aide}
-        </p>
-        <div className="row">
-          <label htmlFor={id("taille-min")}>{CHAMPS.taille_min.label}</label>
-          <input id={id("taille-min")} type="text" inputMode="numeric" style={{ width: "8rem" }} value={s.taille_min} onChange={(e) => set("taille_min", e.target.value)} aria-invalid={errors.cible_taille ? true : undefined} />
-          <label htmlFor={id("taille-max")}>{CHAMPS.taille_max.label}</label>
-          <input id={id("taille-max")} type="text" inputMode="numeric" style={{ width: "8rem" }} value={s.taille_max} onChange={(e) => set("taille_max", e.target.value)} aria-invalid={errors.cible_taille ? true : undefined} />
-        </div>
-        {errors.cible_taille ? (
-          <p className="note note-bad" id={`${id("taille")}-err`}>
-            {errors.cible_taille}
-          </p>
-        ) : null}
-      </fieldset>
-
-      <Field id={id("fonctions")} label={CHAMPS.cible_fonctions.label} required={false} help={CHAMPS.cible_fonctions.aide} error={errors.cible_fonctions}>
-        <textarea id={id("fonctions")} rows={3} value={s.fonctions} onChange={(e) => set("fonctions", e.target.value)} {...err("cible_fonctions", id("fonctions"))} />
-      </Field>
-
-      <Field id={id("exclusions")} label={CHAMPS.exclusions.label} required={false} help={CHAMPS.exclusions.aide} error={errors.exclusions}>
-        <textarea id={id("exclusions")} rows={3} value={s.exclusions} onChange={(e) => set("exclusions", e.target.value)} {...err("exclusions", id("exclusions"))} />
-      </Field>
-
-      <fieldset className="field" aria-describedby={`${id("ton")}-aide`}>
-        <legend>{CHAMPS.ton.label}</legend>
-        <p className="help" id={`${id("ton")}-aide`}>
-          {CHAMPS.ton.aide}
-        </p>
-        {TONS.map((t, i) => (
-          <label key={t.id} className={`choice ${s.ton === t.id ? "choice-on" : ""}`} htmlFor={id(`ton-${i}`)}>
-            <input id={id(`ton-${i}`)} type="radio" name={id("ton")} checked={s.ton === t.id} onChange={() => set("ton", t.id)} />
-            <span>
-              <strong>{t.label}</strong>
-              <br />
-              <span className="muted">{t.exemple}</span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
-
-      <div className="row">
-        <button type="submit" className="btn btn-primary" disabled={busy}>
-          {busy ? TEXTES.saving : TEXTES.save}
-        </button>
-        {fiche.complete ? (
-          <Link className="btn" href="/carte">
-            {TEXTES.goSearch}
-          </Link>
-        ) : null}
-      </div>
-
-      <div role="status" aria-live="polite">
-        {etat.kind === "saved" ? <p className="note note-ok">{TEXTES.saved(etat.version)}</p> : null}
-        {etat.kind === "reloaded" ? <p className="note note-info">{TEXTES.reloaded}</p> : null}
-        {etat.kind === "problem" && etat.message === TEXTES.unchanged ? <p className="note note-info">{etat.message}</p> : null}
-      </div>
-      {etat.kind === "problem" && etat.message !== TEXTES.unchanged ? (
-        <p className="note note-bad" role="alert">
-          {etat.message}
-        </p>
-      ) : null}
-      {etat.kind === "conflict" ? (
-        <div className="note note-warn" role="alert">
-          <strong>{TEXTES.conflictTitle}</strong> {TEXTES.conflictText}
-          <div className="row">
-            <button type="button" className="btn btn-small" onClick={() => void reload()}>
-              {TEXTES.conflictReload}
+      <ol className="fiche-progress" aria-label={TEXTES.title}>
+        {ETAPES.map((e, i) => (
+          <li key={e.id}>
+            <button
+              type="button"
+              className={`fiche-progress-item ${i === etapeIdx ? "is-courante" : ""} ${i < etapeIdx ? "is-faite" : ""}`}
+              aria-current={i === etapeIdx ? "step" : undefined}
+              disabled={i > etapeIdx}
+              onClick={() => allerA(i)}
+            >
+              <span className="fiche-progress-num" aria-hidden="true">
+                {i < etapeIdx ? "✓" : i + 1}
+              </span>
+              {e.titre}
             </button>
+          </li>
+        ))}
+      </ol>
+
+      <div className="fiche-wizard-layout">
+        <div className="fiche-step">
+          <h2 id={id("etape-titre")} ref={titreRef} tabIndex={-1}>
+            {ASSISTANT.etape(etapeIdx + 1, ETAPES.length)} — {etape.titre}
+          </h2>
+          <p className="help">{etape.aide}</p>
+
+          {etape.id === "qui" ? (
+            <Field id={id("nom")} label={CHAMPS.entreprise_nom.label} required={false} help={CHAMPS.entreprise_nom.aide} error={errors.entreprise_nom} count={`${s.entreprise_nom.length} / ${BORNES.nom}`}>
+              <input id={id("nom")} type="text" maxLength={BORNES.nom + 20} autoComplete="organization" value={s.entreprise_nom} onChange={(e) => set("entreprise_nom", e.target.value)} {...err("entreprise_nom", id("nom"))} />
+            </Field>
+          ) : null}
+
+          {etape.id === "vente" ? (
+            <>
+              <Field id={id("offre")} label={CHAMPS.offre.label} required help={CHAMPS.offre.aide} error={errors.offre} count={`${s.offre.length} / ${BORNES.offre}`}>
+                <textarea id={id("offre")} rows={4} value={s.offre} onChange={(e) => set("offre", e.target.value)} aria-required="true" {...err("offre", id("offre"))} />
+              </Field>
+              <Field id={id("besoin")} label={CHAMPS.besoin.label} required={false} help={CHAMPS.besoin.aide} error={errors.besoin} count={`${s.besoin.length} / ${BORNES.besoin}`}>
+                <textarea id={id("besoin")} rows={3} value={s.besoin} onChange={(e) => set("besoin", e.target.value)} {...err("besoin", id("besoin"))} />
+              </Field>
+            </>
+          ) : null}
+
+          {etape.id === "cible" ? (
+            <>
+              <fieldset className="field" aria-describedby={`${id("secteur")}-aide${errors.cible_secteurs ? ` ${id("secteur")}-err` : ""}`}>
+                <legend>
+                  {CHAMPS.cible_secteurs.label}
+                  <Tag required />
+                </legend>
+                <p className="help" id={`${id("secteur")}-aide`}>
+                  {CHAMPS.cible_secteurs.aide} <span>{nbSecteurs} / {BORNES.secteurs.max}</span>
+                </p>
+                <div className="fiche-secteurs-grid">
+                  {SECTEURS.map((sec, i) => (
+                    <label key={sec.id} className={`choice ${s.secteurs.includes(sec.id) ? "choice-on" : ""}`} htmlFor={id(`secteur-${i}`)}>
+                      <input
+                        id={id(`secteur-${i}`)}
+                        type="checkbox"
+                        checked={s.secteurs.includes(sec.id)}
+                        onChange={(e) => set("secteurs", e.target.checked ? [...s.secteurs, sec.id] : s.secteurs.filter((x) => x !== sec.id))}
+                      />
+                      <span>
+                        <span aria-hidden="true">{sec.icone}</span> {sec.label}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <div className="field">
+                  <label htmlFor={id("secteurs-autres")}>
+                    {CHAMPS.secteurs_autres.label}
+                    <Tag required={false} />
+                  </label>
+                  <p className="help" id={id("secteurs-autres-aide")}>
+                    {CHAMPS.secteurs_autres.aide}
+                  </p>
+                  <textarea id={id("secteurs-autres")} rows={2} value={s.secteursAutres} onChange={(e) => set("secteursAutres", e.target.value)} aria-describedby={id("secteurs-autres-aide")} />
+                </div>
+                {errors.cible_secteurs ? (
+                  <p className="note note-bad" id={`${id("secteur")}-err`}>
+                    {errors.cible_secteurs}
+                  </p>
+                ) : null}
+              </fieldset>
+
+              <fieldset className="field" aria-describedby={`${id("taille")}-aide${errors.cible_taille ? ` ${id("taille")}-err` : ""}`}>
+                <legend>
+                  {CHAMPS.cible_taille.label}
+                  <Tag required={false} />
+                </legend>
+                <p className="help" id={`${id("taille")}-aide`}>
+                  {CHAMPS.cible_taille.aide}
+                </p>
+                <div className="row">
+                  <label htmlFor={id("taille-min")}>{CHAMPS.taille_min.label}</label>
+                  <input id={id("taille-min")} type="text" inputMode="numeric" style={{ width: "8rem" }} value={s.taille_min} onChange={(e) => set("taille_min", e.target.value)} aria-invalid={errors.cible_taille ? true : undefined} />
+                  <label htmlFor={id("taille-max")}>{CHAMPS.taille_max.label}</label>
+                  <input id={id("taille-max")} type="text" inputMode="numeric" style={{ width: "8rem" }} value={s.taille_max} onChange={(e) => set("taille_max", e.target.value)} aria-invalid={errors.cible_taille ? true : undefined} />
+                </div>
+                {errors.cible_taille ? (
+                  <p className="note note-bad" id={`${id("taille")}-err`}>
+                    {errors.cible_taille}
+                  </p>
+                ) : null}
+              </fieldset>
+
+              <Field id={id("fonctions")} label={CHAMPS.cible_fonctions.label} required={false} help={CHAMPS.cible_fonctions.aide} error={errors.cible_fonctions}>
+                <textarea id={id("fonctions")} rows={3} value={s.fonctions} onChange={(e) => set("fonctions", e.target.value)} {...err("cible_fonctions", id("fonctions"))} />
+              </Field>
+
+              <Field id={id("exclusions")} label={CHAMPS.exclusions.label} required={false} help={CHAMPS.exclusions.aide} error={errors.exclusions}>
+                <textarea id={id("exclusions")} rows={3} value={s.exclusions} onChange={(e) => set("exclusions", e.target.value)} {...err("exclusions", id("exclusions"))} />
+              </Field>
+            </>
+          ) : null}
+
+          {etape.id === "zone" ? (
+            <Field id={id("zone")} label={CHAMPS.cible_zone.label} required help={CHAMPS.cible_zone.aide} error={errors.cible_zone}>
+              <textarea id={id("zone")} rows={3} value={s.zone} onChange={(e) => set("zone", e.target.value)} aria-required="true" {...err("cible_zone", id("zone"))} />
+              <div className="examples">
+                {ZONE_EXEMPLES.map((z) => (
+                  <button key={z} type="button" className="fiche-chip fiche-chip-btn" onClick={() => ajouterZoneExemple(z)}>
+                    + {z}
+                  </button>
+                ))}
+              </div>
+            </Field>
+          ) : null}
+
+          {etape.id === "ton" ? (
+            <fieldset className="field" aria-describedby={`${id("ton")}-aide`}>
+              <legend>{CHAMPS.ton.label}</legend>
+              <p className="help" id={`${id("ton")}-aide`}>
+                {CHAMPS.ton.aide}
+              </p>
+              {TONS.map((t, i) => (
+                <label key={t.id} className={`choice ${s.ton === t.id ? "choice-on" : ""}`} htmlFor={id(`ton-${i}`)}>
+                  <input id={id(`ton-${i}`)} type="radio" name={id("ton")} checked={s.ton === t.id} onChange={() => set("ton", t.id)} />
+                  <span>
+                    <strong>
+                      <span aria-hidden="true">{t.icone}</span> {t.label}
+                    </strong>
+                    <br />
+                    <span className="muted">{t.exemple}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
+
+          <div className="row">
+            {etapeIdx > 0 ? (
+              <button type="button" className="btn btn-small" onClick={precedent}>
+                {ASSISTANT.precedent}
+              </button>
+            ) : null}
+            {!estDerniere ? (
+              <button type="button" className="btn btn-primary" onClick={suivant}>
+                {ASSISTANT.suivant}
+              </button>
+            ) : (
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                {busy ? TEXTES.saving : TEXTES.save}
+              </button>
+            )}
+            {fiche.complete ? (
+              <Link className="btn" href="/carte">
+                {TEXTES.goSearch}
+              </Link>
+            ) : null}
           </div>
+
+          <div role="status" aria-live="polite">
+            {etat.kind === "saved" ? <p className="note note-ok">{TEXTES.saved(etat.version)}</p> : null}
+            {etat.kind === "reloaded" ? <p className="note note-info">{TEXTES.reloaded}</p> : null}
+            {etat.kind === "problem" && etat.message === TEXTES.unchanged ? <p className="note note-info">{etat.message}</p> : null}
+          </div>
+          {etat.kind === "problem" && etat.message !== TEXTES.unchanged ? (
+            <p className="note note-bad" role="alert">
+              {etat.message}
+            </p>
+          ) : null}
+          {etat.kind === "conflict" ? (
+            <div className="note note-warn" role="alert">
+              <strong>{TEXTES.conflictTitle}</strong> {TEXTES.conflictText}
+              <div className="row">
+                <button type="button" className="btn btn-small" onClick={() => void reload()}>
+                  {TEXTES.conflictReload}
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+
+        <CarteVisite s={s} />
+      </div>
     </form>
   );
 }
-
