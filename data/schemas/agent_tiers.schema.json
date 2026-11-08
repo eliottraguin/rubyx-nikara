@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent_tiers",
+  "title": "Paliers et durées des agents métier, coûts d'amélioration (data/agents/tiers.json, tickets C1/C3/C7)",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "roles": {
+      "type": "object",
+      "required": ["scout", "triage", "replier", "ads"],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "max_tier": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "tier": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "duration_seconds_min": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "duration_seconds_max": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": ["tier", "duration_seconds_min", "duration_seconds_max"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["max_tier", "tiers"],
+        "additionalProperties": false
+      }
+    },
+    "improvement": {
+      "type": "object",
+      "properties": {
+        "cost_by_target_tier": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "tier_cap_rule": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["cost_by_target_tier", "tier_cap_rule"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["version", "roles", "improvement"],
+  "additionalProperties": false
+}
