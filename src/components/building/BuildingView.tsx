@@ -9,7 +9,9 @@ import { ToitPanel } from "./ToitPanel";
 import { AccueilPanel } from "./AccueilPanel";
 import { BuildingSceneHost } from "./BuildingSceneHost";
 import { useSearch } from "@/components/search/useSearch";
-import { useAssistant } from "@/components/assistant/useAssistant";
+import { OrchestratorFloorPanel } from "@/components/orchestrator/OrchestratorFloorPanel";
+import { useAgentImprove } from "@/components/orchestrator/useAgentImprove";
+import { useOrchestrator } from "@/components/orchestrator/useOrchestrator";
 import { useTips } from "@/components/search/useTips";
 import type { ApiError, GameState, RoleId } from "@/lib/api/types";
 import { isMockMode } from "@/lib/api";
@@ -46,7 +48,8 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
   const [conversationId, setConversationId] = useState<string | null>(initialConversationId);
   const tips = useTips(state.session?.mode !== "expert");
   const search = useSearch({ onDone: onSearchDone });
-  const assistant = useAssistant({ onSpent: onSearchDone });
+  const orchestrator = useOrchestrator({ onSpent: onSearchDone });
+  const improve = useAgentImprove({ onSpent: onSearchDone });
   const btns = useRef<(HTMLButtonElement | null)[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const leave = useRef(onLeave);
@@ -117,13 +120,14 @@ export function BuildingView({ state, busy, initialFloor = null, initialConversa
   }
 
   let panel: ReactNode = null;
-  if (isMockMode() && (open === "pub" || open === "courrier" || open === "archives")) {
+  if (isMockMode() && (open === "orchestrateur" || open === "pub" || open === "courrier" || open === "archives")) {
     panel = <p role="status">Cet étage nécessite une partie connectée à l&apos;API. Lancez l&apos;API et créez une partie en mode HTTP.</p>;
   } else if (open === "toit") panel = <ToitPanel state={state} />;
+  else if (open === "orchestrateur") panel = <OrchestratorFloorPanel orchestrator={orchestrator} improve={improve} />;
   else if (open === "pub") panel = <PubPanel state={state} />;
   else if (open === "courrier") panel = <CourrierPanel key={conversationId ?? "liste"} state={state} initialConversationId={conversationId} />;
   else if (open === "archives") panel = <ArchivesPanel state={state} />;
-  else if (open === "accueil") panel = <AccueilPanel state={state} busy={busy} onBuy={onBuy} search={search} assistant={assistant} tips={tips} onOpenConversation={openConversation} onOpenCarnet={() => openFloorById("archives")} />;
+  else if (open === "accueil") panel = <AccueilPanel state={state} busy={busy} onBuy={onBuy} search={search} tips={tips} onOpenConversation={openConversation} onOpenCarnet={() => openFloorById("archives")} onOpenOrchestrateur={() => openFloorById("orchestrateur")} />;
 
   return (
     <div className="building-view">

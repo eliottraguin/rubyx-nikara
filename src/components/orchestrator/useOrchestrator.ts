@@ -1,41 +1,41 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { errorText } from "@/content/assistant";
-import { AssistantError, createAssistantApiForMode, type AssistantApi, type AssistantId, type Plan } from "@/lib/api/assistant";
+import { orchestratorErrorText } from "@/content/orchestrator";
+import { OrchestratorError, createOrchestratorApiForMode, type OrchestratorApi, type OrchestratorPlan } from "@/lib/api/orchestrator";
 
 export type Phase = "idle" | "asking" | "running";
 
-export interface AssistantController {
-  api: AssistantApi;
+export interface OrchestratorController {
+  api: OrchestratorApi;
   /** Plan affiché (proposé, en cours ou terminé). */
-  plan: Plan | null;
+  plan: OrchestratorPlan | null;
   phase: Phase;
   /** Phrase lisible du dernier problème (jamais un code). */
   problem: string | null;
   /** Demandes restantes (null tant que inconnu). */
   plansLeft: number | null;
-  history: Plan[];
+  history: OrchestratorPlan[];
   historyProblem: string | null;
   /** Annonce pour le lecteur d'écran. */
   announce: string;
-  ask: (assistant: AssistantId, message: string) => Promise<void>;
+  ask: (message: string) => Promise<void>;
   confirm: () => Promise<void>;
   reject: () => Promise<void>;
-  open: (plan: Plan) => void;
+  open: (plan: OrchestratorPlan) => void;
   clear: () => void;
 }
 
-const codeOf = (e: unknown): string => (e instanceof AssistantError ? e.code : "UNKNOWN");
+const codeOf = (e: unknown): string => (e instanceof OrchestratorError ? e.code : "UNKNOWN");
 
 /** Une demande à la fois. Aucune règle de jeu ici : prix, limites et droits viennent du serveur. */
-export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void } = {}): AssistantController {
-  const api = useMemo(() => hooks.api ?? createAssistantApiForMode(), [hooks.api]);
-  const [plan, setPlan] = useState<Plan | null>(null);
+export function useOrchestrator(hooks: { api?: OrchestratorApi; onSpent?: () => void } = {}): OrchestratorController {
+  const api = useMemo(() => hooks.api ?? createOrchestratorApiForMode(), [hooks.api]);
+  const [plan, setPlan] = useState<OrchestratorPlan | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [problem, setProblem] = useState<string | null>(null);
   const [plansLeft, setPlansLeft] = useState<number | null>(null);
-  const [history, setHistory] = useState<Plan[]>([]);
+  const [history, setHistory] = useState<OrchestratorPlan[]>([]);
   const [historyProblem, setHistoryProblem] = useState<string | null>(null);
   const [announce, setAnnounce] = useState("");
   const busy = useRef(false);
@@ -51,7 +51,7 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
       setPlansLeft(l.plansLeft);
       setHistoryProblem(null);
     } catch (e) {
-      setHistoryProblem(errorText(codeOf(e), "load"));
+      setHistoryProblem(orchestratorErrorText(codeOf(e), "load"));
     }
   }, [api]);
   useEffect(() => {
@@ -64,7 +64,7 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
         setPlansLeft(l.plansLeft);
       })
       .catch((e) => {
-        if (alive) setHistoryProblem(errorText(codeOf(e), "load"));
+        if (alive) setHistoryProblem(orchestratorErrorText(codeOf(e), "load"));
       });
     return () => {
       alive = false;
@@ -72,20 +72,20 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
   }, [api]);
 
   const ask = useCallback(
-    async (assistant: AssistantId, message: string) => {
+    async (message: string) => {
       if (busy.current) return;
       busy.current = true;
       setPhase("asking");
       setProblem(null);
-      setAnnounce("Je réfléchis à votre demande…");
+      setAnnounce("Il réfléchit à votre demande…");
       try {
-        const p = await api.propose(assistant, message);
+        const p = await api.propose(message);
         setPlan(p);
         setPlansLeft(p.plansLeft);
-        setAnnounce(p.steps.length === 0 ? "Je n'ai aucune tâche à proposer." : `Voici ma proposition : ${p.steps.length} tâche${p.steps.length > 1 ? "s" : ""}.`);
+        setAnnounce(p.steps.length === 0 ? "Il n'a aucune tâche à proposer." : `Voici sa proposition : ${p.steps.length} tâche${p.steps.length > 1 ? "s" : ""}.`);
         void reload();
       } catch (e) {
-        const t = errorText(codeOf(e), "propose");
+        const t = orchestratorErrorText(codeOf(e), "propose");
         setProblem(t);
         setAnnounce(t);
         if (codeOf(e) === "MESSAGE_LIMIT") setPlansLeft(0);
@@ -103,7 +103,7 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
     const id = plan.id;
     setPhase("running");
     setProblem(null);
-    setAnnounce("C'est parti, je m'en occupe.");
+    setAnnounce("C'est parti.");
     try {
       const final = await api.confirm(id, { onProgress: (p) => setPlan((cur) => (cur && cur.id === id ? p : cur)) });
       setPlan(final);
@@ -112,10 +112,9 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
       onSpent.current?.();
       void reload();
     } catch (e) {
-      const t = errorText(codeOf(e), "confirm");
+      const t = orchestratorErrorText(codeOf(e), "confirm");
       setProblem(t);
       setAnnounce(t);
-      // Le plan a peut-être avancé malgré l'erreur : on relit son état réel.
       try {
         setPlan(await api.get(id));
       } catch {
@@ -138,7 +137,7 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
       setAnnounce("Plan annulé. Rien n'a été dépensé.");
       void reload();
     } catch (e) {
-      const t = errorText(codeOf(e), "reject");
+      const t = orchestratorErrorText(codeOf(e), "reject");
       setProblem(t);
       setAnnounce(t);
     } finally {
@@ -146,7 +145,7 @@ export function useAssistant(hooks: { api?: AssistantApi; onSpent?: () => void }
     }
   }, [api, plan, reload]);
 
-  const open = useCallback((p: Plan) => {
+  const open = useCallback((p: OrchestratorPlan) => {
     setPlan(p);
     setProblem(null);
   }, []);

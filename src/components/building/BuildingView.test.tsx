@@ -24,10 +24,10 @@ const setup = (over: Partial<Parameters<typeof BuildingView>[0]> = {}) => {
 };
 
 describe("vue Immeuble", () => {
-  it("liste les 5 étages dans l'ordre", () => {
+  it("liste les 6 étages dans l'ordre", () => {
     const { list } = setup();
     const names = within(list).getAllByRole("button").map((b) => b.querySelector("strong")?.textContent);
-    expect(names).toEqual(["Toit", "Studio pub", "Salle du courrier", "Archives", "Accueil et garage"]);
+    expect(names).toEqual(["Toit", "Orchestrateur", "Studio pub", "Salle du courrier", "Archives", "Accueil et garage"]);
   });
 
   it("flèches haut/bas déplacent la sélection, annoncée en aria-live", () => {
@@ -36,7 +36,7 @@ describe("vue Immeuble", () => {
     btns[0]!.focus();
     fireEvent.keyDown(list, { key: "ArrowDown" });
     expect(btns[1]).toHaveFocus();
-    expect(screen.getByTestId("building-live")).toHaveTextContent("Étage : Studio pub.");
+    expect(screen.getByTestId("building-live")).toHaveTextContent("Étage : Orchestrateur.");
     fireEvent.keyDown(list, { key: "ArrowUp" });
     fireEvent.keyDown(list, { key: "ArrowUp" });
     expect(btns[0]).toHaveFocus();
@@ -46,11 +46,11 @@ describe("vue Immeuble", () => {
     const onFloorChange = vi.fn();
     const { list } = setup({ onFloorChange });
     const btns = within(list).getAllByRole("button");
-    btns[2]!.focus();
+    btns[3]!.focus();
     fireEvent.keyDown(list, { key: "Enter" });
     expect(screen.getByRole("heading", { name: "Salle du courrier" })).toBeInTheDocument();
     expect(screen.getByText(/Clients simulés : rien n'est envoyé/)).toBeInTheDocument();
-    expect(btns[2]).toHaveAttribute("aria-current", "true");
+    expect(btns[3]).toHaveAttribute("aria-current", "true");
     expect(onFloorChange).toHaveBeenCalledWith(expect.objectContaining({ id: "courrier" }));
   });
 
@@ -63,7 +63,7 @@ describe("vue Immeuble", () => {
     vi.stubEnv("NEXT_PUBLIC_API_MODE", "mock");
     try {
       const { list } = setup({ initialFloor: "pub" });
-      for (const name of [/Studio pub/, /Salle du courrier/, /Archives/]) {
+      for (const name of [/Orchestrateur/, /Studio pub/, /Salle du courrier/, /Archives/]) {
         fireEvent.click(within(list).getByRole("button", { name }));
         expect(screen.getByText(/Cet étage nécessite une partie connectée/)).toBeInTheDocument();
       }
