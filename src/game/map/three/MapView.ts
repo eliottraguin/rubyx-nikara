@@ -4,7 +4,7 @@
  *
  * AFFICHAGE seulement : aucune règle de jeu (états, prix, niveau, déblocage viennent du serveur via le viewmodel),
  * aucun appel réseau, aucun texte du modèle injecté en HTML (la scène ne dessine pas de texte).
- * Immeubles et façades procéduraux (BuildingFactory) par lieu + immeuble, sélection, survol, caméra. Bots, véhicules, coupe d'immeuble,
+ * Immeubles et façades procéduraux (BuildingFactory) par lieu + immeuble, sélection, survol, caméra. Bots, véhicules et piétons : BotLayer (GR3-32). Coupe d'immeuble,
  * rues et art final : tickets suivants.
  */
 import {
@@ -25,6 +25,8 @@ import { BuildingFactory, type BuildingStyle } from "./BuildingFactory";
 import { seedFromId } from "./buildingPlan";
 import { LAYOUT } from "../layout";
 import { buildDecor } from "./DecorScene";
+import { BotLayer } from "./BotLayer";
+import { buildingHeightPx } from "../building";
 import type { MapBus } from "../bus";
 import type { MapViewModel, PlanetStatus } from "../viewmodel";
 
@@ -52,6 +54,7 @@ const PLACE_TRIM = "#e8e2d4";
 export class MapView {
   private readonly city: CityScene;
   private readonly factory: BuildingFactory;
+  private readonly bots: BotLayer;
   private readonly pickables = new Map<string, Pickable>();
   private readonly ring: Mesh;
   private readonly raycaster = new Raycaster();
@@ -68,6 +71,8 @@ export class MapView {
     this.city = new CityScene(canvas, null);
     this.factory = new BuildingFactory(this.city);
     buildDecor(this.city, LAYOUT);
+    this.bots = new BotLayer(this.city, LAYOUT);
+    this.bots.setTrips(bus.trips, bus.vm ? buildingHeightPx(bus.vm.building.level) : undefined);
     const ground = new Mesh(
       this.city.own(new PlaneGeometry(200, 200)),
       this.city.own(new MeshLambertMaterial({ color: "#8fb07a" })),
@@ -113,9 +118,8 @@ export class MapView {
     this.unsubs.push(
       b.on("vm", (vm) => this.applyVM(vm)),
       b.on("selected", (id) => this.applySelected(id)),
-      b.on("motion", () => {
-        /* la préférence système est lue par CityScene ; la boucle ne démarre pas en mouvement réduit. */
-      }),
+      b.on("motion", (reduced) => this.bots.setReducedMotion(reduced)),
+      b.on("trips", (trips) => this.bots.setTrips(trips, this.roofPx())),
       b.on("camera:pan", (dx, dy) => this.pan(dx, dy)),
       b.on("camera:zoom", (f) => this.zoomBy(f)),
       b.on("camera:reset", () => this.focusOn(BASE_ID)),
@@ -165,6 +169,10 @@ export class MapView {
     this.ring.visible = !!target;
     if (target) this.ring.position.set(target.group.position.x, 0.02, target.group.position.z);
     this.city.render();
+  }
+
+  private roofPx(): number | undefined {
+    return this.lastPlanned ? buildingHeightPx(this.lastPlanned.building.level) : undefined;
   }
 
   // --- Caméra --------------------------------------------------------------------------------------------------
@@ -272,6 +280,7 @@ export class MapView {
     for (const off of this.unsubs) off();
     for (const fn of this.cleanups) fn();
     this.pickables.clear();
+    this.bots.dispose();
     this.city.dispose();
   }
 }
