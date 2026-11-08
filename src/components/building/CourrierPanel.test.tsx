@@ -6,7 +6,22 @@ import { CourrierPanel } from "./CourrierPanel";
 
 const state = (mode: string) => ({ session: { id: "s", mode, company: "X", stage: 1, rules_version: "r" } }) as unknown as GameState;
 
-const conv = { id: "c1", prospect_id: "p1", simule: true, statut_prospect: "contacte", entreprise: "Acme", etat: "ouverte", bac: "a_traiter", intention: null, dernier_message_le: null, tours_client: 1, tours_client_max: 6, created_at: "2026-01-01T00:00:00Z" } as const;
+const conv = {
+  id: "c1",
+  prospect_id: "p1",
+  simule: true,
+  statut_prospect: "contacte",
+  entreprise: "Acme",
+  etat: "ouverte",
+  bac: "a_traiter",
+  intention: null,
+  dernier_message_le: null,
+  tours_client: 1,
+  tours_client_max: 6,
+  created_at: "2026-01-01T00:00:00Z",
+  negotiation_offer_initial: 18,
+  negotiation_status: "ouverte",
+} as const;
 const detail = (over: Partial<ConversationDetail> = {}): ConversationDetail => ({
   ...conv,
   messages: [{ id: "m1", seq: 1, sens: "recu", etat: null, text: "<b>Bonjour</b> <script>x</script>", simule: true, draft_version_id: null, created_at: "2026-01-01T00:00:00Z" }],
@@ -29,10 +44,14 @@ function fakeApi(over: Partial<ConversationsApi> = {}): ConversationsApi {
     editDraft: vi.fn(),
     remove: vi.fn(async () => undefined),
     prospects: vi.fn(async () => [{ id: "p1", entreprise: "Acme", statut: "nouveau", simule: true }, { id: "p2", entreprise: "Beta", statut: "nouveau", simule: true }]),
+    conclude: vi.fn(async () => ({ conversation_id: "c1", negotiation_status: "acceptee" as const, evaluation: { score: 72, feedback: "Bon ton, restez ferme sur le délai.", reward_kind: "argent" as const, reward_amount: 10 }, clients_obtained: 1 })),
     ...over,
   } as ConversationsApi;
 }
 
+// GR3-71 : la liste de conversations devient une messagerie (avatar, offre, pastille, statut de négociation) et le fil
+// expose l'offre épinglée, la contre-offre et le retour de l'évaluateur. Les requêtes par nom exact "Acme" migrent en
+// expressions régulières car le bouton de la liste porte maintenant l'offre et le statut dans son nom accessible.
 describe("CourrierPanel", () => {
   it("affiche les bacs et propose les prospects sans conversation", async () => {
     render(<CourrierPanel state={state("beginner")} api={fakeApi()} />);
@@ -43,7 +62,7 @@ describe("CourrierPanel", () => {
 
   it("rend le texte du client en texte, jamais en HTML", async () => {
     const { container } = render(<CourrierPanel state={state("beginner")} api={fakeApi()} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     await screen.findByText(/<script>x<\/script>/);
     expect(container.querySelector("script")).toBeNull();
     expect(container.querySelector("b")).toBeNull();
@@ -54,7 +73,7 @@ describe("CourrierPanel", () => {
       detail: vi.fn(async () => detail({ brouillons: [{ id: "d1", parent_id: null, auteur: "agent", objet: null, corps: "Merci !", a_verifier: [], controles: [], action_id: null, created_at: "2026-01-01T00:00:00Z" }] })),
     });
     render(<CourrierPanel state={state("beginner")} api={api} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Utiliser ce brouillon" }));
     fireEvent.click(screen.getByRole("button", { name: "Envoyer (simulé)" }));
     expect(await screen.findByText("Rien n'est parti : client simulé.")).toBeTruthy();
@@ -63,7 +82,7 @@ describe("CourrierPanel", () => {
 
   it("affiche le coût max et le quota, et désactive à 5/5", async () => {
     render(<CourrierPanel state={state("beginner")} api={fakeApi({ detail: vi.fn(async () => detail({ quota_restant: { triage: 0, replier: 3 } })) })} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     expect(await screen.findByText(/Coût maximal 1 \$ · 5\/5 générations utilisées/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Résumer avec le trieur" })).toHaveProperty("disabled", true);
     expect(screen.getByText(/Coût maximal 2 \$ · 2\/5/)).toBeTruthy();
@@ -72,7 +91,7 @@ describe("CourrierPanel", () => {
   it("ROLE_LOCKED : message français et lien vers l'Accueil", async () => {
     const api = fakeApi({ triage: vi.fn(async () => { throw new ConvError("ROLE_LOCKED", "x", 409); }) });
     render(<CourrierPanel state={state("beginner")} api={api} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Résumer avec le trieur" }));
     const link = await screen.findByRole("link", { name: /Accueil et garage/ });
     expect(link.getAttribute("href")).toBe("/immeuble?etage=accueil");
@@ -80,13 +99,13 @@ describe("CourrierPanel", () => {
 
   it("désinscrit : envoi impossible", async () => {
     render(<CourrierPanel state={state("beginner")} api={fakeApi({ detail: vi.fn(async () => detail({ etat: "desinscrit" })) })} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     expect((await screen.findByRole("button", { name: "Envoyer (simulé)" })) as HTMLButtonElement).toHaveProperty("disabled", true);
   });
 
   it("Réel : pas de bouton d'envoi, explication", async () => {
     render(<CourrierPanel state={state("expert")} api={fakeApi()} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     expect(await screen.findByText(/pas encore disponible/)).toBeTruthy();
     expect(screen.queryByRole("button", { name: /Envoyer/ })).toBeNull();
   });
@@ -94,11 +113,37 @@ describe("CourrierPanel", () => {
   it("suppression avec confirmation intégrée", async () => {
     const api = fakeApi();
     render(<CourrierPanel state={state("beginner")} api={api} />);
-    fireEvent.click(await screen.findByRole("button", { name: "Acme" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
     fireEvent.click(await screen.findByRole("button", { name: "Supprimer la conversation" }));
     expect(api.remove).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Oui, supprimer" }));
     await waitFor(() => expect(api.remove).toHaveBeenCalledWith("c1"));
     expect(await screen.findByRole("heading", { name: "Salle du courrier" })).toBeTruthy();
+  });
+
+  it("affiche l'offre en $, le statut « à traiter » et la pastille nouveau", async () => {
+    render(<CourrierPanel state={state("beginner")} api={fakeApi()} />);
+    expect(await screen.findByText("18 $")).toBeTruthy();
+    expect(screen.getByText("À traiter")).toBeTruthy();
+    expect(screen.getByRole("img", { name: "Nouveau message" })).toBeTruthy();
+  });
+
+  it("accepter l'offre conclut la négociation et affiche la note de l'évaluateur, jamais bloquant", async () => {
+    const api = fakeApi();
+    render(<CourrierPanel state={state("beginner")} api={api} />);
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Accepter" }));
+    expect(await screen.findByText("Votre réponse : 72/100")).toBeTruthy();
+    expect(screen.getByText("Bon ton, restez ferme sur le délai.")).toBeTruthy();
+    expect(api.conclude).toHaveBeenCalledWith("c1", true);
+    // Le fil reste consultable et les autres actions ne sont pas bloquées par le retour de l'évaluateur.
+    expect(screen.getByRole("button", { name: "Résumer avec le trieur" })).toBeTruthy();
+  });
+
+  it("la contre-offre en un clic insère un message prérempli avec le montant", async () => {
+    render(<CourrierPanel state={state("beginner")} api={fakeApi()} />);
+    fireEvent.click(await screen.findByRole("button", { name: /Acme/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Insérer la contre-offre" }));
+    expect((screen.getByLabelText("Votre message") as HTMLTextAreaElement).value).toBe("Je vous propose plutôt 18 $.");
   });
 });

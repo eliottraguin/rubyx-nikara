@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { Brouillon, ConversationDetail, ConversationsApi } from "@/lib/api/conversations";
+import type { Brouillon, ConversationDetail, ConversationsApi, NegotiationEvaluation } from "@/lib/api/conversations";
 import { describeProblem, type CourrierProblem } from "./errors";
+import { initials } from "./negotiation";
 import { Problem } from "./Problem";
+import s from "./courrier.module.css";
 
 /** Coûts maximaux affichés avant l'action (data/rules/rules_v2.json : conversation_triage 1, conversation_reply 2). Le serveur reste maître. */
 export const TRIAGE_COST = 1;
@@ -44,11 +46,14 @@ export function ConversationView({ api, id, tutoriel, onChanged, onDeleted, onCl
   const [usedDraft, setUsedDraft] = useState<string | null>(null);
   const [sentNote, setSentNote] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [counterOffer, setCounterOffer] = useState("");
+  const [evaluation, setEvaluation] = useState<NegotiationEvaluation | null>(null);
 
   const load = useCallback(async () => {
     try {
       const det = await api.detail(id);
       setD(det);
+      setCounterOffer((prev) => (prev === "" && det.negotiation_offer_initial != null ? String(det.negotiation_offer_initial) : prev));
       const dr = latestDraft(det.brouillons);
       setDraftId((prev) => {
         if (dr && dr.id !== prev) setDraftText(dr.corps);
@@ -98,10 +103,20 @@ export function ConversationView({ api, id, tutoriel, onChanged, onDeleted, onCl
   const ouverte = d.etat === "ouverte";
   const draft = latestDraft(d.brouillons);
 
+  async function conclude(accepted: boolean) {
+    await run(accepted ? "accepter" : "refuser", async () => {
+      const r = await api.conclude(id, accepted);
+      setEvaluation(r.evaluation);
+    });
+  }
+
   return (
     <section className="card" aria-labelledby="conv-title">
       <div className="building-head">
         <h3 className="h3" id="conv-title">
+          <span className={s.avatar} aria-hidden="true">
+            {initials(d.entreprise)}
+          </span>{" "}
           {d.entreprise ?? "Prospect"}
         </h3>
         <button type="button" className="btn btn-small" onClick={onClose}>
@@ -111,6 +126,14 @@ export function ConversationView({ api, id, tutoriel, onChanged, onDeleted, onCl
       <p className="help">
         {d.statut_prospect ? `Statut : ${d.statut_prospect}. ` : ""}Réponses du client : {d.tours_client} sur {d.tours_client_max}.
       </p>
+      {d.negotiation_offer_initial != null ? (
+        <div className={s.offerCard} role="note" aria-label="Offre du client">
+          <span>
+            Offre du client : <span className={s.offerCardAmount}>{d.negotiation_offer_initial} $</span>
+          </span>
+          {d.negotiation_status === "acceptee" ? <span className={s.status}>Acceptée</span> : d.negotiation_status === "refusee" ? <span className={s.status}>Refusée</span> : null}
+        </div>
+      ) : null}
       {tutoriel ? (
         <p className="note note-info" role="note">
           {d.bandeau ?? "Client simulé : rien n'est envoyé hors du jeu."}
@@ -137,16 +160,62 @@ export function ConversationView({ api, id, tutoriel, onChanged, onDeleted, onCl
       {d.messages.length === 0 ? (
         <p className="help">Aucun message pour le moment. Écrivez le premier ci-dessous.</p>
       ) : (
-        <ol className="thread" aria-label="Fil de messages">
+        <ol className={s.thread} aria-label="Fil de messages" aria-live="polite">
           {d.messages.map((m) => (
-            <li key={m.id}>
-              <strong>{m.sens === "recu" ? "Le client" : "Vous"}</strong>
-              {m.sens === "envoye" && m.simule ? " (simulé, non envoyé)" : ""}
-              <p style={{ whiteSpace: "pre-wrap" }}>{m.text}</p>
+            <li key={m.id} className={`${s.bubbleRow} ${m.sens === "envoye" ? s.bubbleRowEnvoye : ""} ${m.sens === "recu" ? s.bubbleRecu : s.bubbleEnvoye}`}>
+              <div className={s.bubble}>
+                <strong className={s.bubbleWho}>
+                  {m.sens === "recu" ? "Le client" : "Vous"}
+                  {m.sens === "envoye" && m.simule ? " (simulé, non envoyé)" : ""}
+                </strong>
+                <p className={s.bubbleText}>{m.text}</p>
+              </div>
             </li>
           ))}
+          {evaluation ? (
+            <li className={s.evalCard} aria-label="Retour de l'évaluateur">
+              <p>
+                <span className={s.evalScore}>Votre réponse : {evaluation.score}/100</span>
+              </p>
+              <p className="help">{evaluation.feedback}</p>
+            </li>
+          ) : null}
         </ol>
       )}
+
+      {d.negotiation_offer_initial != null && d.negotiation_status !== "acceptee" && d.negotiation_status !== "refusee" ? (
+        <p className={s.conclude} role="group" aria-label="Négociation">
+          <label htmlFor="counter-offer" className="help">
+            Contre-offre
+          </label>
+          <input
+            id="counter-offer"
+            type="number"
+            min={0}
+            style={{ width: "6rem" }}
+            value={counterOffer}
+            onChange={(e) => setCounterOffer(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn btn-small"
+            disabled={!counterOffer.trim()}
+            onClick={() => {
+              setCompose(`Je vous propose plutôt ${counterOffer.trim()} $.`);
+              setUsedDraft(null);
+              setSentNote(null);
+            }}
+          >
+            Insérer la contre-offre
+          </button>
+          <button type="button" className="btn btn-small btn-primary" disabled={busy !== null || d.messages.length === 0} onClick={() => void conclude(true)}>
+            {busy === "accepter" ? "…" : "Accepter"}
+          </button>
+          <button type="button" className="btn btn-small" disabled={busy !== null || d.messages.length === 0} onClick={() => void conclude(false)}>
+            {busy === "refuser" ? "…" : "Refuser"}
+          </button>
+        </p>
+      ) : null}
 
       <h4 className="h4">Synthèse du trieur</h4>
       {d.synthese ? (

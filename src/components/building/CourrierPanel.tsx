@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createConversationsApi, type Bac, type Conversation, type ConversationList, type ConversationsApi, type ProspectChoice } from "@/lib/api/conversations";
 import type { GameState } from "@/lib/api/types";
+import { ConversationList as ConversationListView } from "./courrier/ConversationList";
 import { ConversationView } from "./courrier/ConversationView";
 import { describeProblem, type CourrierProblem } from "./courrier/errors";
 import { Problem } from "./courrier/Problem";
+import s from "./courrier/courrier.module.css";
 
 const BACS: { id: Bac; label: string }[] = [
   { id: "a_traiter", label: "À traiter" },
@@ -23,7 +25,8 @@ export interface CourrierPanelProps {
 }
 
 /**
- * Salle du courrier (section Clients) : une conversation par prospect du carnet, synthèse `triage`, brouillon `replier`.
+ * Salle du courrier (section Clients) : une conversation par prospect du carnet. Message automatique à l'arrivée du
+ * client (offre en $), négociation (contre-offre en un clic), retour de l'évaluateur à la conclusion.
  * Tutoriel : clients simulés, envoi simulé. Réel : aucun envoi (jalon O). Tout texte reçu ou généré est rendu en texte.
  */
 export function CourrierPanel({ state, api: injected, initialConversationId = null }: CourrierPanelProps) {
@@ -72,23 +75,6 @@ export function CourrierPanel({ state, api: injected, initialConversationId = nu
     }
   }
 
-  if (openId) {
-    return (
-      <ConversationView
-        key={openId}
-        api={api}
-        id={openId}
-        tutoriel={tutoriel}
-        onChanged={() => void refresh()}
-        onDeleted={() => {
-          setOpenId(null);
-          void refresh();
-        }}
-        onClose={() => setOpenId(null)}
-      />
-    );
-  }
-
   return (
     <section className="card" aria-labelledby="courrier-title">
       <h2 className="h3" id="courrier-title">
@@ -107,48 +93,69 @@ export function CourrierPanel({ state, api: injected, initialConversationId = nu
         ))}
       </div>
 
-      <h3 className="h4">Conversations</h3>
-      {!list ? (
-        problem ? null : <p className="help">Chargement…</p>
-      ) : shown.length === 0 ? (
-        <p className="help">{list.items.length === 0 ? "Aucune conversation pour le moment." : "Aucune conversation dans ce bac."}</p>
-      ) : (
-        <ul aria-label="Liste des conversations">
-          {shown.map((c) => (
-            <li key={c.id}>
-              <button type="button" className="btn btn-small" onClick={() => setOpenId(c.id)}>
-                {c.entreprise ?? "Prospect"}
-              </button>{" "}
-              <span className="help">
-                {BACS.find((b) => b.id === c.bac)?.label}
-                {c.etat === "desinscrit" ? " · désinscrit" : ""}
+      <div className={s.layout}>
+        <div>
+          <h3 className="h4">Conversations</h3>
+          {!list ? (
+            problem ? null : <p className="help">Chargement…</p>
+          ) : shown.length === 0 ? (
+            <div className={s.emptyState}>
+              <span className={s.emptyIcon} aria-hidden="true">
+                📬
               </span>
-            </li>
-          ))}
-        </ul>
-      )}
+              <p className="help">{list.items.length === 0 ? "Aucune conversation pour le moment : contactez un prospect depuis les Archives." : "Aucune conversation dans ce bac."}</p>
+            </div>
+          ) : (
+            <ConversationListView items={shown} openId={openId} onOpen={setOpenId} />
+          )}
 
-      <h3 className="h4">Ouvrir une conversation</h3>
-      {list && prospects.length === 0 ? (
-        <p className="help">Votre carnet est vide : ajoutez des prospects depuis un rapport (Archives) pour discuter avec eux.</p>
-      ) : available.length === 0 && list ? (
-        <p className="help">Tous les prospects du carnet ont déjà une conversation.</p>
-      ) : (
-        <p>
-          <label htmlFor="courrier-prospect">Prospect du carnet </label>
-          <select id="courrier-prospect" value={pick} onChange={(e) => setPick(e.target.value)}>
-            <option value="">Choisir…</option>
-            {available.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.entreprise}
-              </option>
-            ))}
-          </select>{" "}
-          <button type="button" className="btn btn-small btn-primary" disabled={!pick || creating} onClick={() => void open()}>
-            Ouvrir
-          </button>
-        </p>
-      )}
+          <h3 className="h4">Ouvrir une conversation</h3>
+          {list && prospects.length === 0 ? (
+            <p className="help">Votre carnet est vide : ajoutez des prospects depuis un rapport (Archives) pour discuter avec eux.</p>
+          ) : available.length === 0 && list ? (
+            <p className="help">Tous les prospects du carnet ont déjà une conversation.</p>
+          ) : (
+            <p>
+              <label htmlFor="courrier-prospect">Prospect du carnet </label>
+              <select id="courrier-prospect" value={pick} onChange={(e) => setPick(e.target.value)}>
+                <option value="">Choisir…</option>
+                {available.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.entreprise}
+                  </option>
+                ))}
+              </select>{" "}
+              <button type="button" className="btn btn-small btn-primary" disabled={!pick || creating} onClick={() => void open()}>
+                Ouvrir
+              </button>
+            </p>
+          )}
+        </div>
+
+        <div>
+          {openId ? (
+            <ConversationView
+              key={openId}
+              api={api}
+              id={openId}
+              tutoriel={tutoriel}
+              onChanged={() => void refresh()}
+              onDeleted={() => {
+                setOpenId(null);
+                void refresh();
+              }}
+              onClose={() => setOpenId(null)}
+            />
+          ) : (
+            <div className={s.emptyState}>
+              <span className={s.emptyIcon} aria-hidden="true">
+                ✉️
+              </span>
+              <p className="help">Choisissez une conversation pour lire le fil et négocier.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
