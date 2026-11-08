@@ -50,6 +50,11 @@ export class MapBus {
   /** Largeur (px) du panneau latéral en surimpression : la caméra décale son cadrage pour garder le lieu visible. */
   insetRight = 0;
   trips: Trip[] = [];
+  /**
+   * Posé par la scène : dézoom animé de la ville (logout). Résolu à la fin ; `null` si la scène n'en a pas (Phaser)
+   * ou n'existe plus. L'appelant ne doit jamais en dépendre pour naviguer (course contre un délai).
+   */
+  farewell: (() => Promise<void>) | null = null;
   private handlers = new Map<keyof MapEvents, Set<(...a: never[]) => void>>();
 
   on<K extends keyof MapEvents>(event: K, fn: Handler<K>): () => void {

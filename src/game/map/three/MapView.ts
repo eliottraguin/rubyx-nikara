@@ -106,6 +106,7 @@ export class MapView {
     this.bindBus();
     this.bindPointer();
     this.city.start();
+    bus.farewell = () => this.farewell();
     if (bus.vm) this.applyVM(bus.vm);
     this.applySelected(bus.selectedId);
     bus.emit("scene:ready");
@@ -199,6 +200,15 @@ export class MapView {
     void this.city.zoomToDistrict({ target: { x: t.group.position.x, z: t.group.position.z }, zoom });
   }
 
+  /**
+   * Dézoom au logout : la caméra remonte à la vue très haute (zoom 1) de la scène de connexion, avec la même
+   * animation (`zoomToDistrict`, raccourcie en animations réduites). Ne navigue pas : l'appelant enchaîne.
+   */
+  private farewell(): Promise<void> {
+    const land = LAYOUT.land;
+    return this.city.zoomToDistrict({ target: { x: land.x + land.w / 2, z: land.y + land.h / 2 }, zoom: 1 });
+  }
+
   // --- Scène -> React (intentions seulement) -------------------------------------------------------------------
 
   private bindPointer(): void {
@@ -277,6 +287,7 @@ export class MapView {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.bus.farewell = null;
     for (const off of this.unsubs) off();
     for (const fn of this.cleanups) fn();
     this.pickables.clear();
