@@ -24,6 +24,8 @@ interface SceneState {
 
 export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
   const stateRef = useRef<SceneState | null>(null);
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -133,10 +135,13 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
 
         // Create planet/location buildings
         vm.planets.forEach((planet, index) => {
-          const x = (Math.random() - 0.5) * 40 + 5 * Math.cos((index / vm.planets.length) * Math.PI * 2);
-          const z = (Math.random() - 0.5) * 40 + 5 * Math.sin((index / vm.planets.length) * Math.PI * 2);
-
-          const geometry = new THREE.BoxGeometry(3, 6 + Math.random() * 4, 3);
+          // Disposition déterministe en anneau (aucun aléa : même état => même ville).
+          const angle = (index / Math.max(vm.planets.length, 1)) * Math.PI * 2;
+          const radius = 16 + (index % 2) * 6;
+          const x = radius * Math.cos(angle);
+          const z = radius * Math.sin(angle);
+          const height = 4 + Math.min(planet.floors ?? 3, 8);
+          const geometry = new THREE.BoxGeometry(3, height, 3);
 
           // Color based on status
           let color = 0x888888; // default gray
@@ -151,7 +156,7 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
             roughness: 0.7,
           });
           const mesh = new THREE.Mesh(geometry, material);
-          mesh.position.set(x, 3 + (geometry.parameters.height as number) / 2, z);
+          mesh.position.set(x, height / 2, z);
           mesh.castShadow = true;
           mesh.receiveShadow = true;
           mesh.userData.id = planet.id;
@@ -163,8 +168,8 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
       // Mouse interaction
       function onMouseClick(event: MouseEvent) {
         const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(
@@ -181,8 +186,8 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
 
       function onMouseMove(event: MouseEvent) {
         const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / height) * 2 + 1;
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(
@@ -223,6 +228,12 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
         updateBuildings(vm);
       });
 
+      const unsubSel = bus.on('selected', (id) => {
+        buildings.forEach((m, key) => {
+          (m.material as THREE.MeshStandardMaterial).emissive.setHex(key === id ? 0x333333 : 0x000000);
+        });
+      });
+
       // Initial state
       if (bus.vm) {
         updateBuildings(bus.vm);
@@ -249,19 +260,20 @@ export function CityScene({ containerRef, bus, onError }: CitySceneProps) {
           renderer.domElement.removeEventListener('mousemove', onMouseMove);
           cancelAnimationFrame(animationFrameId);
           unsubVM();
+          unsubSel();
           container.removeChild(renderer.domElement);
           renderer.dispose();
         },
       };
     } catch (e) {
-      onError(e instanceof Error ? e.message : 'Unknown error');
+      onErrorRef.current(e instanceof Error ? e.message : 'Unknown error');
     }
 
     return () => {
       stateRef.current?.dispose();
       stateRef.current = null;
     };
-  }, [containerRef, bus, onError]);
+  }, [containerRef, bus]);
 
   return null;
 }
