@@ -15,12 +15,12 @@ Je n'ai lancé ni `pnpm test`, ni `typecheck`, ni `lint`, ni `build` pour cette 
 
 ## 2. Parcours manuel (humain, navigateur avec WebGL et GPU)
 
-Préparation : back-end et front lancés selon `README.md`. Compte `qa-seed` : identifiants dans `api/var/qa-accounts.json` (fichier 0600, hors dépôt). Ne les copiez ni dans le dépôt ni dans un commentaire. Si le compte `qa-seed` n'y figure pas, regarder les comptes présents (le code de `qa_seed.py` crée `qa-vierge`, `qa-debutant`, `qa-expert`) : **écart de nom à confirmer**.
+Préparation : back-end et front lancés selon `README.md`. `qa-seed` est la **commande** (`uv run python -m app.cli qa-seed`, depuis `api/`) qui crée les comptes de test ; ce n'est pas un identifiant de connexion. Comptes créés : `qa-vierge` (sans entreprise), `qa-debutant`, `qa-expert` (adresses `@qa.rubix.test`). Mots de passe : `api/var/qa-accounts.json` (fichier 0600, hors dépôt). Ne les copiez ni dans le dépôt ni dans un commentaire.
 Deux passes complètes : **A** sans variable (moteur DOM, défaut) ; **B** avec `NEXT_PUBLIC_BUILDING_ENGINE=three` (variable lue au build/démarrage : relancer `pnpm dev`). Ouvrir DevTools (console + Performance) dans les deux passes.
 
 | # | Action | Résultat attendu (A et B sauf mention) |
 |---|---|---|
-| 1 | Ouvrir `/connexion`, se connecter avec `qa-seed` | Décor de ville animé derrière le formulaire. Pas d'erreur console. Message d'erreur lisible si mauvais mot de passe. |
+| 1 | Ouvrir `/connexion`, se connecter avec `qa-debutant` (puis refaire avec `qa-vierge` et `qa-expert` si besoin) | Décor de ville animé derrière le formulaire. Pas d'erreur console. Message d'erreur lisible si mauvais mot de passe. |
 | 2 | Valider | Zoom caméra sur un quartier (`zoomToDistrict`), puis navigation. Compte avec partie → `/carte` ; sans partie → `/creer` (`LoginScreen.tsx:40`). |
 | 3 | Sur `/carte` | Ville Three.js affichée (moteur carte = three par défaut), HUD (coffre, garage), liste de lieux, bots animés. Aucune erreur WebGL. |
 | 4 | Souris : glisser, molette, boutons ±, touche H | Rotation, zoom, recentrage sur l'immeuble. |
